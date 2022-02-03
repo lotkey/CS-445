@@ -31,13 +31,20 @@ void yyerror(const char *msg)
 %}
 
 // this is included in the tab.h file
-// so scanType.h must be included before the tab.h file!!!!
+// so scanType.hpp must be included before the tab.h file!!!!
 %union {
     TokenData *tokenData;
     double value;
 }
 
-%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST TOKEN KEYWORD
+%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST
+%token WHILE IF FOR TO RETURN BREAK BY DO
+%token NOT AND OR
+%token ADD RAND MUL DIV MOD SUB ASGN ADDASGN SUBASGN MULASGN DIVASGN
+%token THEN ELSE BGN END
+%token RPAREN LPAREN RBRACK LBRACK
+%token STATIC TYPESPEC 
+%token SEMI LT LEQ GT GEQ EQ NEQ INC DEC COL COM
 
 %%
 
@@ -50,55 +57,54 @@ declList            : declList decl | decl
 decl                : varDecl | funDecl
                     ;
 
-varDecl             : typeSpec varDeclList ";"
+varDecl             : TYPESPEC varDeclList SEMI
                     ;
 
-scopedVarDecl       : "static" typeSpec varDeclList ";"
-                    | typeSpec varDeclList ";"
+scopedVarDecl       : STATIC TYPESPEC varDeclList SEMI
+                    | TYPESPEC varDeclList SEMI
                     ;
 
-varDeclList         : varDeclList "," varDeclInit | varDeclInit
+varDeclList         : varDeclList COM varDeclInit | varDeclInit
                     ;
 
 varDeclInit         : varDeclId
-                    | varDeclId ":" simpleExp
+                    | varDeclId COL simpleExp
                     ;
                 
-varDeclId           : ID | ID "[" NUMCONST "]"
+varDeclId           : ID | ID LBRACK NUMCONST RBRACK
                     ;
 
-typeSpec            : "bool" | "char" | "int"
+funDecl             : TYPESPEC ID LPAREN parms RPAREN compoundStmt
+                    | ID LPAREN parms RPAREN compoundStmt
                     ;
 
-funDecl             : typeSpec ID "(" parmList ")" compoundStmt
-                    | ID "(" parmList ")" compoundStmt
-                    | typeSpec ID "(" ")" compoundStmt
-                    | ID "(" ")" compoundStmt
+parms               : 
+                    | parmList
                     ;
 
-parmList            : parmList ";" parmTypeList | parmTypeList
+parmList            : parmList SEMI parmTypeList | parmTypeList
                     ;
 
-parmTypeList        : typeSpec parmIdList
+parmTypeList        : TYPESPEC parmIdList
                     ;
 
-parmIdList          : parmIdList "," parmId | parmId
+parmIdList          : parmIdList COM parmId | parmId
                     ;
 
-parmId              : ID | ID "[" "]"
+parmId              : ID | ID LBRACK RBRACK
                     ;
 
 stmt                : expStmt | compoundStmt | returnStmt 
                     | breakStmt | closedStmt | openStmt
                     ;
 
-expStmt             : exp ";" | ";"
+expStmt             : exp SEMI | SEMI
                     ;
 
-compoundStmt        : "begin" localDecls stmtList "end"
-                    | "begin" stmtList "end"
-                    | "begin" localDecls "end"
-                    | "begin" "end"
+compoundStmt        : BGN localDecls stmtList END
+                    | BGN stmtList END
+                    | BGN localDecls END
+                    | BGN END
                     ;
 
 localDecls          : localDecls scopedVarDecl
@@ -113,87 +119,87 @@ closedStmt          : selectStmtClosed | iterStmtClosed
 openStmt            : selectStmtOpen | iterStmtOpen
                     ;
 
-selectStmtOpen      : "if" simpleExp "then" closedStmt
-                    | "if" simpleExp "then" openStmt
-                    | "if" simpleExp "then" closedStmt "else" openStmt
+selectStmtOpen      : IF simpleExp THEN closedStmt
+                    | IF simpleExp THEN openStmt
+                    | IF simpleExp THEN closedStmt ELSE openStmt
                     ;
 
-selectStmtClosed    : "if" simpleExp "then" closedStmt "else" closedStmt
+selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt
                     | expStmt | compoundStmt | returnStmt | breakStmt
                     ;
 
-iterStmtOpen        : "while" simpleExp "do" openStmt
-                    | "for" ID "<-" iterRange "do" openStmt
+iterStmtOpen        : WHILE simpleExp DO openStmt
+                    | FOR ID ASGN iterRange DO openStmt
                     ;
 
-iterStmtClosed      : "while" simpleExp "do" closedStmt
-                    | "for" ID "<-" iterRange "do" closedStmt
+iterStmtClosed      : WHILE simpleExp DO closedStmt
+                    | FOR ID ASGN iterRange DO closedStmt
                     ;
 
-iterRange           : simpleExp "to" simpleExp
-                    | simpleExp "to" simpleExp "by" simpleExp
+iterRange           : simpleExp TO simpleExp
+                    | simpleExp TO simpleExp BY simpleExp
                     ;
 
-returnStmt          : "return" ";" | "return" exp ";"
+returnStmt          : RETURN SEMI | RETURN exp SEMI
                     ;
 
-breakStmt           : "break" ";"
+breakStmt           : BREAK SEMI
                     ;
 
 exp                 : mutable assignop exp
-                    | mutable "++" | mutable "--" | simpleExp
+                    | mutable INC | mutable DEC | simpleExp
                     ;
 
-assignop            : "<-" | "+=" | "-=" | "/=" | "*-"
+assignop            : ASGN | ADDASGN | SUBASGN | DIVASGN | MULASGN
                     ;
 
-simpleExp           : simpleExp "or" andExp | andExp
+simpleExp           : simpleExp OR andExp | andExp
                     ;
 
-andExp              : andExp "and" unaryRelExp | unaryRelExp
+andExp              : andExp AND unaryRelExp | unaryRelExp
                     ;
 
-unaryRelExp         : "not" unaryRelExp | relExp
+unaryRelExp         : NOT unaryRelExp | relExp
                     ;
 
 relExp              : sumExp relop sumExp | sumExp
                     ;
 
-relop               : "<" | "<=" | ">" | ">=" | "=" | "!="
+relop               : LT | LEQ | GT | GEQ | EQ | NEQ
                     ;
 
 sumExp              : sumExp sumop mulExp | mulExp
                     ;
 
-sumop               : "+" | "-"
+sumop               : ADD | SUB
                     ;
 
 mulExp              : mulExp mulop unaryExp | unaryExp
                     ;
 
-mulop               : "*" | "/" | "%"
+mulop               : MUL | DIV | MOD
                     ;
 
 unaryExp            : unaryop unaryExp | factor
                     ;
 
-unaryop             : "-" | "*" | "?"
+unaryop             : SUB | MUL | RAND
                     ;
 
 factor              : mutable | immutable
                     ;
 
-mutable             : ID | ID "[" exp "]"
+mutable             : ID | ID LBRACK exp RBRACK
                     ;
 
-immutable           : "(" exp ")" | call | constant
+immutable           : LPAREN exp RPAREN | call | constant
                     ;
 
-call                : ID "(" argList ")"
-                    | ID "(" ")"
+call                : ID LPAREN argList RPAREN
+                    | ID LPAREN RPAREN
                     ;
 
-argList             : argList "," exp | exp
+argList             : argList COM exp | exp
                     ;
 
 constant            : NUMCONST | CHARCONST | STRINGCONST | BOOLCONST
