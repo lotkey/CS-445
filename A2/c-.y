@@ -70,11 +70,10 @@ varDeclId           : ID | ID "[" NUMCONST "]"
 typeSpec            : "bool" | "char" | "int"
                     ;
 
-funDecl             : typeSpec ID "(" parms ")" compoundStmt
-                    | ID "(" parms ")" compoundStmt
-                    ;
-
-parms               : | parmList
+funDecl             : typeSpec ID "(" parmList ")" compoundStmt
+                    | ID "(" parmList ")" compoundStmt
+                    | typeSpec ID "(" ")" compoundStmt
+                    | ID "(" ")" compoundStmt
                     ;
 
 parmList            : parmList ";" parmTypeList | parmTypeList
@@ -97,12 +96,15 @@ expStmt             : exp ";" | ";"
                     ;
 
 compoundStmt        : "begin" localDecls stmtList "end"
+                    | "begin" stmtList "end"
+                    | "begin" localDecls "end"
+                    | "begin" "end"
                     ;
 
-localDecls          : | localDecls scopedVarDecl
+localDecls          : localDecls scopedVarDecl
                     ;
 
-stmtList            : | stmtList stmt
+stmtList            : stmtList stmt
                     ;
 
 closedStmt          : selectStmtClosed | iterStmtClosed
@@ -187,10 +189,8 @@ mutable             : ID | ID "[" exp "]"
 immutable           : "(" exp ")" | call | constant
                     ;
 
-call                : ID "(" args ")"
-                    ;
-
-args                : | argList
+call                : ID "(" argList ")"
+                    | ID "(" ")"
                     ;
 
 argList             : argList "," exp | exp
