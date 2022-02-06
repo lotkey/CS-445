@@ -78,8 +78,7 @@ funDecl             : TYPESPEC ID LPAREN parms RPAREN compoundStmt
                     | ID LPAREN parms RPAREN compoundStmt
                     ;
 
-parms               : 
-                    | parmList
+parms               : | parmList
                     ;
 
 parmList            : parmList SEMI parmTypeList | parmTypeList
@@ -94,26 +93,23 @@ parmIdList          : parmIdList COM parmId | parmId
 parmId              : ID | ID LBRACK RBRACK
                     ;
 
-stmt                : expStmt | compoundStmt | returnStmt 
-                    | breakStmt | closedStmt | openStmt
+stmt                : closedStmt | openStmt
                     ;
 
 expStmt             : exp SEMI | SEMI
                     ;
 
 compoundStmt        : BGN localDecls stmtList END
-                    | BGN stmtList END
-                    | BGN localDecls END
-                    | BGN END
                     ;
 
-localDecls          : localDecls scopedVarDecl
+localDecls          : | localDecls scopedVarDecl
                     ;
 
-stmtList            : stmtList stmt
+stmtList            : | stmtList stmt
                     ;
 
 closedStmt          : selectStmtClosed | iterStmtClosed
+                    | expStmt | compoundStmt | returnStmt | breakStmt
                     ;
 
 openStmt            : selectStmtOpen | iterStmtOpen
@@ -125,7 +121,6 @@ selectStmtOpen      : IF simpleExp THEN closedStmt
                     ;
 
 selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt
-                    | expStmt | compoundStmt | returnStmt | breakStmt
                     ;
 
 iterStmtOpen        : WHILE simpleExp DO openStmt
