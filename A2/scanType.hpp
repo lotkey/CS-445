@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AST/AST_node.hpp"
+
 #include <string>
 
 struct TokenData {
