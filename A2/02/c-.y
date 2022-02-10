@@ -21,6 +21,7 @@ extern int yylex();
 extern FILE *yyin;
 extern int line;         // ERR line number from the scanner!!
 extern int numErrors;    // ERR err count
+extern std::vector<TokenData*> tokens;
 AST_node* tree_root;
 
 #define YYERROR_VERBOSE
@@ -35,20 +36,22 @@ void yyerror(const char *msg)
 // this is included in the tab.h file
 // so scanType.hpp must be included before the tab.h file!!!!
 %union {
+    Type::ExpressionType type;
     AST_node *node;
     TokenData *tokenData;
     double value;
 }
 
-%token <node> WHILE IF FOR TO RETURN BREAK BY DO
-%token <node> NOT AND OR
-%token <node> ADD RAND MUL DIV MOD SUB ASGN ADDASGN SUBASGN MULASGN DIVASGN
-%token <node> THEN ELSE BGN END
-%token <node> RPAREN LPAREN RBRACK LBRACK
-%token <node> STATIC INT BOOL CHAR 
-%token <node> SEMI LT LEQ GT GEQ EQ NEQ INC DEC COL COM
-%token <node> ID NUMCONST CHARCONST STRINGCONST BOOLCONST
+%token <tokenData> WHILE IF FOR TO RETURN BREAK BY DO
+%token <tokenData> NOT AND OR
+%token <tokenData> ADD RAND MUL DIV MOD SUB ASGN ADDASGN SUBASGN MULASGN DIVASGN
+%token <tokenData> THEN ELSE BGN END
+%token <tokenData> RPAREN LPAREN RBRACK LBRACK
+%token <tokenData> STATIC
+%token <tokenData> SEMI LT LEQ GT GEQ EQ NEQ INC DEC COL COM
+%token <type> INT BOOL CHAR 
 
+%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST
 %type <node> program
 %type <node> declList
 %type <node> decl
@@ -57,7 +60,7 @@ void yyerror(const char *msg)
 %type <node> varDeclList
 %type <node> varDeclInit
 %type <node> varDeclId
-%type <node> typeSpec
+%type <type> typeSpec
 %type <node> funDecl
 %type <node> parms
 %type <node> parmList
@@ -103,7 +106,6 @@ void yyerror(const char *msg)
 
 program             : declList
                     {
-                        std::cout << "program:declList\n";
                         $$ = $1;
                         tree_root = $$;
                     }
@@ -111,31 +113,39 @@ program             : declList
 
 declList            : declList decl
                     {
-                        std::cout << "declList:declList decl\n";
                         $$ = $1;
                         $$->add_sibling($2);
                     }
                     | decl
                     {
-                        std::cout << "declList:decl\n";
                         $$ = $1;
                     }
                     ;
 
 decl                : varDecl
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | funDecl
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 varDecl             : typeSpec varDeclList SEMI
-                    { $$ = $2; }
+                    {
+                        $$ = $2;
+					}
                     ;
 
 scopedVarDecl       : STATIC typeSpec varDeclList SEMI
-                    { $$ = $3; }
+                    {
+                        $$ = $3;
+					}
                     | typeSpec varDeclList SEMI
-                    { $$ = $3; }
+                    {
+                        $$ = $2;
+					}
                     ;
 
 varDeclList         : varDeclList COM varDeclInit
@@ -144,15 +154,19 @@ varDeclList         : varDeclList COM varDeclInit
                         $$->add_sibling($3);
                     }
                     | varDeclInit
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 varDeclInit         : varDeclId
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | varDeclId COL simpleExp
                     {
                         $$ = $1;
-                        $$->add_sibling($3);
+                        $$->add_child($3);
                     }
                     ;
                 
@@ -166,36 +180,59 @@ varDeclId           : ID
                     }
                     ;
 
-typeSpec            : BOOL | CHAR | INT
+typeSpec            : BOOL
+                    {
+                        $$ = Type::ExpressionType::Boolean;
+                    }
+                    | CHAR
+                    {
+                        $$ = Type::ExpressionType::Char;
+                    }
+                    | INT
+                    {
+                        $$ = Type::ExpressionType::Integer;
+                    }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt
                     {
                         $$ = new AST_node(Type::Declaration::Function);
+                        $$->add_child($4);
+                        $$->add_child($6);
                     }
                     | ID LPAREN parms RPAREN compoundStmt
                     {
                         $$ = new AST_node(Type::Declaration::Function);
+                        $$->add_child($3);
+                        $$->add_child($5);
                     }
                     ;
 
 parms               :
-                    { $$ = nullptr; }
+                    {
+                        $$ = nullptr;
+					}
                     | parmList
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 parmList            : parmList SEMI parmTypeList
                     {
                         $$ = $1;
-                        $1->add_sibling($3);
+                        $$->add_sibling($3);
                     }
                     | parmTypeList
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 parmTypeList        : typeSpec parmIdList
-                    { $$ = $2; }
+                    {
+                        $$ = $2;
+					}
                     ;
 
 parmIdList          : parmIdList COM parmId
@@ -204,25 +241,39 @@ parmIdList          : parmIdList COM parmId
                         $$->add_sibling($3);
                     }
                     | parmId
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 parmId              : ID
-                    { $$ = $1; }
+                    {
+                        $$ = new AST_node(Type::Declaration::Parameter);
+					}
                     | ID LBRACK RBRACK
-                    { $$ = $1; }
+                    {
+                        $$ = new AST_node(Type::Declaration::Parameter);
+					}
                     ;
 
 stmt                : closedStmt
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | openStmt
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 expStmt             : exp SEMI
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | SEMI
-                    { $$ = nullptr; }
+                    {
+                        $$ = nullptr;
+					}
                     ;
 
 compoundStmt        : BGN localDecls stmtList END
@@ -234,41 +285,69 @@ compoundStmt        : BGN localDecls stmtList END
                     ;
 
 localDecls          :
-                    { $$ = nullptr; }
+                    {
+                        $$ = nullptr;
+					}
                     | localDecls scopedVarDecl
                     {
-                        $$ = $1;
-                        $$->add_sibling($2);
+                        if ($1 == nullptr) {
+                            $$ = $2;
+                        } else {
+                            $$ = $1;
+                            $$->add_sibling($2);
+                        }
                     }
                     ;
 
 stmtList            :
-                    { $$ = nullptr; }
+                    {
+                        $$ = nullptr;
+					}
                     | stmtList stmt
                     {
-                        $$ = $1;
-                        $$->add_sibling($2);
+                        if ($1 == nullptr) {
+                            $$ = $2;
+                        } else {
+                            $$ = $1;
+                            $$->add_sibling($2);
+                        }
                     }
                     ;
 
 closedStmt          : selectStmtClosed
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | iterStmtClosed
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | expStmt
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | compoundStmt
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | returnStmt 
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | breakStmt
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 openStmt            : selectStmtOpen
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | iterStmtOpen
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 selectStmtOpen      : IF simpleExp THEN closedStmt
@@ -280,13 +359,13 @@ selectStmtOpen      : IF simpleExp THEN closedStmt
                     | IF simpleExp THEN openStmt
                     {
                         $$ = new AST_node(Type::Statement::Select);
-                        $$->add_child(2);
+                        $$->add_child($2);
                         $$->add_child($4);
                     }
                     | IF simpleExp THEN closedStmt ELSE openStmt
                     {
                         $$ = new AST_node(Type::Statement::Select);
-                        $$->add_child(2);
+                        $$->add_child($2);
                         $$->add_child($4);
                         $$->add_child($6);
                     }
@@ -303,13 +382,14 @@ selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt
 
 iterStmtOpen        : WHILE simpleExp DO openStmt
                     {
-                        $$ = new AST_node(Type::Statement::Iterative);
-                        $$->add_child($2);
+                        $$ = new AST_node(Type::Statement::While);
+                        $$->add_child(new AST_node(Type::Expression::Id));
                         $$->add_child($4);
                     }
                     | FOR ID ASGN iterRange DO openStmt
                     {
                         $$ = new AST_node(Type::Statement::Iterative);
+                        $$->add_child(new AST_node(Type::Expression::Id));
                         $$->add_child($4);
                         $$->add_child($6);
                     }
@@ -317,13 +397,14 @@ iterStmtOpen        : WHILE simpleExp DO openStmt
 
 iterStmtClosed      : WHILE simpleExp DO closedStmt
                     {
-                        $$ = new AST_node(Type::Statement::Iterative);
-                        $$->add_child($2);
+                        $$ = new AST_node(Type::Statement::While);
+                        $$->add_child(new AST_node(Type::Expression::Id));
                         $$->add_child($4);
                     }
                     | FOR ID ASGN iterRange DO closedStmt
                     {
                         $$ = new AST_node(Type::Statement::Iterative);
+                        $$->add_child(new AST_node(Type::Expression::Id));
                         $$->add_child($4);
                         $$->add_child($6);
                     }
@@ -331,14 +412,16 @@ iterStmtClosed      : WHILE simpleExp DO closedStmt
 
 iterRange           : simpleExp TO simpleExp
                     {
-                        $$ = $1;
-                        $$->add_sibling($3);
+                        $$ = new AST_node(Type::Expression::Range);
+                        $$->add_child($1);
+                        $$->add_child($3);
                     }
                     | simpleExp TO simpleExp BY simpleExp
                     {
-                        $$ = $1;
-                        $$->add_sibling($3);
-                        $$->add_sibling($5);
+                        $$ = new AST_node(Type::Expression::Range);
+                        $$->add_child($1);
+                        $$->add_child($3);
+                        $$->add_child($5);
                     }
                     ;
 
@@ -361,45 +444,58 @@ breakStmt           : BREAK SEMI
 
 exp                 : mutable assignop exp
                     {
-                        $$ = new AST_node(Type::Expression::Assign);
+                        $$ = $2;
                         $$->add_child($1);
-                        $$->add_child($2);
                         $$->add_child($3);
                     }
                     | mutable INC
                     {
-                        $$ = new AST_node(Type::Expression::Increment);
-                        $$->add_child($1);
+                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = $1;
                     }
                     | mutable DEC
                     {
-                        $$ = new AST_node(Type::Expression::Decrement);
-                        $$->add_child($1); 
+                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = $1;
                     }
                     | simpleExp
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 assignop            : ASGN
-                    { $$ = new AST_node(Type::Expression::Assign); }
+                    {
+                        $$ = new AST_node(Type::Statement::Assign);
+					}
                     | ADDASGN
-                    { $$ = new AST_node(Type::Expression::Assign); }
+                    {
+                        $$ = new AST_node(Type::Statement::Assign);
+					}
                     | SUBASGN
-                    { $$ = new AST_node(Type::Expression::Assign); }
+                    {
+                        $$ = new AST_node(Type::Statement::Assign);
+					}
                     | DIVASGN
-                    { $$ = new AST_node(Type::Expression::Assign); }
+                    {
+                        $$ = new AST_node(Type::Statement::Assign);
+					}
                     | MULASGN
-                    { $$ = new AST_node(Type::Expression::Assign); }
+                    {
+                        $$ = new AST_node(Type::Statement::Assign);
+					}
                     ;
 
 simpleExp           : simpleExp OR andExp
                     {
-                        $$ = new AST_node(Type::Expression::Simple);
+                        $$ = new AST_node(Type::Expression::Or);
                         $$->add_child($1);
-                        $$->add_child($3);           
+                        $$->add_child($3);
                     }
                     | andExp
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 andExp              : andExp AND unaryRelExp
@@ -409,156 +505,206 @@ andExp              : andExp AND unaryRelExp
                         $$->add_child($3);
                     }
                     | unaryRelExp
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 unaryRelExp         : NOT unaryRelExp
                     {
-                        $$ = new AST_node(Type::Expression::UnaryRelation);
+                        $$ = new AST_node(Type::Expression::UnaryOperator);
                         $$->add_child($2);
                     }
                     | relExp
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 relExp              : sumExp relop sumExp
                     {
-                        $$ = new AST_node(Type::Expression::UnaryRelation);
+                        $$ = $2;
+                        $$->add_child($1);
+                        $$->add_child($3);
                     }
                     | sumExp
-                    { $$ = nullptr; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 relop               : LT
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::RelationalOperator);
+					}
                     | LEQ
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::RelationalOperator);
+					}
                     | GT
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::RelationalOperator);
+					}
                     | GEQ
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::RelationalOperator);
+					}
                     | EQ
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::RelationalOperator);
+					}
                     | NEQ
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::RelationalOperator);
+					}
                     ;
 
 sumExp              : sumExp sumop mulExp
-                    { $$ = nullptr; }
+                    {
+                        $$ = $2;
+                        $$->add_child($1);
+                        $$->add_child($3);
+					}
                     | mulExp
-                    { $$ = nullptr; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 sumop               : ADD
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::Operator);
+					}
                     | SUB
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::Operator);
+					}
                     ;
 
 mulExp              : mulExp mulop unaryExp
-                    { $$ = nullptr; }
+                    {
+                        $$ = $2;
+                        $$->add_child($1);
+                        $$->add_child($3);
+					}
                     | unaryExp
-                    { $$ = nullptr; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 mulop               : MUL
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::Operator);
+					}
                     | DIV
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::Operator);
+					}
                     | MOD
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::Operator);
+					}
                     ;
 
 unaryExp            : unaryop unaryExp
-                    { $$ = nullptr; }
+                    {
+                        $$ = $1;
+                        $$->add_child($2);
+					}
                     | factor
-                    { $$ = nullptr; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 unaryop             : SUB
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::UnaryOperator);
+					}
                     | MUL
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::UnaryOperator);
+					}
                     | RAND
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::UnaryOperator);
+					}
                     ;
 
 factor              : mutable
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     | immutable
-                    { $$ = $1; }
+                    {
+                        $$ = $1;
+					}
                     ;
 
 mutable             : ID
-                    { $$ = nullptr; }
+                    {
+                        $$ = new AST_node(Type::Expression::Id);
+					}
                     | ID LBRACK exp RBRACK
                     {
-                        std::cout << "immutable:lparen exp rparen\n";
-                        $$ = nullptr;
+                        $$ = new AST_node(Type::Expression::Operator);
+                        $$->add_child(new AST_node(Type::Expression::Id));
+                        $$->add_child($3);
                     }
                     ;
 
 immutable           : LPAREN exp RPAREN
                     {
-                        std::cout << "immutable:lparen exp rparen\n";
                         $$ = $2;
                     }
                     | call
                     {
-                        std::cout << "immutable:call\n";
                         $$ = $1;
                     }
                     | constant
                     {
-                        std::cout << "immutable:constant\n";
                         $$ = $1;
                     }
                     ;
 
 call                : ID LPAREN argList RPAREN
                     {
-                        $$ = $3;
-                        std::cout << "call:id lparen arglist rparen\n";
+                        $$ = new AST_node(Type::Statement::Call);
+                        $$->add_child($3);
                     }
                     | ID LPAREN RPAREN
                     {
-                        std::cout << "call:id lparen rparen\n";
-                        $$ = nullptr;
+                        $$ = new AST_node(Type::Statement::Call);
                     }
                     ;
 
 argList             : argList COM exp
                     {
-                        std::cout << "argList:arglist com exp\n";
                         $$ = $1;
                         $$->add_sibling($3);
                     }
                     | exp
                     {
-                        std::cout << "argList:exp\n";
                         $$ = $1;
                     }
                     ;
 
 constant            : NUMCONST
                     {
-                        std::cout << "constant:numconst\n";
-                        $$ = new AST_node(Type::Declaration::Variable);
+                        $$ = new AST_node(Type::Expression::Constant);
                     }
                     | CHARCONST
                     {
-                        std::cout << "constant:charconst\n";
-                        $$ = new AST_node(Type::Declaration::Variable);
+                        $$ = new AST_node(Type::Expression::Constant);
                     }
                     | STRINGCONST
                     {
-                        std::cout << "constant:stringconst\n";
-                        $$ = new AST_node(Type::Declaration::Variable);
+                        $$ = new AST_node(Type::Expression::Constant);
                     }
                     | BOOLCONST
                     {
-                        std::cout << "constant:boolconst\n";
-                        $$ = new AST_node(Type::Declaration::Variable);
+                        $$ = new AST_node(Type::Expression::Constant);
                     }
                     ;
 
@@ -583,9 +729,14 @@ int main(int argc, char *argv[])
     // do the parsing
     numErrors = 0;
     yyparse();
-    std::cout << "print\n";
+    std::cout << "\n";
     if (tree_root != nullptr) {
         tree_root->print();
+        std::cout << tree_root->number_of_nodes() << std::endl;
+    }
+
+    for (auto& token : tokens) {
+        delete token;
     }
 
     return 0;

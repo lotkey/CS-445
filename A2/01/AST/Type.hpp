@@ -26,18 +26,34 @@ namespace Type
         Expression,
         Compound,
         Return,
-        Break
+        Break,
+        Assign,
+        Call
     };
 
     enum class Expression : int
     {
         Simple,
-        Assign,
         Increment,
         Decrement,
         And,
         UnaryRelation,
-        Sum
+        Sum,
+        Range,
+        Id,
+        Constant,
+        Operator
+    };
+
+    enum class ExpressionType : int
+    {
+        Void,
+        Integer,
+        Boolean,
+        Char,
+        CharInt,
+        Equal,
+        UndefinedType
     };
 
     enum class Variable : int

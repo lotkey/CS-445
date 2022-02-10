@@ -3,6 +3,7 @@
 #include "AST/AST_node.hpp"
 
 #include <string>
+#include <memory>
 
 struct TokenData {
     int tokenclass;  // token class

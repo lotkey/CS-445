@@ -1,5 +1,5 @@
 BIN = c-
-CC = g++ --std=c++17
+CC = g++ --std=c++17 -g
 
 SRCS = $(BIN).y  $(BIN).l
 CCSRCS = strutil.cpp AST/AST_node.cpp
