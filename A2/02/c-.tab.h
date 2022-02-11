@@ -106,10 +106,10 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 38 "c-.y"
+#line 39 "c-.y"
 
-    Type::ExpressionType type;
-    AST_node *node;
+    AST::Decl::Type type;
+    AST::Node *node;
     TokenData *tokenData;
     double value;
 

@@ -13,7 +13,7 @@
 
 #include "scanType.hpp"  // TokenData Type
 #include "strutil.hpp"
-#include "AST/AST_node.hpp"
+#include "AST/AST.hpp"
 
 double vars[26];    
 
@@ -21,8 +21,9 @@ extern int yylex();
 extern FILE *yyin;
 extern int line;         // ERR line number from the scanner!!
 extern int numErrors;    // ERR err count
+extern char *yytext;
 extern std::vector<TokenData*> tokens;
-AST_node* tree_root;
+AST::Node* tree_root;
 
 #define YYERROR_VERBOSE
 void yyerror(const char *msg)
@@ -36,8 +37,8 @@ void yyerror(const char *msg)
 // this is included in the tab.h file
 // so scanType.hpp must be included before the tab.h file!!!!
 %union {
-    Type::ExpressionType type;
-    AST_node *node;
+    AST::Decl::Type type;
+    AST::Node *node;
     TokenData *tokenData;
     double value;
 }
@@ -114,7 +115,7 @@ program             : declList
 declList            : declList decl
                     {
                         $$ = $1;
-                        $$->add_sibling($2);
+                        $$->addSibling($2);
                     }
                     | decl
                     {
@@ -134,24 +135,31 @@ decl                : varDecl
 
 varDecl             : typeSpec varDeclList SEMI
                     {
-                        $$ = $2;
+                        AST::Decl::Var *var = (AST::Decl::Var *)$2;
+                        var->setType($1);
+                        $$ = var;
 					}
                     ;
 
 scopedVarDecl       : STATIC typeSpec varDeclList SEMI
                     {
-                        $$ = $3;
+                        AST::Decl::Var *var = (AST::Decl::Var *)$3;
+                        var->setType($2);
+                        var->setStatic();
+                        $$ = var;
 					}
                     | typeSpec varDeclList SEMI
                     {
-                        $$ = $2;
+                        AST::Decl::Var *var = (AST::Decl::Var *)$2;
+                        var->setType($1);
+                        $$ = var;
 					}
                     ;
 
 varDeclList         : varDeclList COM varDeclInit
                     {
                         $$ = $1;
-                        $$->add_sibling($3);
+                        $$->addSibling($3);
                     }
                     | varDeclInit
                     {
@@ -166,45 +174,41 @@ varDeclInit         : varDeclId
                     | varDeclId COL simpleExp
                     {
                         $$ = $1;
-                        $$->add_child($3);
+                        $$->addChild($3);
                     }
                     ;
                 
 varDeclId           : ID
                     {
-                        $$ = new AST_node(Type::Declaration::Variable);
+                        $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, false);
                     }
                     | ID LBRACK NUMCONST RBRACK
                     {
-                        $$ = new AST_node(Type::Declaration::Variable);
+                        $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, true);
                     }
                     ;
 
 typeSpec            : BOOL
                     {
-                        $$ = Type::ExpressionType::Boolean;
+                        $$ = AST::Decl::Type::Bool;
                     }
                     | CHAR
                     {
-                        $$ = Type::ExpressionType::Char;
+                        $$ = AST::Decl::Type::Char;
                     }
                     | INT
                     {
-                        $$ = Type::ExpressionType::Integer;
+                        $$ = AST::Decl::Type::Int;
                     }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt
                     {
-                        $$ = new AST_node(Type::Declaration::Function);
-                        $$->add_child($4);
-                        $$->add_child($6);
+                        $$ = new AST::Decl::Func($1->linenum, $1, $2->tokenstr, $4, $6);
                     }
                     | ID LPAREN parms RPAREN compoundStmt
                     {
-                        $$ = new AST_node(Type::Declaration::Function);
-                        $$->add_child($3);
-                        $$->add_child($5);
+                        $$ = new AST::Decl::Func($1->linenum, $1->tokenstr, $3, $5);
                     }
                     ;
 
@@ -221,7 +225,7 @@ parms               :
 parmList            : parmList SEMI parmTypeList
                     {
                         $$ = $1;
-                        $$->add_sibling($3);
+                        $$->addSibling($3);
                     }
                     | parmTypeList
                     {
@@ -231,14 +235,16 @@ parmList            : parmList SEMI parmTypeList
 
 parmTypeList        : typeSpec parmIdList
                     {
-                        $$ = $2;
+                        AST::Decl::Parm *parms = (AST::Decl::Parm *)$2;
+                        parms->setType($1);
+                        $$ = parms;
 					}
                     ;
 
 parmIdList          : parmIdList COM parmId
                     {
                         $$ = $1;
-                        $$->add_sibling($3);
+                        $$->addSibling($3);
                     }
                     | parmId
                     {
@@ -248,11 +254,11 @@ parmIdList          : parmIdList COM parmId
 
 parmId              : ID
                     {
-                        $$ = new AST_node(Type::Declaration::Parameter);
+                        $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, false);
 					}
                     | ID LBRACK RBRACK
                     {
-                        $$ = new AST_node(Type::Declaration::Parameter);
+                        $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, true);
 					}
                     ;
 
@@ -278,9 +284,7 @@ expStmt             : exp SEMI
 
 compoundStmt        : BGN localDecls stmtList END
                     {
-                        $$ = new AST_node(Type::Statement::Compound);
-                        $$->add_child($2);
-                        $$->add_child($3);
+                        $$ = new AST::Stmt::Compound($1->linenum, $2, $3);
                     }
                     ;
 
@@ -294,7 +298,7 @@ localDecls          :
                             $$ = $2;
                         } else {
                             $$ = $1;
-                            $$->add_sibling($2);
+                            $$->addSibling($2);
                         }
                     }
                     ;
@@ -309,7 +313,7 @@ stmtList            :
                             $$ = $2;
                         } else {
                             $$ = $1;
-                            $$->add_sibling($2);
+                            $$->addSibling($2);
                         }
                     }
                     ;
@@ -350,113 +354,85 @@ openStmt            : selectStmtOpen
 					}
                     ;
 
-selectStmtOpen      : IF simpleExp THEN closedStmt
+selectStmtOpen      : IF simpleExp THEN stmt
                     {
-                        $$ = new AST_node(Type::Statement::Select);
-                        $$->add_child($2);
-                        $$->add_child($4);
-                    }
-                    | IF simpleExp THEN openStmt
-                    {
-                        $$ = new AST_node(Type::Statement::Select);
-                        $$->add_child($2);
-                        $$->add_child($4);
+                        $$ = new AST::Stmt::Select($1->linenum, $2, $4);
                     }
                     | IF simpleExp THEN closedStmt ELSE openStmt
                     {
-                        $$ = new AST_node(Type::Statement::Select);
-                        $$->add_child($2);
-                        $$->add_child($4);
-                        $$->add_child($6);
+                        $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
                     }
                     ;
 
 selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt
                     {
-                        $$ = new AST_node(Type::Statement::Select);
-                        $$->add_child($2);
-                        $$->add_child($4);
-                        $$->add_child($6);
+                        $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
                     }
                     ;
 
 iterStmtOpen        : WHILE simpleExp DO openStmt
                     {
-                        $$ = new AST_node(Type::Statement::While);
-                        $$->add_child(new AST_node(Type::Expression::Id));
-                        $$->add_child($4);
+                        $$ = new AST::Stmt::While($1->linenum, $2, $4);
                     }
                     | FOR ID ASGN iterRange DO openStmt
                     {
-                        $$ = new AST_node(Type::Statement::Iterative);
-                        $$->add_child(new AST_node(Type::Expression::Id));
-                        $$->add_child($4);
-                        $$->add_child($6);
+                        AST::Decl::Var *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                        iterator->setType(AST::Decl::Type::Int);
+                        $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                     }
                     ;
 
 iterStmtClosed      : WHILE simpleExp DO closedStmt
                     {
-                        $$ = new AST_node(Type::Statement::While);
-                        $$->add_child(new AST_node(Type::Expression::Id));
-                        $$->add_child($4);
+                        $$ = new AST::Stmt::While($1->linenum, $2, $4);
                     }
                     | FOR ID ASGN iterRange DO closedStmt
                     {
-                        $$ = new AST_node(Type::Statement::Iterative);
-                        $$->add_child(new AST_node(Type::Expression::Id));
-                        $$->add_child($4);
-                        $$->add_child($6);
+                        AST::Decl::Var *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                        iterator->setType(AST::Decl::Type::Int);
+                        $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                     }
                     ;
 
 iterRange           : simpleExp TO simpleExp
                     {
-                        $$ = new AST_node(Type::Expression::Range);
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        $$ = new AST::Exp::Range($1->lineNumber(), $1, $3);
                     }
                     | simpleExp TO simpleExp BY simpleExp
                     {
-                        $$ = new AST_node(Type::Expression::Range);
-                        $$->add_child($1);
-                        $$->add_child($3);
-                        $$->add_child($5);
+                        $$ = new AST::Exp::Range($1->lineNumber(), $1, $3, $5);
                     }
                     ;
 
 returnStmt          : RETURN SEMI
                     {
-                        $$ = new AST_node(Type::Statement::Return);
+                        $$ = new AST::Stmt::Return($1->linenum, nullptr);
                     }
                     | RETURN exp SEMI
                     {
-                        $$ = new AST_node(Type::Statement::Return);
-                        $$->add_child($2);
+                        $$ = new AST::Stmt::Return($1->linenum, $2);
                     }
                     ;
 
 breakStmt           : BREAK SEMI
                     {
-                        $$ = new AST_node(Type::Statement::Break);
+                        $$ = new AST::Stmt::Break($1->linenum);
                     }
                     ;
 
 exp                 : mutable assignop exp
                     {
-                        $$ = $2;
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        AST::Op::Asgn *op = (AST::Op::Asgn *)$2;
+                        op->addChildren($1, $3);
+                        $$ = op;
                     }
                     | mutable INC
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
-                        $$ = $1;
+                        $$ = new AST::Op::Unary($1->lineNumber(), AST::Op::Unary::Type::Inc, $1);
                     }
                     | mutable DEC
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
-                        $$ = $1;
+                        $$ = new AST::Op::Unary($1->lineNumber(), AST::Op::Unary::Type::Dec, $1);
                     }
                     | simpleExp
                     {
@@ -466,31 +442,29 @@ exp                 : mutable assignop exp
 
 assignop            : ASGN
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::Asgn);
 					}
                     | ADDASGN
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::AddAsgn);
 					}
                     | SUBASGN
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::SubAsgn);
 					}
                     | DIVASGN
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::DivAsgn);
 					}
                     | MULASGN
                     {
-                        $$ = new AST_node(Type::Statement::Assign);
+                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::MulAsgn);
 					}
                     ;
 
 simpleExp           : simpleExp OR andExp
                     {
-                        $$ = new AST_node(Type::Expression::Or);
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        $$ = new AST::Op::Binary($1->lineNumber(), AST::Op::Binary::Type::Or, $1, $3);
                     }
                     | andExp
                     {
@@ -500,9 +474,7 @@ simpleExp           : simpleExp OR andExp
 
 andExp              : andExp AND unaryRelExp
                     {
-                        $$ = new AST_node(Type::Expression::And);
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        $$ = new AST::Op::Binary($1->lineNumber(), AST::Op::Binary::Type::And, $1, $3);
                     }
                     | unaryRelExp
                     {
@@ -512,8 +484,7 @@ andExp              : andExp AND unaryRelExp
 
 unaryRelExp         : NOT unaryRelExp
                     {
-                        $$ = new AST_node(Type::Expression::UnaryOperator);
-                        $$->add_child($2);
+                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Not, $2);
                     }
                     | relExp
                     {
@@ -523,9 +494,9 @@ unaryRelExp         : NOT unaryRelExp
 
 relExp              : sumExp relop sumExp
                     {
-                        $$ = $2;
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        AST::Op::Binary *op = (AST::Op::Binary *)$2;
+                        op->addChildren($1, $3);
+                        $$ = op;
                     }
                     | sumExp
                     {
@@ -535,35 +506,35 @@ relExp              : sumExp relop sumExp
 
 relop               : LT
                     {
-                        $$ = new AST_node(Type::Expression::RelationalOperator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::LT);
 					}
                     | LEQ
                     {
-                        $$ = new AST_node(Type::Expression::RelationalOperator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::LEQ);
 					}
                     | GT
                     {
-                        $$ = new AST_node(Type::Expression::RelationalOperator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::GT);
 					}
                     | GEQ
                     {
-                        $$ = new AST_node(Type::Expression::RelationalOperator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::GEQ);
 					}
                     | EQ
                     {
-                        $$ = new AST_node(Type::Expression::RelationalOperator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::EQ);
 					}
                     | NEQ
                     {
-                        $$ = new AST_node(Type::Expression::RelationalOperator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::NEQ);
 					}
                     ;
 
 sumExp              : sumExp sumop mulExp
                     {
-                        $$ = $2;
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        AST::Op::Binary *op = (AST::Op::Binary *)$2;
+                        op->addChildren($1, $3);
+                        $$ = op;
 					}
                     | mulExp
                     {
@@ -573,19 +544,19 @@ sumExp              : sumExp sumop mulExp
 
 sumop               : ADD
                     {
-                        $$ = new AST_node(Type::Expression::Operator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Add);
 					}
                     | SUB
                     {
-                        $$ = new AST_node(Type::Expression::Operator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Subtract);
 					}
                     ;
 
 mulExp              : mulExp mulop unaryExp
                     {
-                        $$ = $2;
-                        $$->add_child($1);
-                        $$->add_child($3);
+                        AST::Op::Binary *op = (AST::Op::Binary *)$2;
+                        op->addChildren($1, $3);
+                        $$ = op;
 					}
                     | unaryExp
                     {
@@ -595,22 +566,23 @@ mulExp              : mulExp mulop unaryExp
 
 mulop               : MUL
                     {
-                        $$ = new AST_node(Type::Expression::Operator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Mul);
 					}
                     | DIV
                     {
-                        $$ = new AST_node(Type::Expression::Operator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Div);
 					}
                     | MOD
                     {
-                        $$ = new AST_node(Type::Expression::Operator);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Mod);
 					}
                     ;
 
 unaryExp            : unaryop unaryExp
                     {
-                        $$ = $1;
-                        $$->add_child($2);
+                        AST::Op::Unary *op = (AST::Op::Unary *)$1;
+                        op->addExp($2);
+                        $$ = op;
 					}
                     | factor
                     {
@@ -620,15 +592,15 @@ unaryExp            : unaryop unaryExp
 
 unaryop             : SUB
                     {
-                        $$ = new AST_node(Type::Expression::UnaryOperator);
+                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Chsign);
 					}
                     | MUL
                     {
-                        $$ = new AST_node(Type::Expression::UnaryOperator);
+                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Sizeof);
 					}
                     | RAND
                     {
-                        $$ = new AST_node(Type::Expression::UnaryOperator);
+                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Random);
 					}
                     ;
 
@@ -644,13 +616,11 @@ factor              : mutable
 
 mutable             : ID
                     {
-                        $$ = new AST_node(Type::Expression::Id);
+                        $$ = new AST::Exp::Id($1->linenum, $1->tokenstr);
 					}
                     | ID LBRACK exp RBRACK
                     {
-                        $$ = new AST_node(Type::Expression::Operator);
-                        $$->add_child(new AST_node(Type::Expression::Id));
-                        $$->add_child($3);
+                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
                     }
                     ;
 
@@ -670,19 +640,18 @@ immutable           : LPAREN exp RPAREN
 
 call                : ID LPAREN argList RPAREN
                     {
-                        $$ = new AST_node(Type::Statement::Call);
-                        $$->add_child($3);
+                        $$ = new AST::Exp::Call($1->linenum, $1->tokenstr, $3);
                     }
                     | ID LPAREN RPAREN
                     {
-                        $$ = new AST_node(Type::Statement::Call);
+                        $$ = new AST::Exp::Call($1->linenum, $1->tokenstr);
                     }
                     ;
 
 argList             : argList COM exp
                     {
                         $$ = $1;
-                        $$->add_sibling($3);
+                        $$->addSibling($3);
                     }
                     | exp
                     {
@@ -692,19 +661,23 @@ argList             : argList COM exp
 
 constant            : NUMCONST
                     {
-                        $$ = new AST_node(Type::Expression::Constant);
+                        int i = std::atoi(yytext);
+                        $$ = new AST::Exp::Const($1->linenum, i);
                     }
                     | CHARCONST
                     {
-                        $$ = new AST_node(Type::Expression::Constant);
+                        char c = strutil::get_first_char(strutil::remove_quotes(yytext));
+                        $$ = new AST::Exp::Const($1->linenum, c);
                     }
                     | STRINGCONST
                     {
-                        $$ = new AST_node(Type::Expression::Constant);
+                        std::string s = strutil::make_str(strutil::remove_quotes(yytext));
+                        $$ = new AST::Exp::Const($1->linenum, s);
                     }
                     | BOOLCONST
                     {
-                        $$ = new AST_node(Type::Expression::Constant);
+                        bool b = std::string(yytext) == "true";
+                        $$ = new AST::Exp::Const($1->linenum, b);
                     }
                     ;
 
@@ -712,15 +685,25 @@ constant            : NUMCONST
 extern int yydebug;
 int main(int argc, char *argv[])
 {
-    if (argc > 1) {
-        if ((yyin = fopen(argv[1], "r"))) {
-            // file open successful
+    bool print = false;
+    std::string file;
+
+    for (unsigned i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "-p") {
+            print = true;
+        } else {
+            file = std::string(argv[i]);
+            break;
         }
-        else {
-            // failed to open file
-            printf("ERROR: failed to open \'%s\'\n", argv[1]);
-            exit(1);
-        }
+    }
+
+    if ((yyin = fopen(file.c_str(), "r"))) {
+        // file open successful
+    }
+    else {
+        // failed to open file
+        printf("ERROR: failed to open \'%s\'\n", argv[1]);
+        exit(1);
     }
 
     // init variables a through z
@@ -729,10 +712,9 @@ int main(int argc, char *argv[])
     // do the parsing
     numErrors = 0;
     yyparse();
-    std::cout << "\n";
-    if (tree_root != nullptr) {
+
+    if (tree_root != nullptr && print) {
         tree_root->print();
-        std::cout << tree_root->number_of_nodes() << std::endl;
     }
 
     for (auto& token : tokens) {

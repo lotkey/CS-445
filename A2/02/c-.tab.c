@@ -82,7 +82,7 @@
 
 #include "scanType.hpp"  // TokenData Type
 #include "strutil.hpp"
-#include "AST/AST_node.hpp"
+#include "AST/AST.hpp"
 
 double vars[26];    
 
@@ -90,8 +90,9 @@ extern int yylex();
 extern FILE *yyin;
 extern int line;         // ERR line number from the scanner!!
 extern int numErrors;    // ERR err count
+extern char *yytext;
 extern std::vector<TokenData*> tokens;
-AST_node* tree_root;
+AST::Node* tree_root;
 
 #define YYERROR_VERBOSE
 void yyerror(const char *msg)
@@ -101,7 +102,7 @@ void yyerror(const char *msg)
 }
 
 
-#line 105 "c-.tab.c"
+#line 106 "c-.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -206,14 +207,14 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 38 "c-.y"
+#line 39 "c-.y"
 
-    Type::ExpressionType type;
-    AST_node *node;
+    AST::Decl::Type type;
+    AST::Node *node;
     TokenData *tokenData;
     double value;
 
-#line 217 "c-.tab.c"
+#line 218 "c-.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -539,7 +540,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  49
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  111
+#define YYNRULES  110
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  171
 
@@ -593,18 +594,18 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   107,   107,   114,   119,   125,   129,   135,   141,   145,
-     151,   156,   162,   166,   173,   177,   183,   187,   191,   197,
-     203,   212,   215,   221,   226,   232,   238,   243,   249,   253,
-     259,   263,   269,   273,   279,   288,   291,   303,   306,   317,
-     321,   325,   329,   333,   337,   343,   347,   353,   359,   365,
-     374,   383,   389,   398,   404,   413,   419,   428,   432,   439,
-     445,   451,   456,   461,   467,   471,   475,   479,   483,   489,
-     495,   501,   507,   513,   518,   524,   530,   536,   540,   544,
-     548,   552,   556,   562,   568,   574,   578,   584,   590,   596,
-     600,   604,   610,   615,   621,   625,   629,   635,   639,   645,
-     649,   657,   661,   665,   671,   676,   682,   687,   693,   697,
-     701,   705
+       0,   108,   108,   115,   120,   126,   130,   136,   144,   151,
+     159,   164,   170,   174,   181,   185,   191,   195,   199,   205,
+     209,   216,   219,   225,   230,   236,   244,   249,   255,   259,
+     265,   269,   275,   279,   285,   292,   295,   307,   310,   321,
+     325,   329,   333,   337,   341,   347,   351,   357,   361,   367,
+     373,   377,   385,   389,   397,   401,   407,   411,   417,   423,
+     429,   433,   437,   443,   447,   451,   455,   459,   465,   469,
+     475,   479,   485,   489,   495,   501,   507,   511,   515,   519,
+     523,   527,   533,   539,   545,   549,   555,   561,   567,   571,
+     575,   581,   587,   593,   597,   601,   607,   611,   617,   621,
+     627,   631,   635,   641,   645,   651,   656,   662,   667,   672,
+     677
 };
 #endif
 
@@ -645,7 +646,7 @@ static const yytype_int16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF (-76)
+#define YYPACT_NINF (-133)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -659,24 +660,24 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-      62,   -76,   -76,   -76,   -28,    15,    62,   -76,   -76,   -30,
-     -76,    70,   -76,   -76,    23,   -23,   -76,    13,    36,    34,
-      58,   -76,    70,    50,   -76,    52,   138,    74,    67,   -76,
-      94,    70,    95,   100,    93,   -76,   138,   -76,   -76,   -76,
-     138,    41,   -76,   -76,   -76,   -76,   113,   122,   -76,   -76,
-     187,   102,   -76,   148,   -76,   -76,   -76,   -76,   -76,   104,
-      36,   -76,   -76,   -76,    94,   -76,   -76,   109,   113,    25,
-      53,   138,   138,   138,   -76,   -76,   -76,   -76,   -76,   -76,
-     -76,   -76,   148,   148,   -76,   -76,   -76,   148,   -76,   -76,
-     -76,     5,   -76,   -76,   -76,   -76,   -76,   -76,   -76,   -76,
-     -76,   138,   -76,   -76,   -21,   108,   122,   -76,    79,   102,
-     -76,    70,   -76,    52,     9,   -76,   -76,   138,   -76,    52,
-     -15,   138,   138,    97,   131,   114,   -76,   -76,   -76,   -76,
-     -76,   -76,   -76,   -76,   -76,   -76,   -76,   -76,   -76,   117,
-     -76,    10,   -76,    17,    -3,   136,   -76,   124,   -76,   -76,
-     -76,   125,   125,   138,   -76,   -76,   -76,   134,   -76,   152,
-      20,   125,   125,   138,   -76,   -76,   -76,   -76,    61,   138,
-     113
+      45,  -133,  -133,  -133,   -28,    15,    45,  -133,  -133,   -30,
+    -133,    62,  -133,  -133,    88,   -23,  -133,   -16,     7,    27,
+      37,  -133,    62,    31,  -133,    50,   138,    67,    66,  -133,
+      79,    62,    82,    93,    94,  -133,   138,  -133,  -133,  -133,
+     138,    89,  -133,  -133,  -133,  -133,   112,   119,  -133,  -133,
+     187,    99,  -133,   148,  -133,  -133,  -133,  -133,  -133,   103,
+       7,  -133,  -133,  -133,    79,  -133,  -133,   106,   112,    25,
+      53,   138,   138,   138,  -133,  -133,  -133,  -133,  -133,  -133,
+    -133,  -133,   148,   148,  -133,  -133,  -133,   148,  -133,  -133,
+    -133,     5,  -133,  -133,  -133,  -133,  -133,  -133,  -133,  -133,
+    -133,   138,  -133,  -133,   -21,   107,   119,  -133,    70,    99,
+    -133,    62,  -133,    50,     9,  -133,  -133,   138,  -133,    50,
+      10,   138,   138,    91,   131,   111,  -133,  -133,  -133,  -133,
+    -133,  -133,  -133,  -133,  -133,  -133,  -133,  -133,  -133,   114,
+    -133,    19,  -133,    87,    -3,   136,  -133,   117,  -133,  -133,
+    -133,   125,   125,   138,  -133,  -133,  -133,  -133,   132,   150,
+      20,   125,   125,   138,  -133,  -133,  -133,  -133,    61,   138,
+     112
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -687,31 +688,31 @@ static const yytype_int8 yydefact[] =
        0,    18,    16,    17,     0,     0,     2,     4,     5,     0,
        6,    21,     1,     3,    14,     0,    11,    12,     0,     0,
       22,    24,    21,     0,     7,     0,     0,    28,    25,    27,
-       0,     0,     0,     0,    14,    10,     0,    96,    95,    94,
-       0,    99,   108,   109,   110,   111,    13,    70,    72,    74,
-      76,    84,    88,     0,    93,    97,    98,   102,   103,     0,
-       0,    35,    20,    23,     0,    15,    73,     0,    63,    97,
-       0,     0,     0,     0,    85,    86,    77,    78,    79,    80,
-      81,    82,     0,     0,    89,    90,    91,     0,    92,    29,
-      26,    37,    19,   101,    64,    65,    66,    68,    67,    61,
-      62,     0,   105,   107,     0,     0,    69,    71,    75,    83,
-      87,     0,    36,     0,     0,    60,   104,     0,   100,     0,
+       0,     0,     0,     0,    14,    10,     0,    95,    94,    93,
+       0,    98,   107,   108,   109,   110,    13,    69,    71,    73,
+      75,    83,    87,     0,    92,    96,    97,   101,   102,     0,
+       0,    35,    20,    23,     0,    15,    72,     0,    62,    96,
+       0,     0,     0,     0,    84,    85,    76,    77,    78,    79,
+      80,    81,     0,     0,    88,    89,    90,     0,    91,    29,
+      26,    37,    19,   100,    63,    64,    65,    67,    66,    60,
+      61,     0,   104,   106,     0,     0,    68,    70,    74,    82,
+      86,     0,    36,     0,     0,    59,   103,     0,    99,     0,
        0,     0,     0,     0,     0,     0,    34,    33,    38,    41,
       42,    30,    31,    45,    39,    46,    40,    43,    44,     0,
-     106,     0,     9,     0,     0,     0,    57,     0,    59,    32,
-       8,     0,     0,     0,    58,    53,    51,    47,    48,     0,
-       0,     0,     0,     0,    50,    49,    54,    52,    55,     0,
-      56
+     105,     0,     9,     0,     0,     0,    56,     0,    58,    32,
+       8,     0,     0,     0,    57,    52,    50,    47,    30,     0,
+       0,     0,     0,     0,    49,    48,    53,    51,    54,     0,
+      55
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -76,   -76,   -76,   160,   -76,   -76,   -22,   144,   -76,     3,
-     -76,   149,   -76,   139,   -76,   112,   -76,   -76,   -24,   -76,
-     -76,   -75,   -72,   -76,   -76,   -76,   -76,   -76,   -76,   -76,
-     -36,   -76,   -26,   119,   -31,   -76,   -76,   103,   -76,   101,
-     -76,   -46,   -76,   -76,   -39,   -76,   -76,   -76,   -76
+    -133,  -133,  -133,   156,  -133,  -133,   -40,   141,  -133,     3,
+    -133,   147,  -133,   139,  -133,   124,    33,  -133,   -24,  -133,
+    -133,   -75,  -132,  -133,  -133,  -133,  -133,  -133,  -133,  -133,
+     -36,  -133,   -26,   100,   -31,  -133,  -133,   109,  -133,   110,
+    -133,   -46,  -133,  -133,   -39,  -133,  -133,  -133,  -133
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -730,25 +731,25 @@ static const yytype_int16 yydefgoto[] =
 static const yytype_uint8 yytable[] =
 {
       46,    69,    11,     9,    67,    66,    62,    88,   116,     9,
-      72,    24,   121,   122,   123,    12,   124,   125,    14,   142,
-      36,    25,   152,   117,    37,    38,   163,   151,    39,    25,
-      72,    69,    69,    72,   103,   105,    61,   126,   111,    40,
-      92,   110,   107,   127,   150,    94,    95,    96,    97,    98,
-       1,     2,     3,    22,    25,    23,    26,    41,    42,    43,
-      44,    45,    69,    30,    36,   115,    99,   100,    37,    38,
-     169,    70,    39,    71,    72,    69,   155,   157,    69,   156,
-     158,   140,   102,    40,    27,    69,   164,   166,   147,   165,
-     167,   120,    31,    74,   113,   143,   144,   141,    75,    33,
-      34,    41,    42,    43,    44,    45,    59,     1,     2,     3,
-       4,    60,    69,    69,   119,     1,     2,     3,    84,    85,
-      86,    61,    69,    69,    64,    23,    72,   160,   121,   122,
-     123,    65,   124,   125,    73,    89,    36,   168,    93,   118,
-      37,    38,    36,   170,    39,   145,    37,    38,   148,    36,
-      39,   149,    61,    37,    38,    40,   153,    39,   154,   127,
-     161,    40,   162,    37,    38,   146,    13,    39,    40,    35,
-      63,    32,    90,    41,    42,    43,    44,    45,    40,    41,
-      42,    43,    44,    45,   109,   108,    41,    42,    43,    44,
-      45,   106,     0,     0,     0,     0,    41,    42,    43,    44,
+      72,    24,   121,   122,   123,    12,   124,   125,    14,   156,
+      36,    25,   152,   117,    37,    38,   163,    26,    39,   165,
+     167,    69,    69,    72,   103,   105,    61,   126,   111,    40,
+      92,   110,   107,   127,   142,    94,    95,    96,    97,    98,
+       1,     2,     3,   150,    25,    27,    30,    41,    42,    43,
+      44,    45,    69,    25,    36,   115,    99,   100,    37,    38,
+     169,    31,    39,   120,    72,    69,   155,   158,    69,   141,
+      33,   140,   102,    40,    74,    69,   164,   166,   147,    75,
+       1,     2,     3,     4,   113,   143,   144,   151,    34,    59,
+      72,    41,    42,    43,    44,    45,    61,     1,     2,     3,
+      60,    64,    69,    69,   119,    84,    85,    86,    22,    70,
+      23,    71,    69,    69,    65,    72,    23,   160,   121,   122,
+     123,    73,   124,   125,    89,    93,    36,   168,   118,   145,
+      37,    38,    36,   170,    39,   148,    37,    38,   149,    36,
+      39,   154,    61,    37,    38,    40,   153,    39,   161,   127,
+     162,    40,    13,    37,    38,   146,    35,    39,    40,    32,
+      63,     0,   106,    41,    42,    43,    44,    45,    40,    41,
+      42,    43,    44,    45,    90,   157,    41,    42,    43,    44,
+      45,   108,     0,   109,     0,     0,    41,    42,    43,    44,
       45,    74,     0,     0,     0,     0,    75,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,    76,    77,    78,    79,    80,    81
@@ -757,25 +758,25 @@ static const yytype_uint8 yytable[] =
 static const yytype_int16 yycheck[] =
 {
       26,    40,    30,     0,    40,    36,    30,    53,    29,     6,
-      13,    34,     3,     4,     5,     0,     7,     8,    48,    34,
-      11,    44,    25,    44,    15,    16,     6,    10,    19,    44,
-      13,    70,    71,    13,    70,    71,    27,    28,    33,    30,
+      13,    34,     3,     4,     5,     0,     7,     8,    48,   151,
+      11,    44,    25,    44,    15,    16,     6,    43,    19,   161,
+     162,    70,    71,    13,    70,    71,    27,    28,    33,    30,
       64,    87,    73,    34,    34,    20,    21,    22,    23,    24,
-      45,    46,    47,    30,    44,    32,    43,    48,    49,    50,
-      51,    52,   101,    29,    11,   101,    41,    42,    15,    16,
-       9,    30,    19,    32,    13,   114,   151,   152,   117,   151,
-     152,   117,    29,    30,    48,   124,   161,   162,   124,   161,
-     162,   113,    34,    14,    91,   121,   122,   119,    19,    49,
-      48,    48,    49,    50,    51,    52,    32,    45,    46,    47,
-      48,    44,   151,   152,   111,    45,    46,    47,    16,    17,
-      18,    27,   161,   162,    29,    32,    13,   153,     3,     4,
-       5,    31,     7,     8,    12,    31,    11,   163,    29,    31,
-      15,    16,    11,   169,    19,    48,    15,    16,    34,    11,
-      19,    34,    27,    15,    16,    30,    20,    19,    34,    34,
-      26,    30,    10,    15,    16,    34,     6,    19,    30,    25,
-      31,    22,    60,    48,    49,    50,    51,    52,    30,    48,
-      49,    50,    51,    52,    83,    82,    48,    49,    50,    51,
-      52,    72,    -1,    -1,    -1,    -1,    48,    49,    50,    51,
+      45,    46,    47,    34,    44,    48,    29,    48,    49,    50,
+      51,    52,   101,    44,    11,   101,    41,    42,    15,    16,
+       9,    34,    19,   113,    13,   114,   151,   152,   117,   119,
+      49,   117,    29,    30,    14,   124,   161,   162,   124,    19,
+      45,    46,    47,    48,    91,   121,   122,    10,    48,    32,
+      13,    48,    49,    50,    51,    52,    27,    45,    46,    47,
+      44,    29,   151,   152,   111,    16,    17,    18,    30,    30,
+      32,    32,   161,   162,    31,    13,    32,   153,     3,     4,
+       5,    12,     7,     8,    31,    29,    11,   163,    31,    48,
+      15,    16,    11,   169,    19,    34,    15,    16,    34,    11,
+      19,    34,    27,    15,    16,    30,    20,    19,    26,    34,
+      10,    30,     6,    15,    16,    34,    25,    19,    30,    22,
+      31,    -1,    72,    48,    49,    50,    51,    52,    30,    48,
+      49,    50,    51,    52,    60,   152,    48,    49,    50,    51,
+      52,    82,    -1,    83,    -1,    -1,    48,    49,    50,    51,
       52,    14,    -1,    -1,    -1,    -1,    19,    -1,    -1,    -1,
       -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
       -1,    -1,    35,    36,    37,    38,    39,    40
@@ -800,7 +801,7 @@ static const yytype_int8 yystos[] =
       59,     3,     4,     5,     7,     8,    28,    34,    69,    70,
       71,    74,    75,    76,    77,    78,    79,    81,    82,    83,
       83,    59,    34,    85,    85,    48,    34,    83,    34,    34,
-      34,    10,    25,    20,    34,    74,    75,    74,    75,    80,
+      34,    10,    25,    20,    34,    74,    75,    69,    74,    80,
       85,    26,    10,     6,    74,    75,    74,    75,    85,     9,
       85
 };
@@ -812,14 +813,14 @@ static const yytype_int8 yyr1[] =
       59,    59,    60,    60,    61,    61,    62,    62,    62,    63,
       63,    64,    64,    65,    65,    66,    67,    67,    68,    68,
       69,    69,    70,    70,    71,    72,    72,    73,    73,    74,
-      74,    74,    74,    74,    74,    75,    75,    76,    76,    76,
-      77,    78,    78,    79,    79,    80,    80,    81,    81,    82,
-      83,    83,    83,    83,    84,    84,    84,    84,    84,    85,
-      85,    86,    86,    87,    87,    88,    88,    89,    89,    89,
-      89,    89,    89,    90,    90,    91,    91,    92,    92,    93,
-      93,    93,    94,    94,    95,    95,    95,    96,    96,    97,
-      97,    98,    98,    98,    99,    99,   100,   100,   101,   101,
-     101,   101
+      74,    74,    74,    74,    74,    75,    75,    76,    76,    77,
+      78,    78,    79,    79,    80,    80,    81,    81,    82,    83,
+      83,    83,    83,    84,    84,    84,    84,    84,    85,    85,
+      86,    86,    87,    87,    88,    88,    89,    89,    89,    89,
+      89,    89,    90,    90,    91,    91,    92,    92,    93,    93,
+      93,    94,    94,    95,    95,    95,    96,    96,    97,    97,
+      98,    98,    98,    99,    99,   100,   100,   101,   101,   101,
+     101
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -829,14 +830,14 @@ static const yytype_int8 yyr2[] =
        3,     1,     1,     3,     1,     4,     1,     1,     1,     6,
        5,     0,     1,     3,     1,     2,     3,     1,     1,     3,
        1,     1,     2,     1,     4,     0,     2,     0,     2,     1,
-       1,     1,     1,     1,     1,     1,     1,     4,     4,     6,
-       6,     4,     6,     4,     6,     3,     5,     2,     3,     2,
-       3,     2,     2,     1,     1,     1,     1,     1,     1,     3,
-       1,     3,     1,     2,     1,     3,     1,     1,     1,     1,
-       1,     1,     1,     3,     1,     1,     1,     3,     1,     1,
-       1,     1,     2,     1,     1,     1,     1,     1,     1,     1,
-       4,     3,     1,     1,     4,     3,     3,     1,     1,     1,
-       1,     1
+       1,     1,     1,     1,     1,     1,     1,     4,     6,     6,
+       4,     6,     4,     6,     3,     5,     2,     3,     2,     3,
+       2,     2,     1,     1,     1,     1,     1,     1,     3,     1,
+       3,     1,     2,     1,     3,     1,     1,     1,     1,     1,
+       1,     1,     3,     1,     1,     1,     3,     1,     1,     1,
+       1,     2,     1,     1,     1,     1,     1,     1,     1,     4,
+       3,     1,     1,     4,     3,     3,     1,     1,     1,     1,
+       1
 };
 
 
@@ -1532,955 +1533,923 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 108 "c-.y"
+#line 109 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
                         tree_root = (yyval.node);
                     }
-#line 1541 "c-.tab.c"
+#line 1542 "c-.tab.c"
     break;
 
   case 3:
-#line 115 "c-.y"
+#line 116 "c-.y"
                     {
                         (yyval.node) = (yyvsp[-1].node);
-                        (yyval.node)->add_sibling((yyvsp[0].node));
+                        (yyval.node)->addSibling((yyvsp[0].node));
                     }
-#line 1550 "c-.tab.c"
+#line 1551 "c-.tab.c"
     break;
 
   case 4:
-#line 120 "c-.y"
+#line 121 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
                     }
-#line 1558 "c-.tab.c"
+#line 1559 "c-.tab.c"
     break;
 
   case 5:
-#line 126 "c-.y"
+#line 127 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1566 "c-.tab.c"
+#line 1567 "c-.tab.c"
     break;
 
   case 6:
-#line 130 "c-.y"
+#line 131 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1574 "c-.tab.c"
+#line 1575 "c-.tab.c"
     break;
 
   case 7:
-#line 136 "c-.y"
+#line 137 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-1].node);
+                        AST::Decl::Var *var = (AST::Decl::Var *)(yyvsp[-1].node);
+                        var->setType((yyvsp[-2].type));
+                        (yyval.node) = var;
 					}
-#line 1582 "c-.tab.c"
+#line 1585 "c-.tab.c"
     break;
 
   case 8:
-#line 142 "c-.y"
+#line 145 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-1].node);
+                        AST::Decl::Var *var = (AST::Decl::Var *)(yyvsp[-1].node);
+                        var->setType((yyvsp[-2].type));
+                        var->setStatic();
+                        (yyval.node) = var;
 					}
-#line 1590 "c-.tab.c"
+#line 1596 "c-.tab.c"
     break;
 
   case 9:
-#line 146 "c-.y"
+#line 152 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-1].node);
+                        AST::Decl::Var *var = (AST::Decl::Var *)(yyvsp[-1].node);
+                        var->setType((yyvsp[-2].type));
+                        (yyval.node) = var;
 					}
-#line 1598 "c-.tab.c"
+#line 1606 "c-.tab.c"
     break;
 
   case 10:
-#line 152 "c-.y"
+#line 160 "c-.y"
                     {
                         (yyval.node) = (yyvsp[-2].node);
-                        (yyval.node)->add_sibling((yyvsp[0].node));
+                        (yyval.node)->addSibling((yyvsp[0].node));
                     }
-#line 1607 "c-.tab.c"
-    break;
-
-  case 11:
-#line 157 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[0].node);
-					}
 #line 1615 "c-.tab.c"
     break;
 
-  case 12:
-#line 163 "c-.y"
+  case 11:
+#line 165 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
 #line 1623 "c-.tab.c"
     break;
 
-  case 13:
-#line 167 "c-.y"
+  case 12:
+#line 171 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-2].node);
-                        (yyval.node)->add_child((yyvsp[0].node));
-                    }
-#line 1632 "c-.tab.c"
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 1631 "c-.tab.c"
     break;
 
-  case 14:
-#line 174 "c-.y"
+  case 13:
+#line 175 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Declaration::Variable);
+                        (yyval.node) = (yyvsp[-2].node);
+                        (yyval.node)->addChild((yyvsp[0].node));
                     }
 #line 1640 "c-.tab.c"
     break;
 
-  case 15:
-#line 178 "c-.y"
+  case 14:
+#line 182 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Declaration::Variable);
+                        (yyval.node) = new AST::Decl::Var((yyvsp[0].tokenData)->linenum, (yyvsp[0].tokenData)->tokenstr, false);
                     }
 #line 1648 "c-.tab.c"
     break;
 
-  case 16:
-#line 184 "c-.y"
+  case 15:
+#line 186 "c-.y"
                     {
-                        (yyval.type) = Type::ExpressionType::Boolean;
+                        (yyval.node) = new AST::Decl::Var((yyvsp[-3].tokenData)->linenum, (yyvsp[-3].tokenData)->tokenstr, true);
                     }
 #line 1656 "c-.tab.c"
     break;
 
-  case 17:
-#line 188 "c-.y"
+  case 16:
+#line 192 "c-.y"
                     {
-                        (yyval.type) = Type::ExpressionType::Char;
+                        (yyval.type) = AST::Decl::Type::Bool;
                     }
 #line 1664 "c-.tab.c"
     break;
 
-  case 18:
-#line 192 "c-.y"
+  case 17:
+#line 196 "c-.y"
                     {
-                        (yyval.type) = Type::ExpressionType::Integer;
+                        (yyval.type) = AST::Decl::Type::Char;
                     }
 #line 1672 "c-.tab.c"
     break;
 
-  case 19:
-#line 198 "c-.y"
+  case 18:
+#line 200 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Declaration::Function);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.type) = AST::Decl::Type::Int;
                     }
-#line 1682 "c-.tab.c"
+#line 1680 "c-.tab.c"
+    break;
+
+  case 19:
+#line 206 "c-.y"
+                    {
+                        (yyval.node) = new AST::Decl::Func((yyvsp[-5].type)->linenum, (yyvsp[-5].type), (yyvsp[-4].tokenData)->tokenstr, (yyvsp[-2].node), (yyvsp[0].node));
+                    }
+#line 1688 "c-.tab.c"
     break;
 
   case 20:
-#line 204 "c-.y"
+#line 210 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Declaration::Function);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Decl::Func((yyvsp[-4].tokenData)->linenum, (yyvsp[-4].tokenData)->tokenstr, (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1692 "c-.tab.c"
+#line 1696 "c-.tab.c"
     break;
 
   case 21:
-#line 212 "c-.y"
+#line 216 "c-.y"
                     {
                         (yyval.node) = nullptr;
 					}
-#line 1700 "c-.tab.c"
+#line 1704 "c-.tab.c"
     break;
 
   case 22:
-#line 216 "c-.y"
+#line 220 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1708 "c-.tab.c"
+#line 1712 "c-.tab.c"
     break;
 
   case 23:
-#line 222 "c-.y"
+#line 226 "c-.y"
                     {
                         (yyval.node) = (yyvsp[-2].node);
-                        (yyval.node)->add_sibling((yyvsp[0].node));
+                        (yyval.node)->addSibling((yyvsp[0].node));
                     }
-#line 1717 "c-.tab.c"
+#line 1721 "c-.tab.c"
     break;
 
   case 24:
-#line 227 "c-.y"
+#line 231 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1725 "c-.tab.c"
+#line 1729 "c-.tab.c"
     break;
 
   case 25:
-#line 233 "c-.y"
+#line 237 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
+                        AST::Decl::Parm *parms = (AST::Decl::Parm *)(yyvsp[0].node);
+                        parms->setType((yyvsp[-1].type));
+                        (yyval.node) = parms;
 					}
-#line 1733 "c-.tab.c"
+#line 1739 "c-.tab.c"
     break;
 
   case 26:
-#line 239 "c-.y"
+#line 245 "c-.y"
                     {
                         (yyval.node) = (yyvsp[-2].node);
-                        (yyval.node)->add_sibling((yyvsp[0].node));
+                        (yyval.node)->addSibling((yyvsp[0].node));
                     }
-#line 1742 "c-.tab.c"
+#line 1748 "c-.tab.c"
     break;
 
   case 27:
-#line 244 "c-.y"
+#line 250 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1750 "c-.tab.c"
+#line 1756 "c-.tab.c"
     break;
 
   case 28:
-#line 250 "c-.y"
+#line 256 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Declaration::Parameter);
+                        (yyval.node) = new AST::Decl::Parm((yyvsp[0].tokenData)->linenum, (yyvsp[0].tokenData)->tokenstr, false);
 					}
-#line 1758 "c-.tab.c"
+#line 1764 "c-.tab.c"
     break;
 
   case 29:
-#line 254 "c-.y"
+#line 260 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Declaration::Parameter);
+                        (yyval.node) = new AST::Decl::Parm((yyvsp[-2].tokenData)->linenum, (yyvsp[-2].tokenData)->tokenstr, true);
 					}
-#line 1766 "c-.tab.c"
+#line 1772 "c-.tab.c"
     break;
 
   case 30:
-#line 260 "c-.y"
+#line 266 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1774 "c-.tab.c"
+#line 1780 "c-.tab.c"
     break;
 
   case 31:
-#line 264 "c-.y"
+#line 270 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1782 "c-.tab.c"
+#line 1788 "c-.tab.c"
     break;
 
   case 32:
-#line 270 "c-.y"
+#line 276 "c-.y"
                     {
                         (yyval.node) = (yyvsp[-1].node);
 					}
-#line 1790 "c-.tab.c"
+#line 1796 "c-.tab.c"
     break;
 
   case 33:
-#line 274 "c-.y"
+#line 280 "c-.y"
                     {
                         (yyval.node) = nullptr;
 					}
-#line 1798 "c-.tab.c"
+#line 1804 "c-.tab.c"
     break;
 
   case 34:
-#line 280 "c-.y"
+#line 286 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Compound);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[-1].node));
+                        (yyval.node) = new AST::Stmt::Compound((yyvsp[-3].tokenData)->linenum, (yyvsp[-2].node), (yyvsp[-1].node));
                     }
-#line 1808 "c-.tab.c"
+#line 1812 "c-.tab.c"
     break;
 
   case 35:
-#line 288 "c-.y"
+#line 292 "c-.y"
                     {
                         (yyval.node) = nullptr;
 					}
-#line 1816 "c-.tab.c"
+#line 1820 "c-.tab.c"
     break;
 
   case 36:
-#line 292 "c-.y"
+#line 296 "c-.y"
                     {
                         if ((yyvsp[-1].node) == nullptr) {
                             (yyval.node) = (yyvsp[0].node);
                         } else {
                             (yyval.node) = (yyvsp[-1].node);
-                            (yyval.node)->add_sibling((yyvsp[0].node));
+                            (yyval.node)->addSibling((yyvsp[0].node));
                         }
                     }
-#line 1829 "c-.tab.c"
+#line 1833 "c-.tab.c"
     break;
 
   case 37:
-#line 303 "c-.y"
+#line 307 "c-.y"
                     {
                         (yyval.node) = nullptr;
 					}
-#line 1837 "c-.tab.c"
+#line 1841 "c-.tab.c"
     break;
 
   case 38:
-#line 307 "c-.y"
+#line 311 "c-.y"
                     {
                         if ((yyvsp[-1].node) == nullptr) {
                             (yyval.node) = (yyvsp[0].node);
                         } else {
                             (yyval.node) = (yyvsp[-1].node);
-                            (yyval.node)->add_sibling((yyvsp[0].node));
+                            (yyval.node)->addSibling((yyvsp[0].node));
                         }
                     }
-#line 1850 "c-.tab.c"
+#line 1854 "c-.tab.c"
     break;
 
   case 39:
-#line 318 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[0].node);
-					}
-#line 1858 "c-.tab.c"
-    break;
-
-  case 40:
 #line 322 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1866 "c-.tab.c"
+#line 1862 "c-.tab.c"
     break;
 
-  case 41:
+  case 40:
 #line 326 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1874 "c-.tab.c"
+#line 1870 "c-.tab.c"
     break;
 
-  case 42:
+  case 41:
 #line 330 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1882 "c-.tab.c"
+#line 1878 "c-.tab.c"
     break;
 
-  case 43:
+  case 42:
 #line 334 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1890 "c-.tab.c"
+#line 1886 "c-.tab.c"
     break;
 
-  case 44:
+  case 43:
 #line 338 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1898 "c-.tab.c"
+#line 1894 "c-.tab.c"
     break;
 
-  case 45:
-#line 344 "c-.y"
+  case 44:
+#line 342 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1906 "c-.tab.c"
+#line 1902 "c-.tab.c"
     break;
 
-  case 46:
+  case 45:
 #line 348 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 1914 "c-.tab.c"
+#line 1910 "c-.tab.c"
+    break;
+
+  case 46:
+#line 352 "c-.y"
+                    {
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 1918 "c-.tab.c"
     break;
 
   case 47:
-#line 354 "c-.y"
+#line 358 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Select);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Stmt::Select((yyvsp[-3].tokenData)->linenum, (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1924 "c-.tab.c"
+#line 1926 "c-.tab.c"
     break;
 
   case 48:
-#line 360 "c-.y"
+#line 362 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Select);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Stmt::Select((yyvsp[-5].tokenData)->linenum, (yyvsp[-4].node), (yyvsp[-2].node), (yyvsp[0].node));
                     }
 #line 1934 "c-.tab.c"
     break;
 
   case 49:
-#line 366 "c-.y"
+#line 368 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Select);
-                        (yyval.node)->add_child((yyvsp[-4].node));
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Stmt::Select((yyvsp[-5].tokenData)->linenum, (yyvsp[-4].node), (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1945 "c-.tab.c"
+#line 1942 "c-.tab.c"
     break;
 
   case 50:
-#line 375 "c-.y"
+#line 374 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Select);
-                        (yyval.node)->add_child((yyvsp[-4].node));
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Stmt::While((yyvsp[-3].tokenData)->linenum, (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1956 "c-.tab.c"
+#line 1950 "c-.tab.c"
     break;
 
   case 51:
-#line 384 "c-.y"
+#line 378 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::While);
-                        (yyval.node)->add_child(new AST_node(Type::Expression::Id));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        AST::Decl::Var *iterator = new AST::Decl::Var((yyvsp[-5].tokenData)->linenum, (yyvsp[-4].tokenData)->tokenstr, false);
+                        iterator->setType(AST::Decl::Type::Int);
+                        (yyval.node) = new AST::Stmt::For((yyvsp[-5].tokenData)->linenum, iterator, (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1966 "c-.tab.c"
+#line 1960 "c-.tab.c"
     break;
 
   case 52:
-#line 390 "c-.y"
+#line 386 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Iterative);
-                        (yyval.node)->add_child(new AST_node(Type::Expression::Id));
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Stmt::While((yyvsp[-3].tokenData)->linenum, (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1977 "c-.tab.c"
+#line 1968 "c-.tab.c"
     break;
 
   case 53:
-#line 399 "c-.y"
+#line 390 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::While);
-                        (yyval.node)->add_child(new AST_node(Type::Expression::Id));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        AST::Decl::Var *iterator = new AST::Decl::Var((yyvsp[-5].tokenData)->linenum, (yyvsp[-4].tokenData)->tokenstr, false);
+                        iterator->setType(AST::Decl::Type::Int);
+                        (yyval.node) = new AST::Stmt::For((yyvsp[-5].tokenData)->linenum, iterator, (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1987 "c-.tab.c"
+#line 1978 "c-.tab.c"
     break;
 
   case 54:
-#line 405 "c-.y"
+#line 398 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Iterative);
-                        (yyval.node)->add_child(new AST_node(Type::Expression::Id));
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Exp::Range((yyvsp[-2].node)->lineNumber(), (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1998 "c-.tab.c"
+#line 1986 "c-.tab.c"
     break;
 
   case 55:
-#line 414 "c-.y"
+#line 402 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Range);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Exp::Range((yyvsp[-4].node)->lineNumber(), (yyvsp[-4].node), (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 2008 "c-.tab.c"
+#line 1994 "c-.tab.c"
     break;
 
   case 56:
-#line 420 "c-.y"
+#line 408 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Range);
-                        (yyval.node)->add_child((yyvsp[-4].node));
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = new AST::Stmt::Return((yyvsp[-1].tokenData)->linenum, nullptr);
                     }
-#line 2019 "c-.tab.c"
+#line 2002 "c-.tab.c"
     break;
 
   case 57:
-#line 429 "c-.y"
+#line 412 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Return);
+                        (yyval.node) = new AST::Stmt::Return((yyvsp[-2].tokenData)->linenum, (yyvsp[-1].node));
                     }
-#line 2027 "c-.tab.c"
+#line 2010 "c-.tab.c"
     break;
 
   case 58:
-#line 433 "c-.y"
+#line 418 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Return);
-                        (yyval.node)->add_child((yyvsp[-1].node));
+                        (yyval.node) = new AST::Stmt::Break((yyvsp[-1].tokenData)->linenum);
+                    }
+#line 2018 "c-.tab.c"
+    break;
+
+  case 59:
+#line 424 "c-.y"
+                    {
+                        AST::Op::Asgn *op = (AST::Op::Asgn *)(yyvsp[-1].node);
+                        op->addChildren((yyvsp[-2].node), (yyvsp[0].node));
+                        (yyval.node) = op;
+                    }
+#line 2028 "c-.tab.c"
+    break;
+
+  case 60:
+#line 430 "c-.y"
+                    {
+                        (yyval.node) = new AST::Op::Unary((yyvsp[-1].node)->lineNumber(), AST::Op::Unary::Type::Inc, (yyvsp[-1].node));
                     }
 #line 2036 "c-.tab.c"
     break;
 
-  case 59:
-#line 440 "c-.y"
+  case 61:
+#line 434 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Break);
+                        (yyval.node) = new AST::Op::Unary((yyvsp[-1].node)->lineNumber(), AST::Op::Unary::Type::Dec, (yyvsp[-1].node));
                     }
 #line 2044 "c-.tab.c"
     break;
 
-  case 60:
-#line 446 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[-1].node);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
-                    }
-#line 2054 "c-.tab.c"
-    break;
-
-  case 61:
-#line 452 "c-.y"
-                    {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
-                        (yyval.node) = (yyvsp[-1].node);
-                    }
-#line 2063 "c-.tab.c"
-    break;
-
   case 62:
-#line 457 "c-.y"
+#line 438 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
-                        (yyval.node) = (yyvsp[-1].node);
-                    }
-#line 2072 "c-.tab.c"
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 2052 "c-.tab.c"
     break;
 
   case 63:
-#line 462 "c-.y"
+#line 444 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
+                        (yyval.node) = new AST::Op::Asgn((yyvsp[0].tokenData)->linenum, AST::Op::Asgn::Type::Asgn);
 					}
-#line 2080 "c-.tab.c"
+#line 2060 "c-.tab.c"
     break;
 
   case 64:
-#line 468 "c-.y"
+#line 448 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
+                        (yyval.node) = new AST::Op::Asgn((yyvsp[0].tokenData)->linenum, AST::Op::Asgn::Type::AddAsgn);
 					}
-#line 2088 "c-.tab.c"
+#line 2068 "c-.tab.c"
     break;
 
   case 65:
-#line 472 "c-.y"
+#line 452 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
+                        (yyval.node) = new AST::Op::Asgn((yyvsp[0].tokenData)->linenum, AST::Op::Asgn::Type::SubAsgn);
 					}
-#line 2096 "c-.tab.c"
+#line 2076 "c-.tab.c"
     break;
 
   case 66:
-#line 476 "c-.y"
+#line 456 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
+                        (yyval.node) = new AST::Op::Asgn((yyvsp[0].tokenData)->linenum, AST::Op::Asgn::Type::DivAsgn);
 					}
-#line 2104 "c-.tab.c"
+#line 2084 "c-.tab.c"
     break;
 
   case 67:
-#line 480 "c-.y"
+#line 460 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
+                        (yyval.node) = new AST::Op::Asgn((yyvsp[0].tokenData)->linenum, AST::Op::Asgn::Type::MulAsgn);
 					}
-#line 2112 "c-.tab.c"
+#line 2092 "c-.tab.c"
     break;
 
   case 68:
-#line 484 "c-.y"
+#line 466 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Assign);
-					}
-#line 2120 "c-.tab.c"
+                        (yyval.node) = new AST::Op::Binary((yyvsp[-2].node)->lineNumber(), AST::Op::Binary::Type::Or, (yyvsp[-2].node), (yyvsp[0].node));
+                    }
+#line 2100 "c-.tab.c"
     break;
 
   case 69:
-#line 490 "c-.y"
+#line 470 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Or);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
-                    }
-#line 2130 "c-.tab.c"
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 2108 "c-.tab.c"
     break;
 
   case 70:
-#line 496 "c-.y"
+#line 476 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
-					}
-#line 2138 "c-.tab.c"
+                        (yyval.node) = new AST::Op::Binary((yyvsp[-2].node)->lineNumber(), AST::Op::Binary::Type::And, (yyvsp[-2].node), (yyvsp[0].node));
+                    }
+#line 2116 "c-.tab.c"
     break;
 
   case 71:
-#line 502 "c-.y"
+#line 480 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::And);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
-                    }
-#line 2148 "c-.tab.c"
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 2124 "c-.tab.c"
     break;
 
   case 72:
-#line 508 "c-.y"
+#line 486 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
-					}
-#line 2156 "c-.tab.c"
+                        (yyval.node) = new AST::Op::Unary((yyvsp[-1].tokenData)->linenum, AST::Op::Unary::Type::Not, (yyvsp[0].node));
+                    }
+#line 2132 "c-.tab.c"
     break;
 
   case 73:
-#line 514 "c-.y"
+#line 490 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::UnaryOperator);
-                        (yyval.node)->add_child((yyvsp[0].node));
-                    }
-#line 2165 "c-.tab.c"
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 2140 "c-.tab.c"
     break;
 
   case 74:
-#line 519 "c-.y"
+#line 496 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
-					}
-#line 2173 "c-.tab.c"
+                        AST::Op::Binary *op = (AST::Op::Binary *)(yyvsp[-1].node);
+                        op->addChildren((yyvsp[-2].node), (yyvsp[0].node));
+                        (yyval.node) = op;
+                    }
+#line 2150 "c-.tab.c"
     break;
 
   case 75:
-#line 525 "c-.y"
+#line 502 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-1].node);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
-                    }
-#line 2183 "c-.tab.c"
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 2158 "c-.tab.c"
     break;
 
   case 76:
-#line 531 "c-.y"
+#line 508 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::LT);
 					}
-#line 2191 "c-.tab.c"
+#line 2166 "c-.tab.c"
     break;
 
   case 77:
-#line 537 "c-.y"
+#line 512 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::RelationalOperator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::LEQ);
 					}
-#line 2199 "c-.tab.c"
+#line 2174 "c-.tab.c"
     break;
 
   case 78:
-#line 541 "c-.y"
+#line 516 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::RelationalOperator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::GT);
 					}
-#line 2207 "c-.tab.c"
+#line 2182 "c-.tab.c"
     break;
 
   case 79:
-#line 545 "c-.y"
+#line 520 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::RelationalOperator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::GEQ);
 					}
-#line 2215 "c-.tab.c"
+#line 2190 "c-.tab.c"
     break;
 
   case 80:
-#line 549 "c-.y"
+#line 524 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::RelationalOperator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::EQ);
 					}
-#line 2223 "c-.tab.c"
+#line 2198 "c-.tab.c"
     break;
 
   case 81:
-#line 553 "c-.y"
+#line 528 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::RelationalOperator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::NEQ);
 					}
-#line 2231 "c-.tab.c"
+#line 2206 "c-.tab.c"
     break;
 
   case 82:
-#line 557 "c-.y"
+#line 534 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::RelationalOperator);
+                        AST::Op::Binary *op = (AST::Op::Binary *)(yyvsp[-1].node);
+                        op->addChildren((yyvsp[-2].node), (yyvsp[0].node));
+                        (yyval.node) = op;
 					}
-#line 2239 "c-.tab.c"
+#line 2216 "c-.tab.c"
     break;
 
   case 83:
-#line 563 "c-.y"
+#line 540 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-1].node);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = (yyvsp[0].node);
 					}
-#line 2249 "c-.tab.c"
+#line 2224 "c-.tab.c"
     break;
 
   case 84:
-#line 569 "c-.y"
+#line 546 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::Add);
 					}
-#line 2257 "c-.tab.c"
+#line 2232 "c-.tab.c"
     break;
 
   case 85:
-#line 575 "c-.y"
+#line 550 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Operator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::Subtract);
 					}
-#line 2265 "c-.tab.c"
+#line 2240 "c-.tab.c"
     break;
 
   case 86:
-#line 579 "c-.y"
+#line 556 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Operator);
+                        AST::Op::Binary *op = (AST::Op::Binary *)(yyvsp[-1].node);
+                        op->addChildren((yyvsp[-2].node), (yyvsp[0].node));
+                        (yyval.node) = op;
 					}
-#line 2273 "c-.tab.c"
+#line 2250 "c-.tab.c"
     break;
 
   case 87:
-#line 585 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[-1].node);
-                        (yyval.node)->add_child((yyvsp[-2].node));
-                        (yyval.node)->add_child((yyvsp[0].node));
-					}
-#line 2283 "c-.tab.c"
-    break;
-
-  case 88:
-#line 591 "c-.y"
+#line 562 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
-#line 2291 "c-.tab.c"
+#line 2258 "c-.tab.c"
+    break;
+
+  case 88:
+#line 568 "c-.y"
+                    {
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::Mul);
+					}
+#line 2266 "c-.tab.c"
     break;
 
   case 89:
-#line 597 "c-.y"
+#line 572 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Operator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::Div);
 					}
-#line 2299 "c-.tab.c"
+#line 2274 "c-.tab.c"
     break;
 
   case 90:
-#line 601 "c-.y"
+#line 576 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Operator);
+                        (yyval.node) = new AST::Op::Binary((yyvsp[0].tokenData)->linenum, AST::Op::Binary::Type::Mod);
 					}
-#line 2307 "c-.tab.c"
+#line 2282 "c-.tab.c"
     break;
 
   case 91:
-#line 605 "c-.y"
+#line 582 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Operator);
+                        AST::Op::Unary *op = (AST::Op::Unary *)(yyvsp[-1].node);
+                        op->addExp((yyvsp[0].node));
+                        (yyval.node) = op;
 					}
-#line 2315 "c-.tab.c"
+#line 2292 "c-.tab.c"
     break;
 
   case 92:
-#line 611 "c-.y"
+#line 588 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-1].node);
-                        (yyval.node)->add_child((yyvsp[0].node));
+                        (yyval.node) = (yyvsp[0].node);
+					}
+#line 2300 "c-.tab.c"
+    break;
+
+  case 93:
+#line 594 "c-.y"
+                    {
+                        (yyval.node) = new AST::Op::Unary((yyvsp[0].tokenData)->linenum, AST::Op::Unary::Type::Chsign);
+					}
+#line 2308 "c-.tab.c"
+    break;
+
+  case 94:
+#line 598 "c-.y"
+                    {
+                        (yyval.node) = new AST::Op::Unary((yyvsp[0].tokenData)->linenum, AST::Op::Unary::Type::Sizeof);
+					}
+#line 2316 "c-.tab.c"
+    break;
+
+  case 95:
+#line 602 "c-.y"
+                    {
+                        (yyval.node) = new AST::Op::Unary((yyvsp[0].tokenData)->linenum, AST::Op::Unary::Type::Random);
 					}
 #line 2324 "c-.tab.c"
     break;
 
-  case 93:
-#line 616 "c-.y"
+  case 96:
+#line 608 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
 					}
 #line 2332 "c-.tab.c"
     break;
 
-  case 94:
-#line 622 "c-.y"
+  case 97:
+#line 612 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::UnaryOperator);
+                        (yyval.node) = (yyvsp[0].node);
 					}
 #line 2340 "c-.tab.c"
     break;
 
-  case 95:
-#line 626 "c-.y"
+  case 98:
+#line 618 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::UnaryOperator);
+                        (yyval.node) = new AST::Exp::Id((yyvsp[0].tokenData)->linenum, (yyvsp[0].tokenData)->tokenstr);
 					}
 #line 2348 "c-.tab.c"
     break;
 
-  case 96:
-#line 630 "c-.y"
+  case 99:
+#line 622 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::UnaryOperator);
-					}
+                        (yyval.node) = new AST::Op::Binary((yyvsp[-3].tokenData)->linenum, AST::Op::Binary::Type::Index, new AST::Exp::Id((yyvsp[-3].tokenData)->linenum, (yyvsp[-3].tokenData)->tokenstr), (yyvsp[-1].node));
+                    }
 #line 2356 "c-.tab.c"
     break;
 
-  case 97:
-#line 636 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[0].node);
-					}
-#line 2364 "c-.tab.c"
-    break;
-
-  case 98:
-#line 640 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[0].node);
-					}
-#line 2372 "c-.tab.c"
-    break;
-
-  case 99:
-#line 646 "c-.y"
-                    {
-                        (yyval.node) = new AST_node(Type::Expression::Id);
-					}
-#line 2380 "c-.tab.c"
-    break;
-
   case 100:
-#line 650 "c-.y"
-                    {
-                        (yyval.node) = new AST_node(Type::Expression::Operator);
-                        (yyval.node)->add_child(new AST_node(Type::Expression::Id));
-                        (yyval.node)->add_child((yyvsp[-1].node));
-                    }
-#line 2390 "c-.tab.c"
-    break;
-
-  case 101:
-#line 658 "c-.y"
+#line 628 "c-.y"
                     {
                         (yyval.node) = (yyvsp[-1].node);
                     }
-#line 2398 "c-.tab.c"
+#line 2364 "c-.tab.c"
+    break;
+
+  case 101:
+#line 632 "c-.y"
+                    {
+                        (yyval.node) = (yyvsp[0].node);
+                    }
+#line 2372 "c-.tab.c"
     break;
 
   case 102:
-#line 662 "c-.y"
+#line 636 "c-.y"
                     {
                         (yyval.node) = (yyvsp[0].node);
                     }
-#line 2406 "c-.tab.c"
+#line 2380 "c-.tab.c"
     break;
 
   case 103:
-#line 666 "c-.y"
+#line 642 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[0].node);
+                        (yyval.node) = new AST::Exp::Call((yyvsp[-3].tokenData)->linenum, (yyvsp[-3].tokenData)->tokenstr, (yyvsp[-1].node));
                     }
-#line 2414 "c-.tab.c"
+#line 2388 "c-.tab.c"
     break;
 
   case 104:
-#line 672 "c-.y"
+#line 646 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Call);
-                        (yyval.node)->add_child((yyvsp[-1].node));
+                        (yyval.node) = new AST::Exp::Call((yyvsp[-2].tokenData)->linenum, (yyvsp[-2].tokenData)->tokenstr);
                     }
-#line 2423 "c-.tab.c"
+#line 2396 "c-.tab.c"
     break;
 
   case 105:
-#line 677 "c-.y"
+#line 652 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Statement::Call);
+                        (yyval.node) = (yyvsp[-2].node);
+                        (yyval.node)->addSibling((yyvsp[0].node));
+                    }
+#line 2405 "c-.tab.c"
+    break;
+
+  case 106:
+#line 657 "c-.y"
+                    {
+                        (yyval.node) = (yyvsp[0].node);
+                    }
+#line 2413 "c-.tab.c"
+    break;
+
+  case 107:
+#line 663 "c-.y"
+                    {
+                        int i = std::atoi(yytext);
+                        (yyval.node) = new AST::Exp::Const((yyvsp[0].tokenData)->linenum, i);
+                    }
+#line 2422 "c-.tab.c"
+    break;
+
+  case 108:
+#line 668 "c-.y"
+                    {
+                        char c = strutil::get_first_char(strutil::remove_quotes(yytext));
+                        (yyval.node) = new AST::Exp::Const((yyvsp[0].tokenData)->linenum, c);
                     }
 #line 2431 "c-.tab.c"
     break;
 
-  case 106:
-#line 683 "c-.y"
+  case 109:
+#line 673 "c-.y"
                     {
-                        (yyval.node) = (yyvsp[-2].node);
-                        (yyval.node)->add_sibling((yyvsp[0].node));
+                        std::string s = strutil::make_str(strutil::remove_quotes(yytext));
+                        (yyval.node) = new AST::Exp::Const((yyvsp[0].tokenData)->linenum, s);
                     }
 #line 2440 "c-.tab.c"
     break;
 
-  case 107:
-#line 688 "c-.y"
-                    {
-                        (yyval.node) = (yyvsp[0].node);
-                    }
-#line 2448 "c-.tab.c"
-    break;
-
-  case 108:
-#line 694 "c-.y"
-                    {
-                        (yyval.node) = new AST_node(Type::Expression::Constant);
-                    }
-#line 2456 "c-.tab.c"
-    break;
-
-  case 109:
-#line 698 "c-.y"
-                    {
-                        (yyval.node) = new AST_node(Type::Expression::Constant);
-                    }
-#line 2464 "c-.tab.c"
-    break;
-
   case 110:
-#line 702 "c-.y"
+#line 678 "c-.y"
                     {
-                        (yyval.node) = new AST_node(Type::Expression::Constant);
+                        bool b = std::string(yytext) == "true";
+                        (yyval.node) = new AST::Exp::Const((yyvsp[0].tokenData)->linenum, b);
                     }
-#line 2472 "c-.tab.c"
-    break;
-
-  case 111:
-#line 706 "c-.y"
-                    {
-                        (yyval.node) = new AST_node(Type::Expression::Constant);
-                    }
-#line 2480 "c-.tab.c"
+#line 2449 "c-.tab.c"
     break;
 
 
-#line 2484 "c-.tab.c"
+#line 2453 "c-.tab.c"
 
       default: break;
     }
@@ -2712,20 +2681,30 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 711 "c-.y"
+#line 684 "c-.y"
 
 extern int yydebug;
 int main(int argc, char *argv[])
 {
-    if (argc > 1) {
-        if ((yyin = fopen(argv[1], "r"))) {
-            // file open successful
+    bool print = false;
+    std::string file;
+
+    for (unsigned i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "-p") {
+            print = true;
+        } else {
+            file = std::string(argv[i]);
+            break;
         }
-        else {
-            // failed to open file
-            printf("ERROR: failed to open \'%s\'\n", argv[1]);
-            exit(1);
-        }
+    }
+
+    if ((yyin = fopen(file.c_str(), "r"))) {
+        // file open successful
+    }
+    else {
+        // failed to open file
+        printf("ERROR: failed to open \'%s\'\n", argv[1]);
+        exit(1);
     }
 
     // init variables a through z
@@ -2734,10 +2713,9 @@ int main(int argc, char *argv[])
     // do the parsing
     numErrors = 0;
     yyparse();
-    std::cout << "\n";
-    if (tree_root != nullptr) {
+
+    if (tree_root != nullptr && print) {
         tree_root->print();
-        std::cout << tree_root->number_of_nodes() << std::endl;
     }
 
     for (auto& token : tokens) {
