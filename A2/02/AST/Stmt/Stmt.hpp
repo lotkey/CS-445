@@ -21,7 +21,7 @@ namespace AST::Stmt
                                                                {Type::Compound, "Compound"},
                                                                {Type::For, "For"},
                                                                {Type::Return, "Return"},
-                                                               {Type::Select, "Select"},
+                                                               {Type::Select, "If"},
                                                                {Type::While, "While"}};
     ;
 

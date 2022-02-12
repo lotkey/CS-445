@@ -8,8 +8,6 @@ namespace AST::Op
 {
     const std::map<Unary::Type, std::string>
         Unary::s_typeToString = {{Unary::Type::Chsign, "chsign"},
-                                 {Unary::Type::Dec, "--"},
-                                 {Unary::Type::Inc, "++"},
                                  {Unary::Type::Not, "not"},
                                  {Unary::Type::Random, "?"},
                                  {Unary::Type::Sizeof, "sizeof"}};

@@ -36,7 +36,12 @@ namespace AST::Decl
         {
             str += " of array";
         }
-        str += " of type " + s_typeToString.at(m_type.value()) + lineTag();
+        str += " of";
+        if (m_isStatic)
+        {
+            str += " static";
+        }
+        str += " type " + s_typeToString.at(m_type.value()) + lineTag();
         return str;
     }
 }

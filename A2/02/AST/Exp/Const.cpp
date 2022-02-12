@@ -69,12 +69,12 @@ namespace AST::Exp
         }
         case Type::Char:
         {
-            str += std::get<char>(m_data);
+            str += "'" + std::string(1, std::get<char>(m_data)) + "'";
             break;
         }
         case Type::String:
         {
-            str += std::get<std::string>(m_data);
+            str += "\"" + std::get<std::string>(m_data) + "\"";
             break;
         }
         default:

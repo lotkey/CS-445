@@ -204,7 +204,7 @@ typeSpec            : BOOL
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt
                     {
-                        $$ = new AST::Decl::Func($1->linenum, $1, $2->tokenstr, $4, $6);
+                        $$ = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
                     }
                     | ID LPAREN parms RPAREN compoundStmt
                     {
@@ -428,11 +428,11 @@ exp                 : mutable assignop exp
                     }
                     | mutable INC
                     {
-                        $$ = new AST::Op::Unary($1->lineNumber(), AST::Op::Unary::Type::Inc, $1);
+                        $$ = new AST::Op::UnaryAsgn($1->lineNumber(), AST::Op::UnaryAsgn::Type::Inc, $1);
                     }
                     | mutable DEC
                     {
-                        $$ = new AST::Op::Unary($1->lineNumber(), AST::Op::Unary::Type::Dec, $1);
+                        $$ = new AST::Op::UnaryAsgn($1->lineNumber(), AST::Op::UnaryAsgn::Type::Dec, $1);
                     }
                     | simpleExp
                     {
@@ -661,23 +661,19 @@ argList             : argList COM exp
 
 constant            : NUMCONST
                     {
-                        int i = std::atoi(yytext);
-                        $$ = new AST::Exp::Const($1->linenum, i);
+                        $$ = new AST::Exp::Const($1->linenum, $1->numConst);
                     }
                     | CHARCONST
                     {
-                        char c = strutil::get_first_char(strutil::remove_quotes(yytext));
-                        $$ = new AST::Exp::Const($1->linenum, c);
+                        $$ = new AST::Exp::Const($1->linenum, $1->charConst);
                     }
                     | STRINGCONST
                     {
-                        std::string s = strutil::make_str(strutil::remove_quotes(yytext));
-                        $$ = new AST::Exp::Const($1->linenum, s);
+                        $$ = new AST::Exp::Const($1->linenum, $1->stringConst);
                     }
                     | BOOLCONST
                     {
-                        bool b = std::string(yytext) == "true";
-                        $$ = new AST::Exp::Const($1->linenum, b);
+                        $$ = new AST::Exp::Const($1->linenum, (bool)$1->boolConst);
                     }
                     ;
 

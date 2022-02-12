@@ -7,21 +7,18 @@
 
 namespace AST::Op
 {
-    class Unary : public Node
+    class UnaryAsgn : public Node
     {
     public:
         enum class Type
         {
-            Chsign,
-            Sizeof,
-            Random,
-            Not
+            Inc,
+            Dec
         };
 
-        Unary();
-        Unary(unsigned);
-        Unary(unsigned, Type, Node *exp = nullptr);
-        void addExp(Node *);
+        UnaryAsgn();
+        UnaryAsgn(unsigned);
+        UnaryAsgn(unsigned, Type, Node *);
         virtual std::string toString() const override;
 
     protected:

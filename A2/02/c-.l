@@ -54,8 +54,8 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 
 %%
 \#\#.*\n                    { line++; }
-\"((\\\")|([^\n\"]))*\"     { return STRINGCONST; }
-\'((\\\')|([^\n\']))*\'     { return CHARCONST; }
+\"((\\\")|([^\n\"]))*\"     { return setValue(line, STRINGCONST, yytext); }
+\'((\\\')|([^\n\']))*\'     { return setValue(line, CHARCONST, yytext); }
 \n                          { line++; }
 "while"                     { return setValue(line, WHILE, yytext); }
 "if"                        { return setValue(line, IF, yytext); }
@@ -76,7 +76,7 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 "int"                       { return INT; }
 "bool"                      { return BOOL; }
 "char"                      { return CHAR; }
-"true"|"false"              { return BOOLCONST; }
+"true"|"false"              { return setValue(line, BOOLCONST, yytext); }
 "("                         { return setValue(line, LPAREN, yytext); }
 ")"                         { return setValue(line, RPAREN, yytext); }
 "["                         { return setValue(line, LBRACK, yytext); }
@@ -104,7 +104,7 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 ":"                         { return setValue(line, COL, yytext); }
 ","                         { return setValue(line, COM, yytext); }
 [a-zA-Z][a-zA-Z0-9]*        { return setValue(line, ID, yytext); }
-[0-9]+                      { return NUMCONST; }
+[0-9]+                      { return setValue(line, NUMCONST, yytext); }
 [ \t]                       ;
 .                           { printf("ERROR(%d): Invalid or misplaced input character: \'%c\'. Character Ignored.\n", line, yytext[0]); numErrors++; }
 %%
