@@ -1,5 +1,6 @@
 #pragma once
 
+/// Namespace for operator nodes
 namespace AST::Op
 {
 }

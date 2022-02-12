@@ -6,6 +6,12 @@
 
 namespace AST::Stmt
 {
+    const std::map<Stmt::Type, std::string> Stmt::s_typeToString = {{Type::Break, "Break"},
+                                                                    {Type::Compound, "Compound"},
+                                                                    {Type::For, "For"},
+                                                                    {Type::Return, "Return"},
+                                                                    {Type::Select, "If"},
+                                                                    {Type::While, "While"}};
     Stmt::Stmt()
         : Node::Node()
     {

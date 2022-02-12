@@ -1,4 +1,5 @@
 #include "Const.hpp"
+#include "../../strutil.hpp"
 #include "../Node.hpp"
 
 #include <string>
@@ -16,32 +17,33 @@ namespace AST::Exp
     {
     }
 
-    Const::Const(unsigned linenum, int data)
+    Const::Const(unsigned linenum, Type type, std::string value)
         : Node::Node(linenum),
-          m_data(data),
-          m_type(Type::Int)
+          m_type(type)
     {
-    }
-
-    Const::Const(unsigned linenum, bool data)
-        : Node::Node(linenum),
-          m_data(data),
-          m_type(Type::Bool)
-    {
-    }
-
-    Const::Const(unsigned linenum, char data)
-        : Node::Node(linenum),
-          m_data(data),
-          m_type(Type::Char)
-    {
-    }
-
-    Const::Const(unsigned linenum, const std::string &data)
-        : Node::Node(linenum),
-          m_data(data),
-          m_type(Type::String)
-    {
+        switch (m_type)
+        {
+        case Type::String:
+        {
+            m_value = strutil::remove_quotes(value);
+            break;
+        }
+        case Type::Bool:
+        {
+            m_value = (value == "true");
+            break;
+        }
+        case Type::Char:
+        {
+            m_value = strutil::make_char(strutil::remove_quotes(value), m_linenum);
+            break;
+        };
+        case Type::Int:
+        {
+            m_value = std::atoi(value.c_str());
+            break;
+        }
+        };
     }
 
     std::string Const::toString() const
@@ -52,12 +54,12 @@ namespace AST::Exp
         {
         case Type::Int:
         {
-            str += std::to_string(std::get<int>(m_data));
+            str += std::to_string(std::get<int>(m_value));
             break;
         }
         case Type::Bool:
         {
-            if (std::get<bool>(m_data))
+            if (std::get<bool>(m_value))
             {
                 str += "true";
             }
@@ -69,17 +71,17 @@ namespace AST::Exp
         }
         case Type::Char:
         {
-            str += "'" + std::string(1, std::get<char>(m_data)) + "'";
+            str += "'" + std::string(1, std::get<char>(m_value)) + "'";
             break;
         }
         case Type::String:
         {
-            str += "\"" + std::get<std::string>(m_data) + "\"";
+            str += "\"" + std::get<std::string>(m_value) + "\"";
             break;
         }
         default:
         {
-            str += std::get<int>(m_data);
+            str += std::get<std::string>(m_value);
             break;
         }
         };

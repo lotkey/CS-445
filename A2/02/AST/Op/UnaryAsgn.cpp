@@ -7,8 +7,8 @@
 namespace AST::Op
 {
     const std::map<UnaryAsgn::Type, std::string>
-        UnaryAsgn::s_typeToString = {{UnaryAsgn::Type::Dec, "--"},
-                                     {UnaryAsgn::Type::Inc, "++"}};
+        UnaryAsgn::s_typeToString = {{Type::Dec, "--"},
+                                     {Type::Inc, "++"}};
 
     UnaryAsgn::UnaryAsgn()
         : Node::Node()

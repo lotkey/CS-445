@@ -7,10 +7,10 @@
 namespace AST::Op
 {
     const std::map<Unary::Type, std::string>
-        Unary::s_typeToString = {{Unary::Type::Chsign, "chsign"},
-                                 {Unary::Type::Not, "not"},
-                                 {Unary::Type::Random, "?"},
-                                 {Unary::Type::Sizeof, "sizeof"}};
+        Unary::s_typeToString = {{Type::Chsign, "chsign"},
+                                 {Type::Not, "not"},
+                                 {Type::Random, "?"},
+                                 {Type::Sizeof, "sizeof"}};
 
     Unary::Unary()
         : Node::Node()

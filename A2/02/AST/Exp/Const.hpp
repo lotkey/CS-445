@@ -6,18 +6,11 @@
 
 namespace AST::Exp
 {
+    /// Node for constants
     class Const : public Node
     {
     public:
-        Const();
-        Const(unsigned);
-        Const(unsigned, int);
-        Const(unsigned, bool);
-        Const(unsigned, char);
-        Const(unsigned, const std::string &);
-        virtual std::string toString() const override;
-
-    protected:
+        /// Constant types
         enum class Type
         {
             Int,
@@ -26,7 +19,18 @@ namespace AST::Exp
             String
         };
 
-        std::variant<int, bool, char, std::string> m_data;
+        Const();
+        /// @param linenum Line number the node appears on
+        Const(unsigned linenum);
+        /// @param linenum Line number the node appears on
+        /// @param Type Type of the constant
+        /// @param data String value of the data
+        Const(unsigned linenum, Type type, std::string data);
+        virtual std::string toString() const override;
+
+    protected:
+
+        std::variant<int, bool, char, std::string> m_value;
         Type m_type;
     };
 }

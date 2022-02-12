@@ -45,7 +45,7 @@ void yyerror(const char *msg)
 
 %token <tokenData> WHILE IF FOR TO RETURN BREAK BY DO
 %token <tokenData> NOT AND OR
-%token <tokenData> ADD RAND MUL DIV MOD SUB ASGN ADDASGN SUBASGN MULASGN DIVASGN
+%token <tokenData> ADD SUB RAND MUL DIV MOD ASGN ADDASGN SUBASGN MULASGN DIVASGN
 %token <tokenData> THEN ELSE BGN END
 %token <tokenData> RPAREN LPAREN RBRACK LBRACK
 %token <tokenData> STATIC
@@ -54,53 +54,12 @@ void yyerror(const char *msg)
 
 %token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST
 %type <node> program
-%type <node> declList
-%type <node> decl
-%type <node> varDecl
-%type <node> scopedVarDecl
-%type <node> varDeclList
-%type <node> varDeclInit
-%type <node> varDeclId
+%type <node> declList decl varDecl scopedVarDecl varDeclList varDeclInit varDeclId
 %type <type> typeSpec
-%type <node> funDecl
-%type <node> parms
-%type <node> parmList
-%type <node> parmTypeList
-%type <node> parmIdList
-%type <node> parmId
-%type <node> stmt
-%type <node> expStmt
-%type <node> compoundStmt
-%type <node> localDecls
-%type <node> stmtList
-%type <node> closedStmt
-%type <node> openStmt
-%type <node> selectStmtOpen
-%type <node> selectStmtClosed
-%type <node> iterStmtOpen
-%type <node> iterStmtClosed
-%type <node> iterRange
-%type <node> returnStmt
-%type <node> breakStmt
-%type <node> exp
-%type <node> assignop
-%type <node> simpleExp
-%type <node> andExp
-%type <node> unaryRelExp
-%type <node> relExp
-%type <node> relop
-%type <node> sumExp
-%type <node> sumop
-%type <node> mulExp
-%type <node> mulop
-%type <node> unaryExp
-%type <node> unaryop
-%type <node> factor
-%type <node> mutable
-%type <node> immutable
-%type <node> call
-%type <node> argList
-%type <node> constant
+%type <node> funDecl parms parmList parmTypeList parmIdList parmId
+%type <node> stmt expStmt compoundStmt localDecls stmtList closedStmt openStmt selectStmtOpen selectStmtClosed iterStmtOpen iterStmtClosed iterRange returnStmt breakStmt
+%type <node> exp assignop simpleExp andExp unaryRelExp relExp relop sumExp sumop mulExp mulop unaryExp unaryop
+%type <node> factor mutable immutable call argList constant
 
 
 %%
@@ -661,19 +620,19 @@ argList             : argList COM exp
 
 constant            : NUMCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, $1->numConst);
+                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::Int, $1->tokenstr);
                     }
                     | CHARCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, $1->charConst);
+                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::Char, $1->tokenstr);
                     }
                     | STRINGCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, $1->stringConst);
+                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::String, $1->tokenstr);
                     }
                     | BOOLCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, (bool)$1->boolConst);
+                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::Bool, $1->tokenstr);
                     }
                     ;
 

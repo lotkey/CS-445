@@ -22,26 +22,6 @@ static int setValue(int linenum, int tokenClass, char *svalue)
     // fill it up
     yylval.tokenData->linenum = linenum;
     yylval.tokenData->tokenstr = std::string(svalue);
-  
-    switch (tokenClass) {
-        case ID:
-            break;
-        case NUMCONST:
-            yylval.tokenData->numConst = std::atoi(svalue);
-            break;
-        case CHARCONST:
-            yylval.tokenData->charConst = strutil::get_first_char(strutil::remove_quotes(svalue));
-            break;
-        case BOOLCONST:
-            yylval.tokenData->boolConst = yylval.tokenData->tokenstr == "true";
-            break;
-        case STRINGCONST:
-            yylval.tokenData->stringConst = strutil::make_str(strutil::remove_quotes(svalue));
-            break;
-        default:
-            break;
-
-    }
     tokens.push_back(yylval.tokenData);
 
     // return the tokenclass
@@ -86,7 +66,7 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 "/"                         { return setValue(line, DIV, yytext); }
 "%"                         { return setValue(line, MOD, yytext); }
 "+"                         { return setValue(line, ADD, yytext); }
-"-"                         { return setValue(line, SUB, yytext); }
+"-"                         { return setValue(line, TEST, yytext); }
 "<-"                        { return setValue(line, ASGN, yytext); }
 "+="                        { return setValue(line, ADDASGN, yytext); }
 "-="                        { return setValue(line, SUBASGN, yytext); }

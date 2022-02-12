@@ -7,11 +7,14 @@
 
 namespace AST::Stmt
 {
+    /// Function return statement node
     class Return : public Stmt
     {
     public:
         Return();
-        Return(unsigned);
-        Return(unsigned, Node *);
+        /// @param linenum Line number the node appears on
+        Return(unsigned linenum);
+        /// @param linenum Line number the node appears on
+        Return(unsigned linenum, Node *exp);
     };
 }

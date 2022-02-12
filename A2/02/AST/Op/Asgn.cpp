@@ -7,11 +7,11 @@
 namespace AST::Op
 {
     const std::map<Asgn::Type, std::string>
-        Asgn::s_typeToString = {{Asgn::Type::AddAsgn, "+="},
-                                {Asgn::Type::Asgn, "<-"},
-                                {Asgn::Type::DivAsgn, "/="},
-                                {Asgn::Type::MulAsgn, "*="},
-                                {Asgn::Type::SubAsgn, "-="}};
+        Asgn::s_typeToString = {{Type::AddAsgn, "+="},
+                                {Type::Asgn, "<-"},
+                                {Type::DivAsgn, "/="},
+                                {Type::MulAsgn, "*="},
+                                {Type::SubAsgn, "-="}};
 
     Asgn::Asgn()
         : Node::Node()

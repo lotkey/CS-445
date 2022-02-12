@@ -26,6 +26,10 @@ namespace AST::Decl
 
     void Var::setStatic()
     {
+        if (m_sibling != nullptr) {
+            ((Var* )m_sibling)->setStatic();
+        }
+        
         m_isStatic = true;
     }
 

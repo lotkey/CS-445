@@ -7,20 +7,20 @@
 namespace AST::Op
 {
     const std::map<Binary::Type, std::string>
-        Binary::s_typeToString = {{Binary::Type::Add, "+"},
-                                  {Binary::Type::And, "and"},
-                                  {Binary::Type::Div, "/"},
-                                  {Binary::Type::EQ, "="},
-                                  {Binary::Type::GEQ, ">="},
-                                  {Binary::Type::GT, ">"},
-                                  {Binary::Type::Index, "["},
-                                  {Binary::Type::LEQ, "<="},
-                                  {Binary::Type::LT, "<"},
-                                  {Binary::Type::Mod, "%"},
-                                  {Binary::Type::Mul, "*"},
-                                  {Binary::Type::NEQ, "!="},
-                                  {Binary::Type::Or, "or"},
-                                  {Binary::Type::Subtract, "-"}};
+        Binary::s_typeToString = {{Type::Add, "+"},
+                                  {Type::And, "and"},
+                                  {Type::Div, "/"},
+                                  {Type::EQ, "="},
+                                  {Type::GEQ, ">="},
+                                  {Type::GT, ">"},
+                                  {Type::Index, "["},
+                                  {Type::LEQ, "<="},
+                                  {Type::LT, "<"},
+                                  {Type::Mod, "%"},
+                                  {Type::Mul, "*"},
+                                  {Type::NEQ, "!="},
+                                  {Type::Or, "or"},
+                                  {Type::Subtract, "-"}};
 
     Binary::Binary()
         : Node::Node()

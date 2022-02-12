@@ -7,9 +7,11 @@
 
 namespace AST::Op
 {
+    /// Unary assignment operator
     class UnaryAsgn : public Node
     {
     public:
+        /// Assignment type
         enum class Type
         {
             Inc,
@@ -17,8 +19,12 @@ namespace AST::Op
         };
 
         UnaryAsgn();
-        UnaryAsgn(unsigned);
-        UnaryAsgn(unsigned, Type, Node *);
+        /// @param linenum Line number the node appears on
+        UnaryAsgn(unsigned linenum);
+        /// @param linenum Line number the node appears on
+        /// @param type Assignment type
+        /// @param exp The node being assigned
+        UnaryAsgn(unsigned linenum, Type type, Node *exp);
         virtual std::string toString() const override;
 
     protected:

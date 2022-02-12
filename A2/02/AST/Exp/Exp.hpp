@@ -1,5 +1,6 @@
 #pragma once
 
+/// Namespace for expression nodes
 namespace AST::Exp
 {
 }

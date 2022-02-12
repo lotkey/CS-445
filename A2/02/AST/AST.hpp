@@ -1,5 +1,6 @@
 #pragma once
 
+/// Abstract Syntax Tree
 namespace AST
 {
 }

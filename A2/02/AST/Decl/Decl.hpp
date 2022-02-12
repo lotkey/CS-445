@@ -6,8 +6,10 @@
 #include <optional>
 #include <string>
 
+/// Namespace for declaration nodes
 namespace AST::Decl
 {
+    /// Declaration type
     enum class Type
     {
         Bool,
@@ -20,12 +22,16 @@ namespace AST::Decl
                                                                {Type::Int, "int"}};
     ;
 
+    /// Base declaration node
     class Decl : public Node
     {
     public:
         Decl();
-        Decl(unsigned);
-        virtual void setType(Type);
+        /// @param linenum Line number the node appears on
+        Decl(unsigned linenum);
+        /// Set the node and its sibling's types to the provided type
+        /// @param type Type to set
+        virtual void setType(Type type);
 
     protected:
         std::optional<Type> m_type;
