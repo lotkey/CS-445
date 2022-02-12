@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <memory>
 
 #include "scanType.hpp"  // TokenData Type
 #include "c-.tab.h"  // token definitions from the bison
@@ -11,18 +12,23 @@
 
 int line = 1;
 int numErrors;    // ERR err count
-std::vector<TokenData*> tokens;
+std::vector<std::unique_ptr<TokenData>> tokens;
 
 static int setValue(int linenum, int tokenClass, char *svalue)
 {
     int i = 0;
+    /// A vector of unique pointers to all tokens
+    /// Once they go out of scope they are automatically freed
+    /// They go out of scope in main in c-.y, when tokens.clear() is called
+    tokens.push_back(std::move(std::make_unique<TokenData>()));
+
     // create the pass-back data space
-    yylval.tokenData = new TokenData;
+    yylval.tokenData = tokens.back().get();
+
 
     // fill it up
     yylval.tokenData->linenum = linenum;
     yylval.tokenData->tokenstr = std::string(svalue);
-    tokens.push_back(yylval.tokenData);
 
     // return the tokenclass
     return tokenClass;

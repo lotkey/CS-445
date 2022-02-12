@@ -17,7 +17,6 @@ extern FILE *yyin;
 extern int line;         // ERR line number from the scanner!!
 extern int numErrors;    // ERR err count
 extern char *yytext;
-extern std::vector<TokenData*> tokens;
 AST::Node* tree_root;
 
 #define YYERROR_VERBOSE
@@ -633,6 +632,7 @@ constant            : NUMCONST
 
 %%
 extern int yydebug;
+extern std::vector<std::unique_ptr<TokenData>> tokens;
 int main(int argc, char *argv[])
 {
     Options options(argc, argv);
@@ -653,6 +653,11 @@ int main(int argc, char *argv[])
                 if (tree_root != nullptr && options.print()) {
                     tree_root->print();
                     delete tree_root;
+                    
+                    /// Smart pointers, so destructors are called when vector is cleared
+                    /// Frees all tokens
+                    tokens.clear();
+
                     if (i != options.files().size() - 1) {
                         std::cout << std::endl;
                     }
@@ -669,9 +674,6 @@ int main(int argc, char *argv[])
     }
 
 
-    for (auto& token : tokens) {
-        delete token;
-    }
 
     return 0;
 }
