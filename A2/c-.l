@@ -66,7 +66,7 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 "/"                         { return setValue(line, DIV, yytext); }
 "%"                         { return setValue(line, MOD, yytext); }
 "+"                         { return setValue(line, ADD, yytext); }
-"-"                         { return setValue(line, TEST, yytext); }
+"-"                         { return setValue(line, SUB, yytext); }
 "<-"                        { return setValue(line, ASGN, yytext); }
 "+="                        { return setValue(line, ADDASGN, yytext); }
 "-="                        { return setValue(line, SUBASGN, yytext); }

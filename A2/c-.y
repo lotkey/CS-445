@@ -1,19 +1,14 @@
 %{
-// // // // // // // // // // // // // // // // // // // // // // // 
-// CS445 - Calculator Example Program written in the style of the C-
-// compiler for the class.
-//
-// Robert Heckendorn
-// Jan 21, 2021    
+#include "AST/AST.hpp"
+#include "scanType.hpp"  // TokenData Type
+#include "strutil.hpp"
+#include "Options/Options.hpp"
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <string.h>
 #include <stdio.h>
-
-#include "scanType.hpp"  // TokenData Type
-#include "strutil.hpp"
-#include "AST/AST.hpp"
 
 double vars[26];    
 
@@ -640,37 +635,39 @@ constant            : NUMCONST
 extern int yydebug;
 int main(int argc, char *argv[])
 {
-    bool print = false;
-    std::string file;
+    Options options(argc, argv);
+    yydebug = options.debug();
 
-    for (unsigned i = 1; i < argc; i++) {
-        if (std::string(argv[i]) == "-p") {
-            print = true;
-        } else {
-            file = std::string(argv[i]);
-            break;
+    if (!options.files().empty()) {
+        for (unsigned i = 0; i < options.files().size(); i++) {
+            std::string file = options.files()[i];
+            if ((yyin = fopen(file.c_str(), "r"))) {
+                // file open successful
+                // init variables a through z
+                for (int i=0; i<26; i++) vars[i] = 0.0;
+
+                // do the parsing
+                numErrors = 0;
+                yyparse();
+
+                if (tree_root != nullptr && options.print()) {
+                    tree_root->print();
+                    delete tree_root;
+                    if (i != options.files().size() - 1) {
+                        std::cout << std::endl;
+                    }
+                }
+            }
+            else {
+                // failed to open file
+                printf("ERROR: failed to open \'%s\'\n", argv[1]);
+                exit(1);
+            }
         }
+    } else {
+        yyparse();
     }
 
-    if ((yyin = fopen(file.c_str(), "r"))) {
-        // file open successful
-    }
-    else {
-        // failed to open file
-        printf("ERROR: failed to open \'%s\'\n", argv[1]);
-        exit(1);
-    }
-
-    // init variables a through z
-    for (int i=0; i<26; i++) vars[i] = 0.0;
-
-    // do the parsing
-    numErrors = 0;
-    yyparse();
-
-    if (tree_root != nullptr && print) {
-        tree_root->print();
-    }
 
     for (auto& token : tokens) {
         delete token;

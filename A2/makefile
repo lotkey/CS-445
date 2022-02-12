@@ -2,8 +2,8 @@ BIN = c-
 CC = g++ --std=c++17 -g
 
 SRCS = $(BIN).y  $(BIN).l
-CCSRCS = strutil.cpp AST/*.cpp AST/*/*.cpp
-HDRS = scanType.hpp strutil.hpp AST/*.hpp AST/*/*.hpp
+CCSRCS = strutil.cpp AST/*.cpp AST/*/*.cpp Options/*.cpp Options/ourgetopt/*.cpp
+HDRS = scanType.hpp strutil.hpp AST/*.hpp AST/*/*.hpp Options/*.hpp Options/ourgetopt/*.hpp
 OBJS = lex.yy.o $(BIN).tab.o
 
 $(BIN) : $(OBJS)

@@ -3,6 +3,7 @@
 #include "AST/AST.hpp"
 
 #include <string>
+#include <vector>
 #include <memory>
 
 struct TokenData {
