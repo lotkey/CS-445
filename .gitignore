@@ -1,8 +1,13 @@
+**/*.output
 **/*.tab.c
 **/*.tab.h
 **/*.tab.o
+**/*.tar
+
+**/c-
 **/lex.yy.c
 **/lex.yy.o
+
 calc/*
 calcex/*
 tiny compiler/*

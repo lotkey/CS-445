@@ -18,7 +18,7 @@ fred(int a, b; char c, d[]; bool e, f[])  begin
                     - -b;
                     ?*f;
                     c <- 'x';
-                    d <- "horses";
+                    d <- "horses\";
                     carbon();
                     return;
                  end     

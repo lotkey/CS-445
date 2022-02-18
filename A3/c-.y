@@ -10,8 +10,6 @@
 #include <string.h>
 #include <stdio.h>
 
-double vars[26];    
-
 extern int yylex();
 extern FILE *yyin;
 extern int line;         // ERR line number from the scanner!!
@@ -31,7 +29,7 @@ void yyerror(const char *msg)
 // this is included in the tab.h file
 // so scanType.hpp must be included before the tab.h file!!!!
 %union {
-    AST::Decl::Type type;
+    AST::Type type;
     AST::Node *node;
     TokenData *tokenData;
     double value;
@@ -143,15 +141,15 @@ varDeclId           : ID
 
 typeSpec            : BOOL
                     {
-                        $$ = AST::Decl::Type::Bool;
+                        $$ = AST::Type::Bool;
                     }
                     | CHAR
                     {
-                        $$ = AST::Decl::Type::Char;
+                        $$ = AST::Type::Char;
                     }
                     | INT
                     {
-                        $$ = AST::Decl::Type::Int;
+                        $$ = AST::Type::Int;
                     }
                     ;
 
@@ -330,7 +328,7 @@ iterStmtOpen        : WHILE simpleExp DO openStmt
                     | FOR ID ASGN iterRange DO openStmt
                     {
                         AST::Decl::Var *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
-                        iterator->setType(AST::Decl::Type::Int);
+                        iterator->setType(AST::Type::Int);
                         $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                     }
                     ;
@@ -342,7 +340,7 @@ iterStmtClosed      : WHILE simpleExp DO closedStmt
                     | FOR ID ASGN iterRange DO closedStmt
                     {
                         AST::Decl::Var *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
-                        iterator->setType(AST::Decl::Type::Int);
+                        iterator->setType(AST::Type::Int);
                         $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                     }
                     ;
@@ -375,17 +373,17 @@ breakStmt           : BREAK SEMI
 
 exp                 : mutable assignop exp
                     {
-                        AST::Op::Asgn *op = (AST::Op::Asgn *)$2;
+                        AST::Exp::Op::Asgn *op = (AST::Exp::Op::Asgn *)$2;
                         op->addChildren($1, $3);
                         $$ = op;
                     }
                     | mutable INC
                     {
-                        $$ = new AST::Op::UnaryAsgn($1->lineNumber(), AST::Op::UnaryAsgn::Type::Inc, $1);
+                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::Exp::Op::UnaryAsgn::Type::Inc, $1);
                     }
                     | mutable DEC
                     {
-                        $$ = new AST::Op::UnaryAsgn($1->lineNumber(), AST::Op::UnaryAsgn::Type::Dec, $1);
+                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::Exp::Op::UnaryAsgn::Type::Dec, $1);
                     }
                     | simpleExp
                     {
@@ -395,29 +393,29 @@ exp                 : mutable assignop exp
 
 assignop            : ASGN
                     {
-                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::Asgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::Asgn);
 					}
                     | ADDASGN
                     {
-                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::AddAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::AddAsgn);
 					}
                     | SUBASGN
                     {
-                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::SubAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::SubAsgn);
 					}
                     | DIVASGN
                     {
-                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::DivAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::DivAsgn);
 					}
                     | MULASGN
                     {
-                        $$ = new AST::Op::Asgn($1->linenum, AST::Op::Asgn::Type::MulAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::MulAsgn);
 					}
                     ;
 
 simpleExp           : simpleExp OR andExp
                     {
-                        $$ = new AST::Op::Binary($1->lineNumber(), AST::Op::Binary::Type::Or, $1, $3);
+                        $$ = new AST::Exp::Op::Binary($1->lineNumber(), AST::Exp::Op::Binary::Type::Or, $1, $3);
                     }
                     | andExp
                     {
@@ -427,7 +425,7 @@ simpleExp           : simpleExp OR andExp
 
 andExp              : andExp AND unaryRelExp
                     {
-                        $$ = new AST::Op::Binary($1->lineNumber(), AST::Op::Binary::Type::And, $1, $3);
+                        $$ = new AST::Exp::Op::Binary($1->lineNumber(), AST::Exp::Op::Binary::Type::And, $1, $3);
                     }
                     | unaryRelExp
                     {
@@ -437,7 +435,7 @@ andExp              : andExp AND unaryRelExp
 
 unaryRelExp         : NOT unaryRelExp
                     {
-                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Not, $2);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Not, $2);
                     }
                     | relExp
                     {
@@ -447,7 +445,7 @@ unaryRelExp         : NOT unaryRelExp
 
 relExp              : sumExp relop sumExp
                     {
-                        AST::Op::Binary *op = (AST::Op::Binary *)$2;
+                        AST::Exp::Op::Binary *op = (AST::Exp::Op::Binary *)$2;
                         op->addChildren($1, $3);
                         $$ = op;
                     }
@@ -459,33 +457,33 @@ relExp              : sumExp relop sumExp
 
 relop               : LT
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::LT);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::LT);
 					}
                     | LEQ
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::LEQ);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::LEQ);
 					}
                     | GT
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::GT);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::GT);
 					}
                     | GEQ
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::GEQ);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::GEQ);
 					}
                     | EQ
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::EQ);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::EQ);
 					}
                     | NEQ
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::NEQ);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::NEQ);
 					}
                     ;
 
 sumExp              : sumExp sumop mulExp
                     {
-                        AST::Op::Binary *op = (AST::Op::Binary *)$2;
+                        AST::Exp::Op::Binary *op = (AST::Exp::Op::Binary *)$2;
                         op->addChildren($1, $3);
                         $$ = op;
 					}
@@ -497,17 +495,17 @@ sumExp              : sumExp sumop mulExp
 
 sumop               : ADD
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Add);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Add);
 					}
                     | DASH
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Subtract);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Subtract);
 					}
                     ;
 
 mulExp              : mulExp mulop unaryExp
                     {
-                        AST::Op::Binary *op = (AST::Op::Binary *)$2;
+                        AST::Exp::Op::Binary *op = (AST::Exp::Op::Binary *)$2;
                         op->addChildren($1, $3);
                         $$ = op;
 					}
@@ -519,21 +517,21 @@ mulExp              : mulExp mulop unaryExp
 
 mulop               : ASTERISK
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Mul);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Mul);
 					}
                     | DIV
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Div);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Div);
 					}
                     | MOD
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Mod);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Mod);
 					}
                     ;
 
 unaryExp            : unaryop unaryExp
                     {
-                        AST::Op::Unary *op = (AST::Op::Unary *)$1;
+                        AST::Exp::Op::Unary *op = (AST::Exp::Op::Unary *)$1;
                         op->addExp($2);
                         $$ = op;
 					}
@@ -545,15 +543,15 @@ unaryExp            : unaryop unaryExp
 
 unaryop             : DASH
                     {
-                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Chsign);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Chsign);
 					}
                     | ASTERISK
                     {
-                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Sizeof);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Sizeof);
 					}
                     | RAND
                     {
-                        $$ = new AST::Op::Unary($1->linenum, AST::Op::Unary::Type::Random);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Random);
 					}
                     ;
 
@@ -573,7 +571,7 @@ mutable             : ID
 					}
                     | ID LBRACK exp RBRACK
                     {
-                        $$ = new AST::Op::Binary($1->linenum, AST::Op::Binary::Type::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
                     }
                     ;
 
@@ -614,19 +612,23 @@ argList             : argList COM exp
 
 constant            : NUMCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::Int, $1->tokenstr);
+                        AST::TypeInfo type = {AST::Type::Int, false, false};
+                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
                     }
                     | CHARCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::Char, $1->tokenstr);
+                        AST::TypeInfo type = {AST::Type::Char, false, false};
+                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
                     }
                     | STRINGCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::String, $1->tokenstr);
+                        AST::TypeInfo type = {AST::Type::Char, true, false};
+                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
                     }
                     | BOOLCONST
                     {
-                        $$ = new AST::Exp::Const($1->linenum, AST::Exp::Const::Type::Bool, $1->tokenstr);
+                        AST::TypeInfo type = {AST::Type::Bool, false, false};
+                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
                     }
                     ;
 
@@ -637,43 +639,32 @@ int main(int argc, char *argv[])
 {
     Options options(argc, argv);
     yydebug = options.debug();
+    std::optional<std::string> file = options.file();
 
-    if (!options.files().empty()) {
-        for (unsigned i = 0; i < options.files().size(); i++) {
-            std::string file = options.files()[i];
-            if ((yyin = fopen(file.c_str(), "r"))) {
-                // file open successful
-                // init variables a through z
-                for (int i=0; i<26; i++) vars[i] = 0.0;
+    if (file.has_value()) {
+        if ((yyin = fopen(file.value().c_str(), "r"))) {
+            // file open successful
+            // do the parsing
+            numErrors = 0;
+            yyparse();
 
-                // do the parsing
-                numErrors = 0;
-                yyparse();
-
-                if (tree_root != nullptr && options.print()) {
-                    tree_root->print();
-                    delete tree_root;
-                    
-                    /// Smart pointers, so destructors are called when vector is cleared
-                    /// Frees all tokens
-                    tokens.clear();
-
-                    if (i != options.files().size() - 1) {
-                        std::cout << std::endl;
-                    }
-                }
+            if (tree_root != nullptr && options.print()) {
+                tree_root->print();
+                delete tree_root;
+                
+                /// Smart pointers, so destructors are called when vector is cleared
+                /// Frees all tokens
+                tokens.clear();
             }
-            else {
-                // failed to open file
-                printf("ERROR: failed to open \'%s\'\n", argv[1]);
-                exit(1);
-            }
+        }
+        else {
+            // failed to open file
+            printf("ERROR: failed to open \'%s\'\n", argv[1]);
+            exit(1);
         }
     } else {
         yyparse();
     }
-
-
-
+    
     return 0;
 }
