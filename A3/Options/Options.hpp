@@ -9,15 +9,14 @@
 #include <string>
 #include <vector>
 
-class Options
-{
-public:
+class Options {
+  public:
     Options(int argc, char **argv);
     bool print() const;
     bool debug() const;
     const std::optional<std::string> &file() const;
 
-private:
+  private:
     std::optional<std::string> m_file;
     bool m_print = false;
     bool m_debug = false;

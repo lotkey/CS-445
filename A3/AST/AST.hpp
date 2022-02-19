@@ -1,9 +1,7 @@
 #pragma once
 
 /// Abstract Syntax Tree
-namespace AST
-{
-}
+namespace AST {}
 
 #include "Decl/include.hpp"
 #include "Exp/include.hpp"

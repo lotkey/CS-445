@@ -28,6 +28,13 @@ namespace AST
     class Node
     {
     public:
+        enum class NodeType
+        {
+            Decl,
+            Exp,
+            Stmt
+        };
+
         /// Default constructor
         Node();
         /// @param linenum Line number the node appears on
@@ -42,9 +49,12 @@ namespace AST
         void addSibling(Node *);
         /// Gets reference to the line number member
         unsigned &lineNumber();
+        /// @returns Type of node
+        const NodeType& nodeType() const;
 
     private:
     protected:
+        NodeType m_nodeType;
         std::vector<Node *> m_children;
         Node *m_sibling = nullptr;
         unsigned m_linenum;
