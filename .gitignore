@@ -8,6 +8,5 @@
 **/lex.yy.c
 **/lex.yy.o
 
-calc/*
-calcex/*
-tiny compiler/*
+calcex
+tiny compiler
