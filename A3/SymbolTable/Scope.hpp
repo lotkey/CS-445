@@ -9,8 +9,9 @@ class Scope {
   public:
     Scope();
     Scope(const std::string &);
-    bool contains(const std::string &);
+    bool contains(const std::string &) const;
     void add(AST::Decl::Decl *);
+    AST::Decl::Decl *getSymbol(const std::string &) const;
 
   private:
     std::string m_id;

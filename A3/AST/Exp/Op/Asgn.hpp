@@ -3,16 +3,16 @@
 #include "../../Node.hpp"
 #include "../Exp.hpp"
 #include "../Id.hpp"
+#include "Binary.hpp"
 
 #include <map>
 #include <string>
 
 namespace AST::Exp::Op {
 /// Assignment node
-class Asgn : public Exp {
+class Asgn : public Binary {
   public:
     /// Assignment types
-    enum class Type { Asgn, AddAsgn, SubAsgn, DivAsgn, MulAsgn };
 
     Asgn();
     /// @param linenum Line number the node appears on
@@ -23,7 +23,7 @@ class Asgn : public Exp {
     /// @param type Assignment type
     /// @param exp1 The assignee
     /// @param exp2 The expression assigned to exp1
-    Asgn(unsigned linenum, Type opType, Node *exp1 = nullptr,
+    Asgn(unsigned linenum, AsgnType asgnType, Node *exp1 = nullptr,
          Node *exp2 = nullptr);
     /// @param exp1 The assignee
     /// @param exp2 The expression assigned to exp1
@@ -31,10 +31,8 @@ class Asgn : public Exp {
     virtual std::string toString() const override;
 
   protected:
-    static const std::map<Type, std::string> s_typeToString;
-
     Id *m_mutable;
     Exp *m_exp;
-    Type m_opType;
+    AsgnType m_asgnType;
 };
 } // namespace AST::Exp::Op

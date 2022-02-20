@@ -7,7 +7,7 @@ Scope::Scope() : m_id("global") {}
 
 Scope::Scope(const std::string &id) : m_id(id) {}
 
-bool Scope::contains(const std::string &id) {
+bool Scope::contains(const std::string &id) const {
     return m_symbols.find(id) != m_symbols.end();
 }
 
@@ -18,4 +18,12 @@ void Scope::add(AST::Decl::Decl *node) {
     }
 
     m_symbols[node->id()] = node;
+}
+
+AST::Decl::Decl *Scope::getSymbol(const std::string &id) const {
+    if (contains(id)) {
+        return m_symbols.at(id);
+    } else {
+        return nullptr;
+    }
 }

@@ -2,8 +2,8 @@ BIN = c-
 CC = g++ --std=c++17 -g
 
 SRCS = $(BIN).y  $(BIN).l
-CCSRCS = ./*.cpp ./*/*.cpp ./*/*/*.cpp ./*/*/*/*.cpp
-HDRS = ./*.hpp ./*/*.hpp ./*/*/*.hpp ./*/*/*/*.hpp
+CCSRCS = ./*.cpp ./*/*.cpp ./*/*/*.cpp ./*/*/*/*.cpp ./*/*/*/*/*.cpp
+HDRS = ./*.hpp ./*/*.hpp ./*/*/*.hpp ./*/*/*/*.hpp ./*/*/*/*/*.hpp
 OBJS = lex.yy.o $(BIN).tab.o
 
 $(BIN) : $(OBJS)

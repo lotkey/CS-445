@@ -1,12 +1,14 @@
 #include "Exp.hpp"
 
 namespace AST::Exp {
-Exp::Exp() : Node::Node() {}
+Exp::Exp() : Node::Node() { m_nodeType = NodeType::Exp; }
 
-Exp::Exp(unsigned linenum) : Node::Node(linenum) {}
+Exp::Exp(unsigned linenum) : Node::Node(linenum, NodeType::Exp) {}
 
-Exp::Exp(unsigned linenum, TypeInfo typeInfo)
-    : Node::Node(linenum), m_typeInfo(typeInfo) {}
+Exp::Exp(unsigned linenum, ExpType expType)
+    : Node::Node(linenum, NodeType::Exp), m_expType(expType) {}
+
+const ExpType &Exp::expType() const { return m_expType; }
 
 void Exp::setType(TypeInfo typeInfo) { m_typeInfo = typeInfo; }
 

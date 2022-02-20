@@ -6,19 +6,12 @@
 #include <string>
 
 namespace AST::Exp::Op {
-const std::map<Binary::Type, std::string> Binary::s_typeToString = {
-    {Type::Add, "+"},   {Type::And, "and"},   {Type::Div, "/"},
-    {Type::EQ, "="},    {Type::GEQ, ">="},    {Type::GT, ">"},
-    {Type::Index, "["}, {Type::LEQ, "<="},    {Type::LT, "<"},
-    {Type::Mod, "%"},   {Type::Mul, "*"},     {Type::NEQ, "!="},
-    {Type::Or, "or"},   {Type::Subtract, "-"}};
+Binary::Binary() : Op::Op() { m_opType = OpType::Binary; }
 
-Binary::Binary() : Exp::Exp() {}
+Binary::Binary(unsigned linenum) : Op::Op(linenum, OpType::Binary) {}
 
-Binary::Binary(unsigned linenum) : Exp::Exp(linenum) {}
-
-Binary::Binary(unsigned linenum, Type opType, Node *exp1, Node *exp2)
-    : Exp::Exp(linenum), m_opType(opType) {
+Binary::Binary(unsigned linenum, BinaryOpType opType, Node *exp1, Node *exp2)
+    : Op::Op(linenum, OpType::Binary), m_binaryOpType(opType) {
     addChild(exp1);
     addChild(exp2);
 }
@@ -48,6 +41,6 @@ void Binary::addChildren(Node *exp1, Node *exp2) {
 }
 
 std::string Binary::toString() const {
-    return "Op: " + s_typeToString.at(m_opType) + lineTag();
+    return "Op: " + Types::toString(m_binaryOpType) + lineTag();
 }
 } // namespace AST::Exp::Op

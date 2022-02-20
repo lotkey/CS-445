@@ -5,9 +5,14 @@
 #include <string>
 
 namespace AST::Decl {
-Decl::Decl() : Node::Node() {}
+Decl::Decl() : Node::Node() { m_nodeType = NodeType::Decl; }
 
-Decl::Decl(unsigned linenum) : Node::Node(linenum) {}
+Decl::Decl(unsigned linenum) : Node::Node(linenum, NodeType::Decl) {}
+
+Decl::Decl(unsigned linenum, DeclType declType)
+    : Node::Node(linenum, NodeType::Decl) {
+    m_declType = declType;
+}
 
 void Decl::setType(Type type) {
     m_typeInfo.type = type;

@@ -1,25 +1,24 @@
 #include "UnaryAsgn.hpp"
 #include "../../Node.hpp"
 #include "../Id.hpp"
+#include "Unary.hpp"
 
 #include <map>
 #include <string>
 
 namespace AST::Exp::Op {
-const std::map<UnaryAsgn::Type, std::string> UnaryAsgn::s_typeToString = {
-    {Type::Dec, "--"}, {Type::Inc, "++"}};
+UnaryAsgn::UnaryAsgn() : Unary::Unary() { m_unaryOpType = UnaryOpType::Asgn; }
 
-UnaryAsgn::UnaryAsgn() : Exp::Exp() {}
+UnaryAsgn::UnaryAsgn(unsigned linenum)
+    : Unary::Unary(linenum, UnaryOpType::Asgn) {}
 
-UnaryAsgn::UnaryAsgn(unsigned linenum) : Exp::Exp(linenum) {}
-
-UnaryAsgn::UnaryAsgn(unsigned linenum, Type opType, Node *exp)
-    : Exp::Exp(linenum), m_opType(opType) {
+UnaryAsgn::UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp)
+    : Unary::Unary(linenum, UnaryOpType::Asgn), m_unaryAsgnType(opType) {
     addChild(exp);
     m_mutable = (Id *)exp;
 }
 
 std::string UnaryAsgn::toString() const {
-    return "Assign: " + s_typeToString.at(m_opType) + lineTag();
+    return "Assign: " + Types::toString(m_unaryAsgnType) + lineTag();
 }
 } // namespace AST::Exp::Op

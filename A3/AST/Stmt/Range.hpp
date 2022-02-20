@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../Node.hpp"
+#include "Stmt.hpp"
 
 #include <string>
 
-namespace AST::Exp {
+namespace AST::Stmt {
 /// Range node
-class Range : public Node {
+class Range : public Stmt {
   public:
     Range();
     /// @param linenum Line number the node appears on
@@ -16,6 +16,5 @@ class Range : public Node {
     /// @param to End of range
     /// @param by Optional, amount to increment by
     Range(unsigned linenum, Node *from, Node *to, Node *by = nullptr);
-    virtual std::string toString() const override;
 };
 } // namespace AST::Exp

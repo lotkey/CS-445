@@ -10,6 +10,9 @@ Node::Node() : m_sibling(nullptr) {}
 
 Node::Node(unsigned linenum) : m_sibling(nullptr), m_linenum(linenum) {}
 
+Node::Node(unsigned linenum, NodeType nodeType)
+    : m_linenum(linenum), m_nodeType(nodeType) {}
+
 Node::~Node() {
     if (m_sibling != nullptr) {
         delete m_sibling;
@@ -77,5 +80,11 @@ std::string Node::lineTag() const {
 
 unsigned &Node::lineNumber() { return m_linenum; }
 
-const Node::NodeType &Node::nodeType() const { return m_nodeType; }
+const NodeType &Node::nodeType() const { return m_nodeType; }
+
+bool Node::hasSibling() const { return m_sibling != nullptr; }
+
+Node *Node::sibling() const { return m_sibling; }
+
+const std::vector<Node *> &Node::children() const { return m_children; }
 } // namespace AST

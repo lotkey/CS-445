@@ -347,11 +347,11 @@ iterStmtClosed      : WHILE simpleExp DO closedStmt
 
 iterRange           : simpleExp TO simpleExp
                     {
-                        $$ = new AST::Exp::Range($1->lineNumber(), $1, $3);
+                        $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3);
                     }
                     | simpleExp TO simpleExp BY simpleExp
                     {
-                        $$ = new AST::Exp::Range($1->lineNumber(), $1, $3, $5);
+                        $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3, $5);
                     }
                     ;
 
@@ -379,11 +379,11 @@ exp                 : mutable assignop exp
                     }
                     | mutable INC
                     {
-                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::Exp::Op::UnaryAsgn::Type::Inc, $1);
+                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::UnaryAsgnType::Inc, $1);
                     }
                     | mutable DEC
                     {
-                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::Exp::Op::UnaryAsgn::Type::Dec, $1);
+                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::UnaryAsgnType::Dec, $1);
                     }
                     | simpleExp
                     {
@@ -393,29 +393,31 @@ exp                 : mutable assignop exp
 
 assignop            : ASGN
                     {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::Asgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::Asgn);
 					}
                     | ADDASGN
                     {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::AddAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::AddAsgn);
 					}
                     | SUBASGN
                     {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::SubAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::SubAsgn);
 					}
                     | DIVASGN
                     {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::DivAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::DivAsgn);
 					}
                     | MULASGN
                     {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::Exp::Op::Asgn::Type::MulAsgn);
+                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::MulAsgn);
 					}
                     ;
 
 simpleExp           : simpleExp OR andExp
                     {
-                        $$ = new AST::Exp::Op::Binary($1->lineNumber(), AST::Exp::Op::Binary::Type::Or, $1, $3);
+                        AST::Exp::Op::Bool::Bool* boolop = new AST::Exp::Op::Bool::Bool($1->lineNumber(), AST::BoolOpType::Or);
+                        boolop->addChildren($1, $3);
+                        $$ = boolop;
                     }
                     | andExp
                     {
@@ -425,7 +427,9 @@ simpleExp           : simpleExp OR andExp
 
 andExp              : andExp AND unaryRelExp
                     {
-                        $$ = new AST::Exp::Op::Binary($1->lineNumber(), AST::Exp::Op::Binary::Type::And, $1, $3);
+                        AST::Exp::Op::Bool::Bool* boolop = new AST::Exp::Op::Bool::Bool($1->lineNumber(), AST::BoolOpType::And);
+                        boolop->addChildren($1, $3);
+                        $$ = boolop;
                     }
                     | unaryRelExp
                     {
@@ -435,7 +439,7 @@ andExp              : andExp AND unaryRelExp
 
 unaryRelExp         : NOT unaryRelExp
                     {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Not, $2);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Not, $2);
                     }
                     | relExp
                     {
@@ -457,27 +461,27 @@ relExp              : sumExp relop sumExp
 
 relop               : LT
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::LT);
+                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::LT);
 					}
                     | LEQ
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::LEQ);
+                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::LEQ);
 					}
                     | GT
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::GT);
+                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::GT);
 					}
                     | GEQ
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::GEQ);
+                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::GEQ);
 					}
                     | EQ
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::EQ);
+                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::EQ);
 					}
                     | NEQ
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::NEQ);
+                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::NEQ);
 					}
                     ;
 
@@ -495,11 +499,11 @@ sumExp              : sumExp sumop mulExp
 
 sumop               : ADD
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Add);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Add);
 					}
                     | DASH
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Subtract);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Subtract);
 					}
                     ;
 
@@ -517,15 +521,15 @@ mulExp              : mulExp mulop unaryExp
 
 mulop               : ASTERISK
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Mul);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Mul);
 					}
                     | DIV
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Div);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Div);
 					}
                     | MOD
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Mod);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Mod);
 					}
                     ;
 
@@ -543,15 +547,15 @@ unaryExp            : unaryop unaryExp
 
 unaryop             : DASH
                     {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Chsign);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Chsign);
 					}
                     | ASTERISK
                     {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Sizeof);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Sizeof);
 					}
                     | RAND
                     {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::Exp::Op::Unary::Type::Random);
+                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Random);
 					}
                     ;
 
@@ -571,7 +575,7 @@ mutable             : ID
 					}
                     | ID LBRACK exp RBRACK
                     {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::Exp::Op::Binary::Type::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
+                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
                     }
                     ;
 

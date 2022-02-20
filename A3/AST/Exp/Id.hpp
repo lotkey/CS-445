@@ -15,6 +15,7 @@ class Id : public Exp {
     /// @param linenum Line number the node appears on
     /// @param id String identifier
     Id(unsigned linenum, const std::string &id);
+    const std::string &id() const;
     virtual std::string toString() const override;
 
   protected:

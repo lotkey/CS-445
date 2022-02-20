@@ -1,19 +1,24 @@
 #include "Stmt.hpp"
 #include "../Node.hpp"
+#include "../Types.hpp"
 
 #include <map>
 #include <string>
 
 namespace AST::Stmt {
-const std::map<Stmt::Type, std::string> Stmt::s_typeToString = {
-    {Type::Break, "Break"}, {Type::Compound, "Compound"},
-    {Type::For, "For"},     {Type::Return, "Return"},
-    {Type::Select, "If"},   {Type::While, "While"}};
-Stmt::Stmt() : Node::Node() {}
 
-Stmt::Stmt(unsigned linenum) : Node::Node(linenum) {}
+Stmt::Stmt() : Node::Node() { m_nodeType = AST::NodeType::Stmt; }
+
+Stmt::Stmt(unsigned linenum) : Node::Node(linenum, AST::NodeType::Stmt) {}
+
+Stmt::Stmt(unsigned linenum, StmtType stmtType)
+    : Node::Node(linenum, AST::NodeType::Stmt) {
+    m_stmtType = stmtType;
+}
+
+const StmtType &Stmt::stmtType() const { return m_stmtType; }
 
 std::string Stmt::toString() const {
-    return s_typeToString.at(m_type) + lineTag();
+    return Types::toString(m_stmtType) + lineTag();
 }
 } // namespace AST::Stmt

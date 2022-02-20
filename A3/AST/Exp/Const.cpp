@@ -9,12 +9,13 @@
 namespace AST::Exp {
 Const::Const() : Exp::Exp() {}
 
-Const::Const(unsigned linenum) : Exp::Exp(linenum) {
+Const::Const(unsigned linenum) : Exp::Exp(linenum, ExpType::Const) {
     m_typeInfo.isConst = true;
 }
 
 Const::Const(unsigned linenum, TypeInfo typeInfo, std::string value)
-    : Exp::Exp(linenum, typeInfo) {
+    : Exp::Exp(linenum, ExpType::Const) {
+    m_typeInfo = typeInfo;
     m_typeInfo.isConst = true;
     switch (m_typeInfo.type.value()) {
     case Type::Bool: {

@@ -2,6 +2,7 @@
 
 #include "../../Node.hpp"
 #include "../Exp.hpp"
+#include "Op.hpp"
 
 #include <map>
 #include <string>
@@ -9,10 +10,9 @@
 namespace AST::Exp::Op {
 /// Generic class for unary operator nodes
 /// "Generic" as in one-size-fits-all, not using generics or templates.
-class Unary : public Exp {
+class Unary : public Op {
   public:
     /// Unary operators
-    enum class Type { Chsign, Sizeof, Random, Not };
 
     Unary();
     /// @param linenum
@@ -22,14 +22,13 @@ class Unary : public Exp {
     /// @param linenum
     /// @param opType Unary operator type
     /// @param exp Optional child expression
-    Unary(unsigned linenum, Type opType, Node *exp = nullptr);
+    Unary(unsigned linenum, UnaryOpType opType, Node *exp = nullptr);
+    const UnaryOpType &unaryOpType() const;
     /// @param exp Child node
     void addExp(Node *exp);
     virtual std::string toString() const override;
 
   protected:
-    static const std::map<Type, std::string> s_typeToString;
-
-    Type m_opType;
+    UnaryOpType m_unaryOpType;
 };
 } // namespace AST::Exp::Op

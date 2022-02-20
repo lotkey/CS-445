@@ -1,25 +1,23 @@
 #include "Unary.hpp"
 #include "../../Node.hpp"
 #include "../Exp.hpp"
+#include "Op.hpp"
 
 #include <map>
 #include <string>
 
 namespace AST::Exp::Op {
-const std::map<Unary::Type, std::string> Unary::s_typeToString = {
-    {Type::Chsign, "chsign"},
-    {Type::Not, "not"},
-    {Type::Random, "?"},
-    {Type::Sizeof, "sizeof"}};
 
-Unary::Unary() : Exp::Exp() {}
+Unary::Unary() : Op::Op() { m_opType = OpType::Unary; }
 
-Unary::Unary(unsigned linenum) : Exp::Exp(linenum) {}
+Unary::Unary(unsigned linenum) : Op::Op(linenum, OpType::Unary) {}
 
-Unary::Unary(unsigned linenum, Type opType, Node *exp)
-    : Exp::Exp(linenum), m_opType(opType) {
+Unary::Unary(unsigned linenum, UnaryOpType opType, Node *exp)
+    : Op::Op(linenum, OpType::Unary), m_unaryOpType(opType) {
     addChild(exp);
 }
+
+const UnaryOpType &Unary::unaryOpType() const { return m_unaryOpType; }
 
 void Unary::addExp(Node *exp) {
     if (m_children.size() > 0) {
@@ -35,6 +33,6 @@ void Unary::addExp(Node *exp) {
 }
 
 std::string Unary::toString() const {
-    return "Op: " + s_typeToString.at(m_opType) + lineTag();
+    return "Op: " + Types::toString(m_unaryOpType) + lineTag();
 }
 } // namespace AST::Exp::Op

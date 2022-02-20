@@ -2,24 +2,18 @@
 #include "../../Node.hpp"
 #include "../Exp.hpp"
 #include "../Id.hpp"
+#include "Binary.hpp"
 
 #include <map>
 #include <string>
 
 namespace AST::Exp::Op {
-const std::map<Asgn::Type, std::string> Asgn::s_typeToString = {
-    {Type::AddAsgn, "+="},
-    {Type::Asgn, "<-"},
-    {Type::DivAsgn, "/="},
-    {Type::MulAsgn, "*="},
-    {Type::SubAsgn, "-="}};
+Asgn::Asgn() : Binary::Binary() { m_binaryOpType = BinaryOpType::Asgn; }
 
-Asgn::Asgn() : Exp::Exp() {}
+Asgn::Asgn(unsigned linenum) : Binary::Binary(linenum, BinaryOpType::Asgn) {}
 
-Asgn::Asgn(unsigned linenum) : Exp::Exp(linenum) {}
-
-Asgn::Asgn(unsigned linenum, Type type, Node *exp1, Node *exp2)
-    : Exp::Exp(linenum), m_opType(type) {
+Asgn::Asgn(unsigned linenum, AsgnType asgnType, Node *exp1, Node *exp2)
+    : Binary::Binary(linenum, BinaryOpType::Asgn), m_asgnType(asgnType) {
     addChild(exp1);
     addChild(exp2);
     m_mutable = (Id *)exp1;
@@ -54,6 +48,6 @@ void Asgn::addChildren(Node *exp1, Node *exp2) {
 }
 
 std::string Asgn::toString() const {
-    return "Assign: " + s_typeToString.at(m_opType) + lineTag();
+    return "Assign: " + Types::toString(m_asgnType) + lineTag();
 }
 } // namespace AST::Exp::Op

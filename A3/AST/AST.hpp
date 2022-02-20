@@ -7,3 +7,4 @@ namespace AST {}
 #include "Exp/include.hpp"
 #include "Node.hpp"
 #include "Stmt/include.hpp"
+#include "Types.hpp"

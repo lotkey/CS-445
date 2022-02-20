@@ -6,12 +6,12 @@
 #include <string>
 
 namespace AST::Decl {
-Var::Var() : Decl::Decl() {}
+Var::Var() : Decl::Decl() { m_declType = DeclType::Var; }
 
-Var::Var(unsigned linenum) : Decl::Decl(linenum) {}
+Var::Var(unsigned linenum) : Decl::Decl(linenum, DeclType::Var) {}
 
 Var::Var(unsigned linenum, const std::string &id, bool isArray)
-    : Decl::Decl(linenum) {
+    : Decl::Decl(linenum, DeclType::Var) {
     m_typeInfo.isArray = isArray;
     m_id = id;
 }
@@ -33,7 +33,7 @@ std::string Var::toString() const {
     if (m_typeInfo.isStatic) {
         str += " static";
     }
-    str += " type " + s_typeToString.at(m_typeInfo.type.value()) + lineTag();
+    str += " type " + Types::toString(m_typeInfo.type.value()) + lineTag();
     return str;
 }
 } // namespace AST::Decl
