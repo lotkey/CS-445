@@ -1,4 +1,5 @@
 #include "Scope.hpp"
+#include "Symbol.hpp"
 
 #include <map>
 #include <string>
@@ -11,19 +12,12 @@ bool Scope::contains(const std::string &id) const {
     return m_symbols.find(id) != m_symbols.end();
 }
 
-void Scope::add(AST::Decl::Decl *node) {
-    if (m_symbols.find(node->id()) != m_symbols.end()) {
-        throw std::runtime_error("Variable already exists with name \"" +
-                                 node->id() + "\"");
+Symbol &Scope::getSymbol(const std::string &id) {
+    if (!contains(id)) {
+        m_symbols.insert({id, Symbol()});
+        m_symbols.at(id).name(id);
     }
-
-    m_symbols[node->id()] = node;
+    return m_symbols.at(id);
 }
 
-AST::Decl::Decl *Scope::getSymbol(const std::string &id) const {
-    if (contains(id)) {
-        return m_symbols.at(id);
-    } else {
-        return nullptr;
-    }
-}
+std::map<std::string, Symbol> &Scope::getSymbols() { return m_symbols; }

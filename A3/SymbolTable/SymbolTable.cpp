@@ -1,6 +1,7 @@
 #include "SymbolTable.hpp"
 #include "../AST/AST.hpp"
 #include "Scope.hpp"
+#include "Symbol.hpp"
 
 #include <algorithm>
 #include <string>
@@ -22,7 +23,9 @@ void SymbolTable::leave() {
     m_scopes.pop_back();
 }
 
-void SymbolTable::add(AST::Decl::Decl *node) { m_scopes.back().add(node); }
+void SymbolTable::declare(const std::string &id, AST::Decl::Decl *node) {
+    m_scopes.back().getSymbol(id).declare(node);
+}
 
 bool SymbolTable::contains(const std::string &id) const {
     return std::any_of(m_scopes.begin(), m_scopes.end(),
@@ -33,16 +36,20 @@ bool SymbolTable::containsImmediately(const std::string &id) const {
     return m_scopes.back().contains(id);
 }
 
-AST::Decl::Decl *SymbolTable::getSymbol(const std::string &id) const {
+std::map<std::string, Symbol> &SymbolTable::getImmediateSymbols() {
+    return m_scopes.back().getSymbols();
+}
+
+Symbol &SymbolTable::getSymbol(const std::string &id) {
     for (int i = m_scopes.size() - 1; i >= 0; i--) {
         if (m_scopes[i].contains(id)) {
             return m_scopes[i].getSymbol(id);
         }
     }
 
-    return nullptr;
+    // this creates a new symbol!
+    // means it isn't declared yet
+    return m_scopes.back().getSymbol(id);
 }
 
-AST::Decl::Decl *SymbolTable::operator[](const std::string &id) const {
-    return getSymbol(id);
-}
+Symbol &SymbolTable::operator[](const std::string &id) { return getSymbol(id); }

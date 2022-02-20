@@ -3,6 +3,7 @@
 #include "scanType.hpp"  // TokenData Type
 #include "strutil.hpp"
 #include "Options/Options.hpp"
+#include "SemanticsChecker/SemanticsChecker.hpp"
 
 #include <iostream>
 #include <string>
@@ -654,6 +655,8 @@ int main(int argc, char *argv[])
 
             if (tree_root != nullptr && options.print()) {
                 tree_root->print();
+                SemanticsChecker semantics = SemanticsChecker();
+                // semantics.analyze(tree_root);
                 delete tree_root;
                 
                 /// Smart pointers, so destructors are called when vector is cleared

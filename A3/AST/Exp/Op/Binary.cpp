@@ -40,6 +40,8 @@ void Binary::addChildren(Node *exp1, Node *exp2) {
     }
 }
 
+const BinaryOpType &Binary::binaryOpType() const { return m_binaryOpType; }
+
 std::string Binary::toString() const {
     return "Op: " + Types::toString(m_binaryOpType) + lineTag();
 }

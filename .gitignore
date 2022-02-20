@@ -3,6 +3,8 @@
 **/*.tab.h
 **/*.tab.o
 **/*.tar
+**/testData
+**/.*
 
 **/c-
 **/lex.yy.c
