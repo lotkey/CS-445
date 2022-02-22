@@ -16,7 +16,7 @@ class Id : public Exp {
     /// @param id String identifier
     Id(unsigned linenum, const std::string &id);
     const std::string &id() const;
-    virtual std::string toString() const override;
+    virtual std::string toString(bool debugging = false) const override;
 
   protected:
     std::string m_id;

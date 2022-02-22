@@ -12,5 +12,9 @@ const ExpType &Exp::expType() const { return m_expType; }
 
 void Exp::setType(TypeInfo typeInfo) { m_typeInfo = typeInfo; }
 
+TypeInfo &Exp::typeInfo() { return m_typeInfo; }
+
 const TypeInfo &Exp::typeInfo() const { return m_typeInfo; }
+
+std::string Exp::typeTag() const { return Types::toString(m_typeInfo); }
 } // namespace AST::Exp

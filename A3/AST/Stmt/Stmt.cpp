@@ -18,7 +18,7 @@ Stmt::Stmt(unsigned linenum, StmtType stmtType)
 
 const StmtType &Stmt::stmtType() const { return m_stmtType; }
 
-std::string Stmt::toString() const {
+std::string Stmt::toString(bool debugging) const {
     return Types::toString(m_stmtType) + lineTag();
 }
 } // namespace AST::Stmt

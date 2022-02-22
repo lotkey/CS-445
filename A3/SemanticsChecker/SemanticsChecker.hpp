@@ -12,8 +12,12 @@
 class SemanticsChecker {
   public:
     SemanticsChecker();
+    SemanticsChecker(bool debug);
     const SymbolTable &symbolTable() const;
     void analyze(AST::Node *);
+    void print() const;
+    int numErrors() const;
+    int numWarnings() const;
 
   private:
     SymbolTable m_symbolTable;
@@ -22,9 +26,9 @@ class SemanticsChecker {
     std::map<unsigned, std::vector<Message>> m_messages;
     unsigned m_numErrors = 0;
     unsigned m_numWarnings = 0;
-    std::vector<AST::Decl::Parm *> m_parms;
     std::optional<std::string> m_scopeName;
     bool m_mainIsDefined;
+    bool m_analyzed = false;
 
     void enterScope();
     void leaveScope();
@@ -33,5 +37,6 @@ class SemanticsChecker {
     void analyzeNode(AST::Decl::Decl *);
     void analyzeNode(AST::Exp::Exp *);
     void analyzeNode(AST::Exp::Op::Op *);
+    void analyzeNode(AST::Exp::Op::Unary *);
     void analyzeNode(AST::Stmt::Stmt *);
 };

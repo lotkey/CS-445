@@ -28,7 +28,7 @@ class Asgn : public Binary {
     /// @param exp1 The assignee
     /// @param exp2 The expression assigned to exp1
     void addChildren(Node *exp1, Node *exp2);
-    virtual std::string toString() const override;
+    virtual std::string toString(bool debugging = false) const override;
 
   protected:
     Id *m_mutable;

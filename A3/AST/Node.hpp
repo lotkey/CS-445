@@ -21,8 +21,9 @@ class Node {
     Node(unsigned linenum, NodeType nodeType);
     virtual ~Node();
     /// Recursively prints the tree
-    void print() const;
-    virtual std::string toString() const;
+    void print(bool debugging = false) const;
+    void printWithTypeDebugging() const;
+    virtual std::string toString(bool debugging = false) const;
     /// Adds a child node
     void addChild(Node *);
     /// Adds a sibling node
@@ -44,5 +45,6 @@ class Node {
 
     /// @returns The line tag at the end of every node's print statement
     std::string lineTag() const;
+    virtual std::string typeTag() const;
 };
 } // namespace AST

@@ -15,7 +15,7 @@ Parm::Parm(unsigned linenum, const std::string &id, bool isArray)
     m_id = id;
 }
 
-std::string Parm::toString() const {
+std::string Parm::toString(bool debugging) const {
     std::string str = "Parm: " + m_id;
     if (m_typeInfo.isArray) {
         str += " of array";

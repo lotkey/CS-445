@@ -12,7 +12,6 @@ class Op : public Exp {
     Op(unsigned linenum);
     Op(unsigned linenum, OpType opType);
     const OpType &opType() const;
-    virtual std::string toString() const override;
 
   protected:
     OpType m_opType;

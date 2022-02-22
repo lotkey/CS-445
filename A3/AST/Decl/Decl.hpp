@@ -21,10 +21,14 @@ class Decl : public Node {
     virtual void setType(Type type);
     const std::string &id() const;
     const DeclType &declType() const;
+    TypeInfo &typeInfo();
+    const TypeInfo &typeInfo() const;
 
   protected:
     DeclType m_declType;
     TypeInfo m_typeInfo;
     std::string m_id;
+
+    virtual std::string typeTag() const override;
 };
 } // namespace AST::Decl

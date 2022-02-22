@@ -23,11 +23,11 @@ Node::~Node() {
     }
 }
 
-void Node::print() const {
+void Node::print(bool debugging) const {
     static int siblingCount = 0;
     static int numIndents = 0;
 
-    std::cout << toString() << std::endl;
+    std::cout << toString(debugging) << std::endl;
     numIndents++;
 
     for (int i = 0; i < m_children.size(); i++) {
@@ -40,7 +40,7 @@ void Node::print() const {
             std::cout << "Child: " + std::to_string(i) << "  ";
             int backup = siblingCount;
             siblingCount = 0;
-            child->print();
+            child->print(debugging);
             siblingCount = backup;
         }
     }
@@ -53,7 +53,7 @@ void Node::print() const {
         }
 
         std::cout << "Sibling: " + std::to_string(siblingCount) << "  ";
-        m_sibling->print();
+        m_sibling->print(debugging);
     }
     siblingCount--;
 }
@@ -72,11 +72,13 @@ void Node::addSibling(Node *node) {
     }
 }
 
-std::string Node::toString() const { return lineTag(); }
+std::string Node::toString(bool debugging) const { return lineTag(); }
 
 std::string Node::lineTag() const {
     return " [line: " + std::to_string(m_linenum) + "]";
 }
+
+std::string Node::typeTag() const { return ""; }
 
 unsigned &Node::lineNumber() { return m_linenum; }
 

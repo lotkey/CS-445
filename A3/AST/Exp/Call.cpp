@@ -17,5 +17,14 @@ Call::Call(unsigned linenum, const std::string &id, Node *arglist)
 
 const std::string &Call::id() const { return m_id; }
 
-std::string Call::toString() const { return "Call: " + m_id + lineTag(); }
+std::string Call::toString(bool debugging) const {
+    std::string str = "Call: " + m_id;
+
+    if (debugging) {
+        str += typeTag();
+    }
+
+    str += lineTag();
+    return str;
+}
 } // namespace AST::Exp

@@ -17,7 +17,7 @@ Options::Options(int argc, char **argv) {
     extern int optind;
 
     while (true) {
-        while ((c = ourGetopt(argc, argv, (char *)"hpd")) != EOF) {
+        while ((c = ourGetopt(argc, argv, (char *)"hpdPD")) != EOF) {
             switch (c) {
             case 'p':
                 m_print = true;
@@ -28,31 +28,30 @@ Options::Options(int argc, char **argv) {
             case 'h':
                 hflag = true;
                 break;
+            case 'D':
+                m_debugSymTbl = true;
+                break;
+            case 'P':
+                m_printTypeInfo = true;
+                break;
             default:
                 errflag = true;
                 break;
             }
         }
 
-        if (hflag) {
-            std::cout << "This is a parser for the C- programming language."
-                      << std::endl;
-            std::cout << "You can pass in files to be parsed, or parse input "
-                         "from the command line.\n"
-                      << std::endl;
-
-            std::cout << "usage: " << argv[0] << " [-h] [-p] [-d] files..."
-                      << std::endl;
-            std::cout << "-h:\tDisplays this output" << std::endl;
-            std::cout << "-p:\tPrint the AST after building it" << std::endl;
+        if (hflag || errflag) {
+            std::cout << "usage: c- [options] [sourcefile]" << std::endl;
+            std::cout << "options:" << std::endl;
+            std::cout << "-d - turn on parser debugging" << std::endl;
+            std::cout << "-D - turn on symbol table debugging" << std::endl;
+            std::cout << "-h - print this usage message" << std::endl;
+            std::cout << "-p - print the abstract syntax tree" << std::endl;
             std::cout
-                << "-d:\tShow debugging information while building the AST\n"
+                << "-P - print the abstract syntax tree plus type information"
                 << std::endl;
-            exit(EXIT_SUCCESS);
-        } else if (errflag) {
-            std::cerr << "usage: " << argv[0] << " [-h] [-p] [-d] files..."
-                      << std::endl;
-            exit(EXIT_SUCCESS);
+
+            exit(!errflag);
         } else {
             if (optind < argc) {
                 m_file = argv[optind];
@@ -65,5 +64,9 @@ Options::Options(int argc, char **argv) {
 bool Options::print() const { return m_print; }
 
 bool Options::debug() const { return m_debug; }
+
+bool Options::debugSymbolTable() const { return m_debugSymTbl; }
+
+bool Options::printTypeInfo() const { return m_printTypeInfo; }
 
 const std::optional<std::string> &Options::file() const { return m_file; }

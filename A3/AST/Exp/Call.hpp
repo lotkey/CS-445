@@ -17,7 +17,7 @@ class Call : public Exp {
     /// @param arglist Optional, argument list for function call
     Call(unsigned linenum, const std::string &id, Node *arglist = nullptr);
     const std::string &id() const;
-    virtual std::string toString() const override;
+    virtual std::string toString(bool debugging = false) const override;
 
   protected:
     std::string m_id;

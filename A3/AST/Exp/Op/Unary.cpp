@@ -32,7 +32,14 @@ void Unary::addExp(Node *exp) {
     }
 }
 
-std::string Unary::toString() const {
-    return "Op: " + Types::toString(m_unaryOpType) + lineTag();
+std::string Unary::toString(bool debugging) const {
+    std::string str = "Op: " + Types::toString(m_unaryOpType);
+    
+    if (debugging) {
+        str += typeTag();
+    }
+
+    str += lineTag();
+    return str;
 }
 } // namespace AST::Exp::Op

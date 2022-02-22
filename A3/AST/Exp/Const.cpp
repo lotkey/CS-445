@@ -39,7 +39,7 @@ Const::Const(unsigned linenum, TypeInfo typeInfo, std::string value)
     };
 }
 
-std::string Const::toString() const {
+std::string Const::toString(bool debugging) const {
     std::string str = "Const ";
 
     switch (m_typeInfo.type.value()) {
@@ -69,6 +69,10 @@ std::string Const::toString() const {
         break;
     }
     };
+
+    if (debugging) {
+        str += typeTag();
+    }
 
     str += lineTag();
     return str;

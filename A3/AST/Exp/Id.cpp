@@ -14,5 +14,14 @@ Id::Id(unsigned linenum, const std::string &id)
 
 const std::string &Id::id() const { return m_id; }
 
-std::string Id::toString() const { return "Id: " + m_id + lineTag(); }
+std::string Id::toString(bool debugging) const {
+    std::string str = "Id: " + m_id;
+
+    if (debugging) {
+        str += typeTag();
+    }
+
+    str += lineTag();
+    return str;
+}
 } // namespace AST::Exp

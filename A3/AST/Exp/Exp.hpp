@@ -13,9 +13,12 @@ class Exp : public Node {
     const ExpType &expType() const;
     virtual void setType(TypeInfo);
     virtual const TypeInfo &typeInfo() const;
+    virtual TypeInfo &typeInfo();
 
   protected:
     TypeInfo m_typeInfo;
     ExpType m_expType;
+
+    virtual std::string typeTag() const override;
 };
 } // namespace AST::Exp

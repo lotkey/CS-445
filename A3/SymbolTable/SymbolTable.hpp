@@ -10,6 +10,7 @@
 class SymbolTable {
   public:
     SymbolTable();
+    SymbolTable(bool debug);
     int depth() const;
     void enter(const std::string &name = "unnamed scope");
     void leave();
@@ -22,4 +23,5 @@ class SymbolTable {
 
   private:
     std::vector<Scope> m_scopes;
+    bool m_debug = false;
 };

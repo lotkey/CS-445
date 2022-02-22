@@ -24,4 +24,10 @@ void Decl::setType(Type type) {
 const DeclType &Decl::declType() const { return m_declType; }
 
 const std::string &Decl::id() const { return m_id; }
+
+TypeInfo &Decl::typeInfo() { return m_typeInfo; }
+
+const TypeInfo &Decl::typeInfo() const { return m_typeInfo; }
+
+std::string Decl::typeTag() const { return Types::toString(m_typeInfo); }
 } // namespace AST::Decl

@@ -4,7 +4,7 @@
 #include <string>
 
 namespace AST {
-enum class Type { Int, Bool, Char };
+enum class Type { Int, Bool, Char, Void };
 enum class NodeType { Decl, Exp, Stmt };
 enum class StmtType { Break, Compound, For, Range, Return, Select, While };
 enum class DeclType { Func, Parm, Var };
@@ -25,6 +25,8 @@ struct TypeInfo {
 
 namespace Types {
 std::string toString(Type);
+std::string toString(std::optional<Type>);
+std::string toString(TypeInfo);
 std::string toString(StmtType);
 std::string toString(BoolOpType);
 std::string toString(UnaryOpType);

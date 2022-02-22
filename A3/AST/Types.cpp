@@ -9,9 +9,41 @@ std::string toString(Type t) {
         return "char";
     case Type::Int:
         return "int";
+    case Type::Void:
+        return "void";
     default:
         return "type";
     }
+}
+
+std::string toString(std::optional<Type> t) {
+    if (t.has_value()) {
+        return toString(t.value());
+    } else {
+        return "undefined";
+    }
+}
+
+std::string toString(TypeInfo t) {
+    if (!t.type.has_value()) {
+        return " of undefined type";
+    }
+
+    std::string str;
+
+    if (t.isArray) {
+        str += " array";
+    }
+
+    str += " of";
+
+    if (t.isStatic) {
+        str += " static";
+    }
+
+    str += " type " + toString(t.type);
+
+    return str;
 }
 
 std::string toString(StmtType t) {

@@ -13,6 +13,7 @@ class Scope {
     bool contains(const std::string &) const;
     Symbol &getSymbol(const std::string &);
     std::map<std::string, Symbol> &getSymbols();
+    std::string name() const;
 
   private:
     std::string m_id;

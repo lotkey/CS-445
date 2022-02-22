@@ -10,6 +10,4 @@ Op::Op(unsigned linenum, OpType opType)
     : Exp::Exp(linenum, ExpType::Op), m_opType(opType) {}
 
 const OpType &Op::opType() const { return m_opType; }
-
-std::string Op::toString() const { return std::string(); }
 } // namespace AST::Exp::Op

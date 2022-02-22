@@ -643,32 +643,46 @@ extern std::vector<std::unique_ptr<TokenData>> tokens;
 int main(int argc, char *argv[])
 {
     Options options(argc, argv);
+    bool fileExists = true;
     yydebug = options.debug();
     std::optional<std::string> file = options.file();
 
     if (file.has_value()) {
+        SemanticsChecker semantics = SemanticsChecker(options.debugSymbolTable());
         if ((yyin = fopen(file.value().c_str(), "r"))) {
             // file open successful
             // do the parsing
             numErrors = 0;
             yyparse();
 
-            if (tree_root != nullptr && options.print()) {
-                tree_root->print();
-                SemanticsChecker semantics = SemanticsChecker();
-                // semantics.analyze(tree_root);
-                delete tree_root;
-                
-                /// Smart pointers, so destructors are called when vector is cleared
-                /// Frees all tokens
-                tokens.clear();
+            semantics.analyze(tree_root);
+
+            if (options.printTypeInfo()) {
+                semantics.print();
             }
+
+            if (tree_root != nullptr && semantics.numErrors() == 0) {
+                if (options.printTypeInfo()) {
+                    tree_root->print(true);
+                } else if (options.print()) {
+                    tree_root->print();
+                }
+            }
+
+            
+
+            // Free memory
+            if (tree_root != nullptr) {
+                delete tree_root;
+            }
+            tokens.clear();
         }
         else {
-            // failed to open file
-            printf("ERROR: failed to open \'%s\'\n", argv[1]);
-            exit(1);
+            std::cout << "ERROR(ARGLIST): source file \"" + file.value() + "\" could not be opened." << std::endl;
+            fileExists = false;
         }
+        std::cout << "Number of warnings: " << semantics.numWarnings() << std::endl;
+        std::cout << "Number of errors: " << semantics.numErrors() + !fileExists << std::endl;
     } else {
         yyparse();
     }

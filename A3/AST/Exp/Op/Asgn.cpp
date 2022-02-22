@@ -47,7 +47,14 @@ void Asgn::addChildren(Node *exp1, Node *exp2) {
     m_exp = (Exp *)exp2;
 }
 
-std::string Asgn::toString() const {
-    return "Assign: " + Types::toString(m_asgnType) + lineTag();
+std::string Asgn::toString(bool debugging) const {
+    std::string str = "Assign: " + Types::toString(m_asgnType);
+
+    if (debugging) {
+        str += typeTag();
+    }
+
+    str += lineTag();
+    return str;
 }
 } // namespace AST::Exp::Op

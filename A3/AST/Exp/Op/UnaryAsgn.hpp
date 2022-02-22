@@ -21,7 +21,7 @@ class UnaryAsgn : public Unary {
     /// @param opType Assignment type
     /// @param exp The node being assigned
     UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp);
-    virtual std::string toString() const override;
+    virtual std::string toString(bool debugging = false) const override;
 
   protected:
     Id *m_mutable;

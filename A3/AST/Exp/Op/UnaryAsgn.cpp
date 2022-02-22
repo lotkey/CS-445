@@ -18,7 +18,14 @@ UnaryAsgn::UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp)
     m_mutable = (Id *)exp;
 }
 
-std::string UnaryAsgn::toString() const {
-    return "Assign: " + Types::toString(m_unaryAsgnType) + lineTag();
+std::string UnaryAsgn::toString(bool debugging) const {
+    std::string str = "Assign: " + Types::toString(m_unaryAsgnType);
+
+    if (debugging) {
+        str += typeTag();
+    }
+
+    str += lineTag();
+    return str;
 }
 } // namespace AST::Exp::Op

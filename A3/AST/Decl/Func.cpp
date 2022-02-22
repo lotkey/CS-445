@@ -8,9 +8,14 @@
 #include <string>
 
 namespace AST::Decl {
-Func::Func() : Decl::Decl() { m_declType = DeclType::Func; }
+Func::Func() : Decl::Decl() {
+    m_declType = DeclType::Func;
+    m_typeInfo.type = Type::Void;
+}
 
-Func::Func(unsigned linenum) : Decl::Decl(linenum, DeclType::Func) {}
+Func::Func(unsigned linenum) : Decl::Decl(linenum, DeclType::Func) {
+    m_typeInfo.type = Type::Void;
+}
 
 Func::Func(unsigned linenum, const std::string &id, Node *parms,
            Node *compoundstmt)
@@ -34,16 +39,8 @@ Func::Func(unsigned linenum, Type returnType, const std::string &id,
     m_compoundStmt = (Stmt::Compound *)compoundstmt;
 }
 
-std::string Func::toString() const {
-    std::string str = "Func: " + m_id + " returns type ";
-
-    if (m_typeInfo.type.has_value()) {
-        str += Types::toString(m_typeInfo.type.value());
-    } else {
-        str += "void";
-    }
-
-    str += lineTag();
-    return str;
+std::string Func::toString(bool debugging) const {
+    return "Func: " + m_id + " returns type " +
+           Types::toString(m_typeInfo.type) + lineTag();
 }
 } // namespace AST::Decl

@@ -24,7 +24,7 @@ void Var::setStatic() {
     m_typeInfo.isStatic = true;
 }
 
-std::string Var::toString() const {
+std::string Var::toString(bool debugging) const {
     std::string str = "Var: " + m_id;
     if (m_typeInfo.isArray) {
         str += " of array";

@@ -15,7 +15,7 @@ class Stmt : public Node {
     Stmt(unsigned linenum);
     Stmt(unsigned linenum, StmtType stmtType);
     const StmtType &stmtType() const;
-    virtual std::string toString() const override;
+    virtual std::string toString(bool debugging = false) const override;
 
   protected:
     StmtType m_stmtType;
