@@ -14,6 +14,7 @@ class Scope {
     Symbol &getSymbol(const std::string &);
     std::map<std::string, Symbol> &getSymbols();
     std::string name() const;
+    void remove(const std::string &);
 
   private:
     std::string m_id;

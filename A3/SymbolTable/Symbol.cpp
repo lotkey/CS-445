@@ -1,5 +1,6 @@
 #include "Symbol.hpp"
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -11,7 +12,7 @@ Symbol &Symbol::name(const std::string &name) {
 }
 
 Symbol &Symbol::declare(AST::Decl::Decl *decl) {
-    if (m_decl != nullptr) {
+    if (decl != nullptr) {
         m_decl = decl;
     }
     return *this;

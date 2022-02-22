@@ -22,9 +22,10 @@ class UnaryAsgn : public Unary {
     /// @param exp The node being assigned
     UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp);
     virtual std::string toString(bool debugging = false) const override;
+    virtual void deduceType() override;
 
   protected:
-    Id *m_mutable;
+    Exp *m_mutable;
     UnaryAsgnType m_unaryAsgnType;
 };
 } // namespace AST::Exp::Op

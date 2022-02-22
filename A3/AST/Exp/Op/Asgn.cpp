@@ -18,34 +18,12 @@ Asgn::Asgn(unsigned linenum, AsgnType asgnType, Node *exp1, Node *exp2)
     addChild(exp2);
     m_mutable = (Id *)exp1;
     m_exp = (Exp *)exp2;
+    if (m_mutable != nullptr) {
+        m_typeInfo = m_mutable->typeInfo();
+    }
 }
 
-void Asgn::addChildren(Node *exp1, Node *exp2) {
-    if (m_children.size() >= 1) {
-        if (m_children[0] != nullptr && exp1 != nullptr) {
-            throw std::runtime_error(
-                "Binary operator already has a first child!");
-        } else {
-            m_children[0] = exp1;
-        }
-    } else {
-        m_children.push_back(exp1);
-    }
-
-    if (m_children.size() >= 2) {
-        if (m_children[1] != nullptr && exp2 != nullptr) {
-            throw std::runtime_error(
-                "Binary operator already has a second child!");
-        } else {
-            m_children[1] = exp2;
-        }
-    } else {
-        m_children.push_back(exp2);
-    }
-
-    m_mutable = (Id *)exp1;
-    m_exp = (Exp *)exp2;
-}
+const AsgnType &Asgn::asgnType() const { return m_asgnType; }
 
 std::string Asgn::toString(bool debugging) const {
     std::string str = "Assign: " + Types::toString(m_asgnType);

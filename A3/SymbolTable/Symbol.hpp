@@ -21,7 +21,7 @@ class Symbol {
 
   private:
     std::string m_id;
-    AST::Decl::Decl *m_decl;
+    AST::Decl::Decl *m_decl = nullptr;
     std::optional<unsigned> m_lineDefined;
     std::vector<unsigned> m_linesUsed;
 };

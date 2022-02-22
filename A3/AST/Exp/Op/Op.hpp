@@ -11,6 +11,7 @@ class Op : public Exp {
     Op();
     Op(unsigned linenum);
     Op(unsigned linenum, OpType opType);
+    virtual void deduceType();
     const OpType &opType() const;
 
   protected:

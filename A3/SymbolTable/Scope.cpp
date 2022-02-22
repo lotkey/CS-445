@@ -23,3 +23,5 @@ Symbol &Scope::getSymbol(const std::string &id) {
 std::map<std::string, Symbol> &Scope::getSymbols() { return m_symbols; }
 
 std::string Scope::name() const { return m_id; }
+
+void Scope::remove(const std::string &id) { m_symbols.erase(id); }

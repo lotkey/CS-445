@@ -15,4 +15,10 @@ For::For(unsigned linenum, Node *id, Node *range, Node *stmt)
     addChild(range);
     addChild(stmt);
 }
+Node *For::id() { return m_children[0]; }
+
+Node *For::range() { return m_children[1]; }
+
+Node *For::stmt() { return m_children[2]; }
+
 } // namespace AST::Stmt

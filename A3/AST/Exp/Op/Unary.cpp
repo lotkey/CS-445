@@ -34,12 +34,37 @@ void Unary::addExp(Node *exp) {
 
 std::string Unary::toString(bool debugging) const {
     std::string str = "Op: " + Types::toString(m_unaryOpType);
-    
+
     if (debugging) {
         str += typeTag();
     }
 
     str += lineTag();
     return str;
+}
+
+void Unary::deduceType() {
+    switch (m_unaryOpType) {
+    case UnaryOpType::Asgn: {
+        // never reaches here, because deduceType is overloaded by UnaryAsgn
+        break;
+    }
+    case UnaryOpType::Chsign: {
+        m_typeInfo.type = Type::Int;
+        break;
+    }
+    case UnaryOpType::Not: {
+        m_typeInfo.type = Type::Bool;
+        break;
+    }
+    case UnaryOpType::Random: {
+        m_typeInfo.type = Type::Int;
+        break;
+    }
+    case UnaryOpType::Sizeof: {
+        m_typeInfo.type = Type::Int;
+        break;
+    }
+    }
 }
 } // namespace AST::Exp::Op

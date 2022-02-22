@@ -59,6 +59,16 @@ std::map<std::string, Symbol> &SymbolTable::getImmediateSymbols() {
     return m_scopes.back().getSymbols();
 }
 
+bool SymbolTable::isGlobal(const std::string &id) const {
+    for (int i = m_scopes.size(); i > 0; i--) {
+        if (m_scopes[i].contains(id)) {
+            return false;
+        }
+    }
+
+    return m_scopes.front().contains(id);
+}
+
 Symbol &SymbolTable::getSymbol(const std::string &id) {
 
     if (m_debug) {
@@ -85,3 +95,18 @@ Symbol &SymbolTable::getSymbol(const std::string &id) {
 }
 
 Symbol &SymbolTable::operator[](const std::string &id) { return getSymbol(id); }
+
+void SymbolTable::remove(const std::string &id) {
+    for (int i = m_scopes.size() - 1; i >= 0; i--) {
+        if (m_scopes[i].contains(id)) {
+            m_scopes[i].remove(id);
+            return;
+        }
+    }
+}
+
+void SymbolTable::removeImmediately(const std::string &id) {
+    if (m_scopes.back().contains(id)) {
+        m_scopes.back().remove(id);
+    }
+}

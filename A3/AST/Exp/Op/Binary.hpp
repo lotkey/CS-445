@@ -28,16 +28,15 @@ class Binary : public Op {
     const BinaryOpType &binaryOpType() const;
     /// @param exp1 First argument
     /// @param exp2 Second argument
-    void addChildren(Node *exp1, Node *exp2);
+    virtual void addChildren(Node *exp1, Node *exp2);
     Exp *exp1();
     Exp *exp2();
     virtual std::string toString(bool debugging = false) const override;
+    virtual void deduceType() override;
 
   protected:
     BinaryOpType m_binaryOpType;
     Exp *m_exp1 = nullptr;
     Exp *m_exp2 = nullptr;
-
-    void deduceType();
 };
 } // namespace AST::Exp::Op

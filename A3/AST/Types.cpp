@@ -32,7 +32,7 @@ std::string toString(TypeInfo t) {
     std::string str;
 
     if (t.isArray) {
-        str += " array";
+        str += " is array";
     }
 
     str += " of";
@@ -93,7 +93,7 @@ std::string toString(BoolOpType t) {
 std::string toString(UnaryOpType t) {
     switch (t) {
     case UnaryOpType::Chsign:
-        return "chsgn";
+        return "chsign";
     case UnaryOpType::Not:
         return "not";
     case UnaryOpType::Random:
@@ -123,7 +123,7 @@ std::string toString(BinaryOpType t) {
     case BinaryOpType::Div:
         return "/";
     case BinaryOpType::Index:
-        return "]";
+        return "[";
     case BinaryOpType::Mod:
         return "%";
     case BinaryOpType::Mul:

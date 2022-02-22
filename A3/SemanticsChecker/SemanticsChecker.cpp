@@ -65,12 +65,15 @@ void SemanticsChecker::leaveScope() {
 
         } else if (symbol.isUsed() && !symbol.isDefined()) {
             for (const auto &line : symbol.linesUsed()) {
-                std::string warning = "Variable '" + id +
-                                      "' may be uninitialized when used here.";
+                if (!m_symbolTable.isGlobal(id)) {
+                    std::string warning =
+                        "Variable '" + id +
+                        "' may be uninitialized when used here.";
 
-                if (symbol.isDeclared()) {
-                    m_messages[symbol.decl()->lineNumber()].push_back(
-                        {Message::Type::Warning, warning});
+                    if (symbol.isDeclared()) {
+                        m_messages[symbol.decl()->lineNumber()].push_back(
+                            {Message::Type::Warning, warning});
+                    }
                 }
             }
         }
@@ -163,6 +166,10 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                                 "' is a simple variable and cannot be called.";
             m_messages[call->lineNumber()].push_back(
                 {Message::Type::Error, error});
+        } else {
+            if (m_symbolTable[call->id()].isDeclared()) {
+                call->typeInfo() = m_symbolTable[call->id()].decl()->typeInfo();
+            }
         }
 
         break;
@@ -170,24 +177,27 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
     case AST::ExpType::Id: {
         AST::Exp::Id *id = (AST::Exp::Id *)exp;
 
-        if (!m_symbolTable.contains(id->id())) {
+        if (m_symbolTable.contains(id->id())) {
+            if (m_symbolTable[id->id()].isDeclared()) {
+                id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
 
+                if (m_symbolTable[id->id()].decl()->declType() ==
+                    AST::DeclType::Func) {
+
+                    std::string error =
+                        "Cannot use function '" + id->id() + "' as a variable.";
+                    m_messages[id->lineNumber()].push_back(
+                        {Message::Type::Error, error});
+                } else {
+                }
+
+            } else {
+            }
+
+        } else {
             std::string error = "Symbol '" + id->id() + "' is not declared.";
             m_messages[id->lineNumber()].push_back(
                 {Message::Type::Error, error});
-
-        } else if (m_symbolTable[id->id()].isDeclared()) {
-
-            if (m_symbolTable[id->id()].decl()->declType() ==
-                AST::DeclType::Func) {
-
-                std::string error =
-                    "Cannot use function '" + id->id() + "' as a variable.";
-                m_messages[id->lineNumber()].push_back(
-                    {Message::Type::Error, error});
-            } else {
-                id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
-            }
         }
 
         m_symbolTable[id->id()].use(id->lineNumber());
@@ -206,6 +216,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
 }
 
 void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
+    op->deduceType();
+
     switch (op->opType()) {
     case AST::OpType::Binary: {
         auto *binary = (AST::Exp::Op::Binary *)op;
@@ -229,6 +241,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
         else {
             switch (binary->binaryOpType()) {
             case AST::BinaryOpType::Asgn: {
+                analyzeNode((AST::Exp::Op::Asgn *)binary);
                 break;
             }
             case AST::BinaryOpType::Add: {
@@ -243,16 +256,25 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
             case AST::BinaryOpType::Index: {
                 AST::Exp::Id *id = (AST::Exp::Id *)binary->exp1();
 
-                if (!binary->exp1()->typeInfo().isArray) {
-                    // std::string error = "Cannot index nonarray '" + "'.";
-                } else if (binary->exp2()->typeInfo().type != AST::Type::Int) {
+                if (!id->typeInfo().isArray) {
                     std::string error =
-                        "Array '" + id->id() +
-                        "' should be indexed by type int but got " +
-                        AST::Types::toString(binary->exp2()->typeInfo().type) +
-                        ".";
-                    m_messages[binary->lineNumber()].push_back(
+                        "Cannot index nonarray '" + id->id() + "'.";
+                    m_messages[id->lineNumber()].push_back(
                         {Message::Type::Error, error});
+                } else {
+                    op->typeInfo() = id->typeInfo();
+                    op->typeInfo().isArray = false;
+
+                    if (binary->exp2()->typeInfo().type != AST::Type::Int) {
+                        std::string error =
+                            "Array '" + id->id() +
+                            "' should be indexed by type int but got " +
+                            AST::Types::toString(
+                                binary->exp2()->typeInfo().type) +
+                            ".";
+                        m_messages[binary->lineNumber()].push_back(
+                            {Message::Type::Error, error});
+                    }
                 }
                 break;
             }
@@ -311,6 +333,31 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
     }
 }
 
+void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
+    switch (op->asgnType()) {
+    case AST::AsgnType::Asgn: {
+        auto *mut = op->exp1();
+        if (mut->expType() == AST::ExpType::Id) {
+            AST::Exp::Id *id = (AST::Exp::Id *)op->exp1();
+
+            m_symbolTable[id->id()].define(op->lineNumber());
+        } else if (mut->expType() == AST::ExpType::Op) {
+            auto *op = (AST::Exp::Op::Op *)mut;
+            if (op->opType() == AST::OpType::Binary) {
+                auto *id = (AST::Exp::Id *)((AST::Exp::Op::Binary *)op)->exp1();
+                m_symbolTable[id->id()].define(op->lineNumber());
+            }
+            // if
+            // if (mut->expType())
+        }
+        // m_symbolTable[op->getMutable()->id()].define(op->lineNumber()); //
+        // could be id[], not just id! if (id != nullptr) {
+        // }
+        break;
+    }
+    }
+}
+
 void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
     if (m_symbolTable.containsImmediately(decl->id()) &&
         m_symbolTable[decl->id()].isDeclared()) {
@@ -336,13 +383,6 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         break;
     }
     case AST::DeclType::Parm: {
-
-        AST::Decl::Parm *p = (AST::Decl::Parm *)decl;
-        while (p != nullptr) {
-            m_symbolTable.declare(p->id(), p);
-            p = (AST::Decl::Parm *)p->sibling();
-        }
-
         break;
     }
     case AST::DeclType::Var: {
@@ -357,6 +397,13 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     switch (stmt->stmtType()) {
     case AST::StmtType::Compound: {
+        break;
+    }
+    case AST::StmtType::For: {
+        auto *forNode = (AST::Stmt::For *)stmt;
+        auto *id = (AST::Exp::Id *)forNode->id();
+        m_symbolTable.removeImmediately(id->id());
+        break;
     }
     }
 }

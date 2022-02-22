@@ -15,7 +15,7 @@ UnaryAsgn::UnaryAsgn(unsigned linenum)
 UnaryAsgn::UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp)
     : Unary::Unary(linenum, UnaryOpType::Asgn), m_unaryAsgnType(opType) {
     addChild(exp);
-    m_mutable = (Id *)exp;
+    m_mutable = (Exp *)exp;
 }
 
 std::string UnaryAsgn::toString(bool debugging) const {
@@ -27,5 +27,11 @@ std::string UnaryAsgn::toString(bool debugging) const {
 
     str += lineTag();
     return str;
+}
+
+void UnaryAsgn::deduceType() {
+    if (m_mutable != nullptr) {
+        m_typeInfo = m_mutable->typeInfo();
+    }
 }
 } // namespace AST::Exp::Op

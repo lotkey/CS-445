@@ -20,7 +20,7 @@ Func::Func(unsigned linenum) : Decl::Decl(linenum, DeclType::Func) {
 Func::Func(unsigned linenum, const std::string &id, Node *parms,
            Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
-    m_typeInfo = {{}, false, false};
+    m_typeInfo = {Type::Void, false, false};
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);

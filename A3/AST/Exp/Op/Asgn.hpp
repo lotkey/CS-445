@@ -25,13 +25,11 @@ class Asgn : public Binary {
     /// @param exp2 The expression assigned to exp1
     Asgn(unsigned linenum, AsgnType asgnType, Node *exp1 = nullptr,
          Node *exp2 = nullptr);
-    /// @param exp1 The assignee
-    /// @param exp2 The expression assigned to exp1
-    void addChildren(Node *exp1, Node *exp2);
+    const AsgnType &asgnType() const;
     virtual std::string toString(bool debugging = false) const override;
 
   protected:
-    Id *m_mutable;
+    Exp *m_mutable;
     Exp *m_exp;
     AsgnType m_asgnType;
 };

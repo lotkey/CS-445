@@ -38,5 +38,6 @@ class SemanticsChecker {
     void analyzeNode(AST::Exp::Exp *);
     void analyzeNode(AST::Exp::Op::Op *);
     void analyzeNode(AST::Exp::Op::Unary *);
+    void analyzeNode(AST::Exp::Op::Asgn *);
     void analyzeNode(AST::Stmt::Stmt *);
 };

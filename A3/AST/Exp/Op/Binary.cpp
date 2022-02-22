@@ -2,6 +2,7 @@
 #include "../../Node.hpp"
 #include "../Exp.hpp"
 
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -16,7 +17,6 @@ Binary::Binary(unsigned linenum, BinaryOpType opType, Node *exp1, Node *exp2)
     addChild(exp2);
     m_exp1 = (Exp *)exp1;
     m_exp2 = (Exp *)exp2;
-    deduceType();
 }
 
 void Binary::addChildren(Node *exp1, Node *exp2) {
@@ -25,8 +25,10 @@ void Binary::addChildren(Node *exp1, Node *exp2) {
             throw std::runtime_error(
                 "Binary operator already has a first child!");
         } else {
-            m_children[0] = exp1;
-            m_exp1 = (Exp *)exp1;
+            if (m_children[0] == nullptr) {
+                m_children[0] = exp1;
+                m_exp1 = (Exp *)exp1;
+            }
         }
     } else {
         m_children.push_back(exp1);
@@ -38,14 +40,15 @@ void Binary::addChildren(Node *exp1, Node *exp2) {
             throw std::runtime_error(
                 "Binary operator already has a second child!");
         } else {
-            m_children[1] = exp2;
-            m_exp2 = (Exp *)exp2;
+            if (m_children[1] == nullptr) {
+                m_children[1] = exp2;
+                m_exp2 = (Exp *)exp2;
+            }
         }
     } else {
         m_children.push_back(exp2);
         m_exp2 = (Exp *)exp2;
     }
-    deduceType();
 }
 
 const BinaryOpType &Binary::binaryOpType() const { return m_binaryOpType; }

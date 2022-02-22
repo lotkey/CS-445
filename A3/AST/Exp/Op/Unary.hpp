@@ -27,6 +27,7 @@ class Unary : public Op {
     /// @param exp Child node
     void addExp(Node *exp);
     virtual std::string toString(bool debugging = false) const override;
+    virtual void deduceType() override;
 
   protected:
     UnaryOpType m_unaryOpType;

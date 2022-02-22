@@ -17,5 +17,8 @@ class For : public Stmt {
     /// @param range Iteration range
     /// @param stmt Loop body
     For(unsigned linenum, Node *id, Node *range, Node *stmt);
+    Node *id();
+    Node *range();
+    Node *stmt();
 };
 } // namespace AST::Stmt

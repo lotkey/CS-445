@@ -17,6 +17,9 @@ class SymbolTable {
     void declare(const std::string &id, AST::Decl::Decl *);
     bool contains(const std::string &) const;
     bool containsImmediately(const std::string &) const;
+    bool isGlobal(const std::string &) const;
+    void remove(const std::string &);
+    void removeImmediately(const std::string &);
     std::map<std::string, Symbol> &getImmediateSymbols();
     Symbol &getSymbol(const std::string &);
     Symbol &operator[](const std::string &);
