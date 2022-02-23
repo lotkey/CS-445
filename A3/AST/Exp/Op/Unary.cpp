@@ -32,6 +32,14 @@ void Unary::addExp(Node *exp) {
     }
 }
 
+Exp *Unary::operand() {
+    if (m_children.empty()) {
+        throw std::runtime_error("Unary operator has no operand.");
+    }
+
+    return (Exp *)m_children[0];
+}
+
 std::string Unary::toString(bool debugging) const {
     std::string str = "Op: " + Types::toString(m_unaryOpType);
 

@@ -43,4 +43,8 @@ std::string Func::toString(bool debugging) const {
     return "Func: " + m_id + " returns type " +
            Types::toString(m_typeInfo.type) + lineTag();
 }
+
+bool Func::hasParms() const { return m_parms != nullptr; }
+
+Parm *Func::parms() { return m_parms; }
 } // namespace AST::Decl

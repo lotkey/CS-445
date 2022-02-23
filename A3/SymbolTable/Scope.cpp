@@ -1,6 +1,7 @@
 #include "Scope.hpp"
 #include "Symbol.hpp"
 
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -9,7 +10,8 @@ Scope::Scope() : m_id("global") {}
 Scope::Scope(const std::string &id) : m_id(id) {}
 
 bool Scope::contains(const std::string &id) const {
-    return m_symbols.find(id) != m_symbols.end();
+    bool result = m_symbols.find(id) != m_symbols.end();
+    return result;
 }
 
 Symbol &Scope::getSymbol(const std::string &id) {

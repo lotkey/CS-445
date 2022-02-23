@@ -29,9 +29,12 @@ class SemanticsChecker {
     std::optional<std::string> m_scopeName;
     bool m_mainIsDefined;
     bool m_analyzed = false;
+    bool m_debug = false;
+    AST::Decl::Parm *m_parms = nullptr;
 
     void enterScope();
     void leaveScope();
+    void addParms();
 
     void analyzeTree(AST::Node *);
     void analyzeNode(AST::Decl::Decl *);

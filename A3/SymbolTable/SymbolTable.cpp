@@ -8,12 +8,9 @@
 #include <string>
 #include <vector>
 
-SymbolTable::SymbolTable() { m_scopes.push_back(Scope()); }
+SymbolTable::SymbolTable() { enter("global"); }
 
-SymbolTable::SymbolTable(bool debug) {
-    m_scopes.push_back(Scope());
-    m_debug = debug;
-}
+SymbolTable::SymbolTable(bool debug) : m_debug(debug) { enter("global"); }
 
 int SymbolTable::depth() const { return m_scopes.size(); }
 
@@ -43,7 +40,24 @@ void SymbolTable::leave() {
 }
 
 void SymbolTable::declare(const std::string &id, AST::Decl::Decl *node) {
-    m_scopes.back().getSymbol(id).declare(node);
+
+    auto *decl = (AST::Decl::Decl *)node;
+    if (decl->declType() == AST::DeclType::Func) {
+        m_scopes.front().getSymbol(id).declare(node);
+        
+        if (m_debug) {
+            std::cout << "DEBUG(SymbolTable): declared symbol " << id
+                      << " in scope " << m_scopes.front().name() << std::endl;
+        }
+
+    } else {
+        m_scopes.back().getSymbol(id).declare(node);
+
+        if (m_debug) {
+            std::cout << "DEBUG(SymbolTable): declared symbol " << id
+                      << " in scope " << m_scopes.back().name() << std::endl;
+        }
+    }
 }
 
 bool SymbolTable::contains(const std::string &id) const {

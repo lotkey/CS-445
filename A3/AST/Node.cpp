@@ -19,7 +19,9 @@ Node::~Node() {
     }
 
     for (auto &child : m_children) {
-        delete child;
+        if (child != nullptr) {
+            delete child;
+        }
     }
 }
 
