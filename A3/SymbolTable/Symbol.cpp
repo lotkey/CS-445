@@ -26,7 +26,7 @@ Symbol &Symbol::define(unsigned linenum) {
 }
 
 Symbol &Symbol::use(unsigned linenum) {
-    m_lineUsedFirst = linenum;
+    m_linesUsed.push_back(linenum);
     return *this;
 }
 
@@ -37,10 +37,12 @@ bool Symbol::isDefined() const {
            (isDeclared() && m_decl->declType() == AST::DeclType::Parm);
 }
 
-bool Symbol::isUsed() const { return m_lineUsedFirst.has_value(); }
+bool Symbol::isUsed() const { return !m_linesUsed.empty(); }
 
 AST::Decl::Decl *Symbol::decl() const { return m_decl; }
 
-const std::optional<unsigned> &Symbol::lineUsedFirst() const {
-    return m_lineUsedFirst;
+const std::vector<unsigned> &Symbol::linesUsed() const { return m_linesUsed; }
+
+const std::optional<unsigned> &Symbol::lineDefined() const {
+    return m_lineDefined;
 }

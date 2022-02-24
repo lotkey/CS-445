@@ -3,6 +3,7 @@
 #include "../AST/AST.hpp"
 
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -17,11 +18,12 @@ class Symbol {
     bool isDefined() const;
     bool isUsed() const;
     AST::Decl::Decl *decl() const;
-    const std::optional<unsigned> &lineUsedFirst() const;
+    const std::vector<unsigned> &linesUsed() const;
+    const std::optional<unsigned> &lineDefined() const;
 
   private:
     std::string m_id;
     AST::Decl::Decl *m_decl = nullptr;
+    std::vector<unsigned> m_linesUsed;
     std::optional<unsigned> m_lineDefined;
-    std::optional<unsigned> m_lineUsedFirst;
 };

@@ -20,8 +20,14 @@ int SemanticsChecker::numErrors() const {
 int SemanticsChecker::numWarnings() const { return Message::numWarnings(); }
 
 void SemanticsChecker::print() const {
+    if (!m_mainIsDefined) {
+        std::cout << "ERROR(LINKER): A function named 'main()' must be defined."
+                  << std::endl;
+    }
+
     for (const auto &[lineNumber, bucket] : m_messages) {
-        for (const auto &message : bucket) {
+        for (int i = bucket.size() - 1; i >= 0; i--) {
+            auto message = bucket[i];
             std::string tag;
 
             if (message.type() == Message::Type::Error) {
@@ -32,11 +38,6 @@ void SemanticsChecker::print() const {
             std::cout << tag + message.content() << std::endl;
         }
     }
-
-    if (!m_mainIsDefined) {
-        std::cout << "ERROR(LINKER): A function named 'main()' must be defined."
-                  << std::endl;
-    }
 }
 
 void SemanticsChecker::enterScope() {
@@ -46,10 +47,14 @@ void SemanticsChecker::enterScope() {
     } else {
         m_symbolTable.enter();
     }
-    if (m_parms != nullptr) {
-        analyzeNode((AST::Decl::Decl *)m_parms);
-        m_parms = nullptr;
+
+    auto *parm = (AST::Decl::Decl *)m_parms;
+    while (parm != nullptr) {
+        // analyzeNode(parm);
+        m_symbolTable.declare(parm->id(), parm);
+        parm = (AST::Decl::Decl *)parm->sibling();
     }
+    m_parms = nullptr;
 }
 
 void SemanticsChecker::leaveScope() {
@@ -62,19 +67,27 @@ void SemanticsChecker::leaveScope() {
                 "The variable '" + id + "' seems not to be used.";
 
             if (symbol.isDeclared()) {
-                m_messages[symbol.decl()->lineNumber()].push_back(
+                m_messages[symbol.decl()->lineNumber()].insert(
+                    m_messages[symbol.decl()->lineNumber()].begin(),
                     {Message::Type::Warning, warning});
             }
         }
 
-        if (symbol.isUsed() && !symbol.isDefined()) {
-            if (symbol.isDeclared() &&
-                symbol.decl()->declType() != AST::DeclType::Parm) {
-                std::string warning = "Variable '" + id +
-                                      "' may be uninitialized when used here.";
+        if (symbol.isDeclared() &&
+            symbol.decl()->declType() != AST::DeclType::Parm &&
+            !symbol.decl()->typeInfo().isStatic) {
 
-                m_messages[symbol.lineUsedFirst().value()].push_back(
-                    {Message::Type::Warning, warning});
+            if (symbol.isUsed()) {
+                auto linenumber = symbol.linesUsed()[0];
+                if (!symbol.isDefined() || linenumber < symbol.lineDefined()) {
+                    std::string warning =
+                        "Variable '" + id +
+                        "' may be uninitialized when used here.";
+
+                    m_messages[linenumber].insert(
+                        m_messages[linenumber].begin(),
+                        {Message::Type::Warning, warning});
+                }
             }
         }
     }
@@ -93,18 +106,40 @@ void SemanticsChecker::analyze(AST::Node *tree) {
 }
 
 void SemanticsChecker::analyzeTree(AST::Node *tree) {
-    bool isFunction = false;
+    bool isCompoundStmt = false;
+
     if (tree->nodeType() == AST::NodeType::Decl) {
         auto *decl = (AST::Decl::Decl *)tree;
+
         if (decl->declType() == AST::DeclType::Func) {
             m_scopeName = decl->id();
             auto *func = (AST::Decl::Func *)decl;
             m_parms = func->parms();
-        }
-    }
 
-    bool isCompoundStmt = false;
-    if (tree->nodeType() == AST::NodeType::Stmt) {
+            if (func->id() == "main") {
+                if (!(func->hasParms() &&
+                      func->typeInfo().type.value() == AST::Type::Void)) {
+                    m_mainIsDefined = true;
+                } else {
+                    m_mainIsDefined = false;
+                }
+            }
+        }
+
+        if (m_symbolTable.containsImmediately(decl->id())) {
+            if (m_symbolTable[decl->id()].isDeclared()) {
+                auto *originalSymbol = m_symbolTable[decl->id()].decl();
+                std::string error =
+                    "Symbol '" + decl->id() + "' is already declared at line " +
+                    std::to_string(originalSymbol->lineNumber()) + ".";
+
+                m_messages[decl->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+        } else if (decl->declType() != AST::DeclType::Parm) {
+            m_symbolTable.declare(decl->id(), decl);
+        }
+    } else if (tree->nodeType() == AST::NodeType::Stmt) {
         auto *stmt = (AST::Stmt::Stmt *)tree;
         if (stmt->stmtType() == AST::StmtType::Compound) {
             isCompoundStmt = true;
@@ -123,10 +158,10 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
 
     switch (tree->nodeType()) {
     case AST::NodeType::Decl: {
-        AST::Decl::Decl *decl = (AST::Decl::Decl *)tree;
-        if (decl->declType() != AST::DeclType::Parm) {
-            analyzeNode(decl);
-        }
+        // AST::Decl::Decl *decl = (AST::Decl::Decl *)tree;
+        // if (decl->declType() != AST::DeclType::Parm) {
+        //     analyzeNode(decl);
+        // }
         break;
     }
     case AST::NodeType::Stmt: {
@@ -181,20 +216,17 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
     case AST::ExpType::Id: {
         AST::Exp::Id *id = (AST::Exp::Id *)exp;
 
-        if (m_symbolTable.contains(id->id())) {
-            if (m_symbolTable[id->id()].isDeclared()) {
-                id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
+        if (m_symbolTable[id->id()].isDeclared() &&
+            m_symbolTable.contains(id->id())) {
+            id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
 
-                if (m_symbolTable[id->id()].decl()->declType() ==
-                    AST::DeclType::Func) {
+            if (m_symbolTable[id->id()].decl()->declType() ==
+                AST::DeclType::Func) {
 
-                    std::string error =
-                        "Cannot use function '" + id->id() + "' as a variable.";
-                    m_messages[id->lineNumber()].push_back(
-                        {Message::Type::Error, error});
-                } else {
-                }
-
+                std::string error =
+                    "Cannot use function '" + id->id() + "' as a variable.";
+                m_messages[id->lineNumber()].push_back(
+                    {Message::Type::Error, error});
             } else {
             }
 
@@ -241,19 +273,21 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                 m_messages[binary->lineNumber()].push_back(
                     {Message::Type::Error, error});
             } else {
-                if (binary->exp1()->typeInfo().type != AST::Type::Int) {
+                if (binary->exp1()->typeInfo().type != AST::Type::Int &&
+                    binary->exp1()->typeInfo().type.has_value()) {
                     std::string error =
                         "'" + AST::Types::toString(binary->binaryOpType()) +
-                        "' requires operands of type int but lhs is type " +
+                        "' requires operands of type int but lhs is of type " +
                         AST::Types::toString(binary->exp1()->typeInfo().type) +
                         ".";
                     m_messages[binary->lineNumber()].push_back(
                         {Message::Type::Error, error});
                 }
-                if (binary->exp2()->typeInfo().type != AST::Type::Int) {
+                if (binary->exp2()->typeInfo().type != AST::Type::Int &&
+                    binary->exp2()->typeInfo().type.has_value()) {
                     std::string error =
                         "'" + AST::Types::toString(binary->binaryOpType()) +
-                        "' requires operands of type int but rhs is type " +
+                        "' requires operands of type int but rhs is of type " +
                         AST::Types::toString(binary->exp2()->typeInfo().type) +
                         ".";
                     m_messages[binary->lineNumber()].push_back(
@@ -272,20 +306,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                 break;
             }
             case AST::BinaryOpType::Bool: {
-                if (binary->exp1()->typeInfo().type !=
-                    binary->exp2()->typeInfo().type) {
-                    auto *boolop = (AST::Exp::Op::Bool::Bool *)binary;
-                    std::string error =
-                        "'" + AST::Types::toString(boolop->boolOpType()) +
-                        "' requires operands of the same type but lhs is "
-                        "type " +
-                        AST::Types::toString(binary->exp1()->typeInfo().type) +
-                        " and rhs is type " +
-                        AST::Types::toString(binary->exp2()->typeInfo().type) +
-                        ".";
-                    m_messages[binary->lineNumber()].push_back(
-                        {Message::Type::Error, error});
-                }
+                analyzeNode((AST::Exp::Op::Bool::Bool *)binary);
                 break;
             }
             case AST::BinaryOpType::Div: {
@@ -303,10 +324,11 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                     op->typeInfo() = id->typeInfo();
                     op->typeInfo().isArray = false;
 
-                    if (binary->exp2()->typeInfo().type != AST::Type::Int) {
+                    if (binary->exp2()->typeInfo().type != AST::Type::Int &&
+                        binary->exp2()->typeInfo().type.has_value()) {
                         std::string error =
                             "Array '" + id->id() +
-                            "' should be indexed by type int but got " +
+                            "' should be indexed by type int but got type " +
                             AST::Types::toString(
                                 binary->exp2()->typeInfo().type) +
                             ".";
@@ -331,7 +353,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
         break;
     }
     case AST::OpType::Unary: {
-
+        auto *unaryop = (AST::Exp::Op::Unary *)op;
+        analyzeNode(unaryop);
         break;
     }
     default: {
@@ -352,7 +375,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
                 "' does not work with arrays.";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        } else if (unaryasgn->operand()->typeInfo().type != AST::Type::Int) {
+        } else if (unaryasgn->operand()->typeInfo().type != AST::Type::Int &&
+                   unaryasgn->operand()->typeInfo().type.has_value()) {
             std::string error =
                 "Unary '" + AST::Types::toString(unaryasgn->unaryAsgnType()) +
                 "' requires an operand of type int but was given type " +
@@ -371,7 +395,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
                                 "' does not work with arrays.";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        } else if (op->operand()->typeInfo().type != AST::Type::Int) {
+        } else if (op->operand()->typeInfo().type != AST::Type::Int &&
+                   op->operand()->typeInfo().type.has_value()) {
             std::string error =
                 "Unary '" + AST::Types::toString(op->unaryOpType()) +
                 "' requires an operand of type int but was given type " +
@@ -388,7 +413,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
                                 "' does not work with arrays.";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        } else if (op->operand()->typeInfo().type != AST::Type::Bool) {
+        } else if (op->operand()->typeInfo().type != AST::Type::Bool &&
+                   op->operand()->typeInfo().type.has_value()) {
             std::string error =
                 "Unary '" + AST::Types::toString(op->unaryOpType()) +
                 "' requires an operand of type bool but was given type " +
@@ -403,7 +429,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
             std::string error = "The operation '?' does not work with arrays.";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        } else if (op->typeInfo().type != AST::Type::Int) {
+        } else if (op->typeInfo().type != AST::Type::Int &&
+                   op->typeInfo().type.has_value()) {
             std::string error = "Unary '?' requires an operand of type int but "
                                 "was given type " +
                                 AST::Types::toString(op->typeInfo().type) + ".";
@@ -413,7 +440,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
         break;
     }
     case AST::UnaryOpType::Sizeof: {
-        if (!op->typeInfo().isArray) {
+        if (!op->operand()->typeInfo().isArray) {
             std::string error =
                 "The operation 'sizeof' only works with arrays.";
             m_messages[op->lineNumber()].push_back(
@@ -427,6 +454,24 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
 void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
     switch (op->asgnType()) {
     case AST::AsgnType::Asgn: {
+
+        auto *mut = op->exp1();
+        if (mut->expType() == AST::ExpType::Id) {
+            AST::Exp::Id *id = (AST::Exp::Id *)op->exp1();
+            if (m_symbolTable[id->id()].isDeclared() &&
+                m_symbolTable[id->id()].decl()->declType() ==
+                    AST::DeclType::Func) {
+                return;
+            }
+
+            m_symbolTable[id->id()].define(op->lineNumber());
+        } else if (mut->expType() == AST::ExpType::Op) {
+            auto *op = (AST::Exp::Op::Op *)mut;
+            if (op->opType() == AST::OpType::Binary) {
+                auto *id = (AST::Exp::Id *)((AST::Exp::Op::Binary *)op)->exp1();
+                m_symbolTable[id->id()].define(op->lineNumber());
+            }
+        }
 
         if (op->exp1()->typeInfo().isArray != op->exp2()->typeInfo().isArray) {
             auto isArrayToString = [](bool b) {
@@ -443,7 +488,9 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
                 isArrayToString(op->exp2()->typeInfo().isArray) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        } else if (op->exp1()->typeInfo().type != op->exp2()->typeInfo().type) {
+        } else if (op->exp1()->typeInfo().type != op->exp2()->typeInfo().type &&
+                   op->exp1()->typeInfo().type.has_value() &&
+                   op->exp2()->typeInfo().type.has_value()) {
             std::string error =
                 "'<-' requires operands of the same type but lhs is type " +
                 AST::Types::toString(op->exp1()->typeInfo().type) +
@@ -452,34 +499,70 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
-
-        auto *mut = op->exp1();
-        if (mut->expType() == AST::ExpType::Id) {
-            AST::Exp::Id *id = (AST::Exp::Id *)op->exp1();
-
-            m_symbolTable[id->id()].define(op->lineNumber());
-        } else if (mut->expType() == AST::ExpType::Op) {
-            auto *op = (AST::Exp::Op::Op *)mut;
-            if (op->opType() == AST::OpType::Binary) {
-                auto *id = (AST::Exp::Id *)((AST::Exp::Op::Binary *)op)->exp1();
-                m_symbolTable[id->id()].define(op->lineNumber());
-            }
-        }
         break;
     }
     }
 }
 
+void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool::Bool *op) {
+    if (op->boolOpType() == AST::BoolOpType::And ||
+        op->boolOpType() == AST::BoolOpType::Or) {
+        if (op->exp1()->typeInfo().isArray || op->exp2()->typeInfo().isArray) {
+            std::string error = "The operation '" +
+                                AST::Types::toString(op->boolOpType()) +
+                                "' does not work with arrays.";
+            m_messages[op->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        } else {
+            if (op->exp1()->typeInfo().type != AST::Type::Bool &&
+                op->exp1()->typeInfo().type.has_value()) {
+                std::string error =
+                    "'" + AST::Types::toString(op->boolOpType()) +
+                    "' requires operands of type bool but lhs is of type " +
+                    AST::Types::toString(op->exp1()->typeInfo().type) + ".";
+
+                m_messages[op->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+            if (op->exp2()->typeInfo().type != AST::Type::Bool) {
+                std::string error =
+                    "'" + AST::Types::toString(op->boolOpType()) +
+                    "' requires operands of type bool but rhs is of type " +
+                    AST::Types::toString(op->exp2()->typeInfo().type) + ".";
+
+                m_messages[op->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+        }
+    } else {
+        if (op->exp1()->typeInfo().type != op->exp2()->typeInfo().type &&
+            op->exp1()->typeInfo().type.has_value() &&
+            op->exp2()->typeInfo().type.has_value()) {
+            std::string error =
+                "'" + AST::Types::toString(op->boolOpType()) +
+                "' requires operands of the same type but lhs is "
+                "type " +
+                AST::Types::toString(op->exp1()->typeInfo().type) +
+                " and rhs is type " +
+                AST::Types::toString(op->exp2()->typeInfo().type) + ".";
+            m_messages[op->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
+    }
+}
+
 void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
-    if (m_symbolTable.containsImmediately(decl->id()) &&
-        m_symbolTable[decl->id()].isDeclared()) {
-        AST::Decl::Decl *originalSymbol = m_symbolTable[decl->id()].decl();
+    if (m_symbolTable.containsImmediately(decl->id())) {
+        if (m_symbolTable[decl->id()].isDeclared()) {
+            AST::Decl::Decl *originalSymbol = m_symbolTable[decl->id()].decl();
 
-        std::string error = "Symbol '" + decl->id() +
-                            "' is already declared at line " +
-                            std::to_string(originalSymbol->lineNumber()) + ".";
+            std::string error =
+                "Symbol '" + decl->id() + "' is already declared at line " +
+                std::to_string(originalSymbol->lineNumber()) + ".";
 
-        m_messages[decl->lineNumber()].push_back({Message::Type::Error, error});
+            m_messages[decl->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
     } else {
         m_symbolTable.declare(decl->id(), decl);
     }
@@ -489,9 +572,12 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         auto *func = (AST::Decl::Func *)decl;
         m_scopeName = func->id();
 
-        if (func->id() == "main" && !m_symbolTable["main"].isDeclared()) {
-            if (!func->hasParms()) {
+        if (func->id() == "main") {
+            if (!(func->hasParms() &&
+                  func->typeInfo().type == AST::Type::Void)) {
                 m_mainIsDefined = true;
+            } else {
+                m_mainIsDefined = false;
             }
         }
 

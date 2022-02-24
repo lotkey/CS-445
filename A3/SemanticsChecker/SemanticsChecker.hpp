@@ -34,7 +34,6 @@ class SemanticsChecker {
 
     void enterScope();
     void leaveScope();
-    void addParms();
 
     void analyzeTree(AST::Node *);
     void analyzeNode(AST::Decl::Decl *);
@@ -42,5 +41,6 @@ class SemanticsChecker {
     void analyzeNode(AST::Exp::Op::Op *);
     void analyzeNode(AST::Exp::Op::Unary *);
     void analyzeNode(AST::Exp::Op::Asgn *);
+    void analyzeNode(AST::Exp::Op::Bool::Bool *);
     void analyzeNode(AST::Stmt::Stmt *);
 };
