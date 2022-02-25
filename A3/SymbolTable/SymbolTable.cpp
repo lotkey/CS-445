@@ -42,21 +42,12 @@ void SymbolTable::leave() {
 void SymbolTable::declare(const std::string &id, AST::Decl::Decl *node) {
 
     auto *decl = (AST::Decl::Decl *)node;
-    if (decl->declType() == AST::DeclType::Func) {
-        m_scopes.front().getSymbol(id).declare(node);
-        
-        if (m_debug) {
-            std::cout << "DEBUG(SymbolTable): declared symbol " << id
-                      << " in scope " << m_scopes.front().name() << std::endl;
-        }
 
-    } else {
-        m_scopes.back().getSymbol(id).declare(node);
+    m_scopes.back().getSymbol(id).declare(node);
 
-        if (m_debug) {
-            std::cout << "DEBUG(SymbolTable): declared symbol " << id
-                      << " in scope " << m_scopes.back().name() << std::endl;
-        }
+    if (m_debug) {
+        std::cout << "DEBUG(SymbolTable): declared symbol " << id
+                  << " in scope " << m_scopes.back().name() << std::endl;
     }
 }
 

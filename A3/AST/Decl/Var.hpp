@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Decl.hpp"
 
@@ -18,6 +19,8 @@ class Var : public Decl {
     /// @param isArray Whether or not the variable is an array
     Var(unsigned linenum, const std::string &id, bool isArray);
     virtual std::string toString(bool debugging = false) const override;
+    bool isInitialized() const;
+    Exp::Exp *initValue();
     /// Set the variable and its siblings to static
     void setStatic();
 };

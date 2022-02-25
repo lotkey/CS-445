@@ -1,4 +1,5 @@
 #include "Var.hpp"
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Decl.hpp"
 
@@ -35,5 +36,17 @@ std::string Var::toString(bool debugging) const {
     }
     str += " type " + Types::toString(m_typeInfo.type.value()) + lineTag();
     return str;
+}
+
+bool Var::isInitialized() const {
+    return !m_children.empty() && m_children[0] != nullptr;
+}
+
+Exp::Exp *Var::initValue() {
+    if (m_children.empty()) {
+        return nullptr;
+    } else {
+        return (Exp::Exp *)m_children[0];
+    }
 }
 } // namespace AST::Decl
