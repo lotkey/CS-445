@@ -18,7 +18,7 @@ Parm::Parm(unsigned linenum, const std::string &id, bool isArray)
 std::string Parm::toString(bool debugging) const {
     std::string str = "Parm: " + m_id;
     if (m_typeInfo.isArray) {
-        str += " of array";
+        str += " is array";
     }
     str += " of type " + Types::toString(m_typeInfo.type.value()) + lineTag();
     return str;

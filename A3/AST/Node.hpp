@@ -62,6 +62,8 @@ class Node {
         return false;
     }
 
+    template <typename T> T cast() const { return (T)this; }
+
   private:
   protected:
     NodeType m_nodeType;
