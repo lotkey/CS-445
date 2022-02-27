@@ -42,8 +42,16 @@ void SemanticsChecker::print() const {
 
 void SemanticsChecker::enterScope() {
     if (m_scopeName.has_value()) {
-        m_symbolTable.enter(m_scopeName.value());
-        m_scopeName = {};
+        enterScope(m_scopeName.value());
+        m_scopeName.reset();
+    } else {
+        enterScope({});
+    }
+}
+
+void SemanticsChecker::enterScope(const std::optional<std::string> &name) {
+    if (name.has_value()) {
+        m_symbolTable.enter(name.value());
     } else {
         m_symbolTable.enter();
     }
@@ -120,15 +128,12 @@ void SemanticsChecker::analyze(AST::Node *tree) {
 }
 
 void SemanticsChecker::analyzeTree(AST::Node *tree) {
-    bool isCompoundStmt = false;
-    bool isFunction = false;
 
-    if (tree->nodeType() == AST::NodeType::Decl) {
+    if (tree->is(AST::NodeType::Decl)) {
         auto *decl = (AST::Decl::Decl *)tree;
 
         // Check to see if it's defining main()
-        if (decl->declType() == AST::DeclType::Func) {
-            isFunction = true;
+        if (decl->is(AST::DeclType::Func)) {
             m_scopeName = decl->id();
             auto *func = (AST::Decl::Func *)decl;
 
@@ -145,39 +150,53 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
         }
 
         // If it's a parameter declaration, that is handled by enterScope()
-        if (decl->declType() != AST::DeclType::Parm) {
-            if (m_symbolTable.containsImmediately(decl->id()) &&
-                m_symbolTable[decl->id()].isDeclared()) {
-                auto *originalSymbol = m_symbolTable[decl->id()].decl();
-                std::string error =
-                    "Symbol '" + decl->id() + "' is already declared at line " +
-                    std::to_string(originalSymbol->lineNumber()) + ".";
+        if (!decl->is(AST::DeclType::Parm)) {
 
-                m_messages[decl->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+            if (m_symbolTable.containsImmediately(decl->id())) {
+                if (m_symbolTable[decl->id()].isDeclared()) {
 
+                    auto *originalSymbol = m_symbolTable[decl->id()].decl();
+                    std::string error =
+                        "Symbol '" + decl->id() +
+                        "' is already declared at line " +
+                        std::to_string(originalSymbol->lineNumber()) + ".";
+
+                    m_messages[decl->lineNumber()].push_back(
+                        {Message::Type::Error, error});
+                }
             } else {
                 m_symbolTable.declare(decl->id(), decl);
             }
         }
 
-        if (decl->declType() == AST::DeclType::Var) {
+        if (decl->is(AST::DeclType::Var)) {
             auto *var = (AST::Decl::Var *)decl;
+
             if (var->isInitialized()) {
+
                 m_symbolTable[decl->id()].define(
                     var->initValue()->lineNumber());
-            }
-        }
+            } else if (decl->parent() != nullptr &&
+                       decl->parent()->is(AST::StmtType::For)) {
 
-    } else if (tree->nodeType() == AST::NodeType::Stmt) {
-        auto *stmt = (AST::Stmt::Stmt *)tree;
-        if (stmt->stmtType() == AST::StmtType::Compound) {
-            isCompoundStmt = true;
+                auto *forParent = (AST::Stmt::For *)var->parent();
+                m_symbolTable[decl->id()].define(
+                    forParent->range()->from()->lineNumber());
+            }
         }
     }
 
-    if (isCompoundStmt) {
-        enterScope();
+    if (tree->is(AST::StmtType::Compound) &&
+        !(tree->parent() != nullptr &&
+          tree->parent()->is(AST::StmtType::For))) {
+        if (m_scopeName.has_value()) {
+            enterScope(m_scopeName.value());
+            m_scopeName.reset();
+        } else {
+            enterScope("compound");
+        }
+    } else if (tree->is(AST::StmtType::For)) {
+        enterScope("for");
     }
 
     for (auto &child : tree->children()) {
@@ -188,10 +207,6 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
 
     switch (tree->nodeType()) {
     case AST::NodeType::Decl: {
-        // AST::Decl::Decl *decl = (AST::Decl::Decl *)tree;
-        // if (decl->declType() != AST::DeclType::Parm) {
-        //     analyzeNode(decl);
-        // }
         break;
     }
     case AST::NodeType::Stmt: {
@@ -208,7 +223,11 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
         break;
     }
 
-    if (isCompoundStmt) {
+    if (tree->is(AST::StmtType::Compound) &&
+        !(tree->parent() != nullptr &&
+          tree->parent()->is(AST::StmtType::For))) {
+        leaveScope();
+    } else if (tree->is(AST::StmtType::For)) {
         leaveScope();
     }
 
@@ -218,6 +237,7 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
 }
 
 void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
+
     switch (exp->expType()) {
     case AST::ExpType::Call: {
         AST::Exp::Call *call = (AST::Exp::Call *)exp;
@@ -247,7 +267,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
         break;
     }
     case AST::ExpType::Id: {
-        AST::Exp::Id *id = (AST::Exp::Id *)exp;
+        auto *id = (AST::Exp::Id *)exp;
 
         if (m_symbolTable[id->id()].isDeclared()) {
             id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
@@ -268,7 +288,14 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                 {Message::Type::Error, error});
         }
 
-        m_symbolTable[id->id()].use(id->lineNumber());
+        bool isUsed = true;
+        if (id->hasAncestor<AST::StmtType>(AST::StmtType::Range)) {
+            isUsed = false;
+        }
+
+        if (isUsed) {
+            m_symbolTable[id->id()].use(id->lineNumber());
+        }
 
         break;
     }
@@ -341,7 +368,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                 break;
             }
             case AST::BinaryOpType::Bool: {
-                analyzeNode((AST::Exp::Op::Bool::Bool *)binary);
+                analyzeNode((AST::Exp::Op::Bool *)binary);
                 break;
             }
             case AST::BinaryOpType::Div: {
@@ -519,22 +546,47 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
     switch (op->asgnType()) {
     case AST::AsgnType::Asgn: {
 
-        auto *mut = op->exp1();
-        if (mut->expType() == AST::ExpType::Id) {
-            AST::Exp::Id *id = (AST::Exp::Id *)op->exp1();
-            if (m_symbolTable[id->id()].isDeclared() &&
-                m_symbolTable[id->id()].decl()->declType() ==
+        if (op->exp1()->is(AST::ExpType::Id)) {
+            AST::Exp::Id *id1 = (AST::Exp::Id *)op->exp1();
+            if (m_symbolTable[id1->id()].isDeclared() &&
+                m_symbolTable[id1->id()].decl()->declType() ==
                     AST::DeclType::Func) {
                 return;
             }
 
-            m_symbolTable[id->id()].define(op->lineNumber());
-        } else if (mut->expType() == AST::ExpType::Op) {
-            auto *op = (AST::Exp::Op::Op *)mut;
-            if (op->opType() == AST::OpType::Binary) {
-                auto *id = (AST::Exp::Id *)((AST::Exp::Op::Binary *)op)->exp1();
-                m_symbolTable[id->id()].define(op->lineNumber());
+            // if (op->exp2()->is(AST::ExpType::Id)) {
+            //     auto *id2 = (AST::Exp::Id *)op->exp2();
+            //     if (m_symbolTable[id2->id()].isDefined()) {
+            //         m_symbolTable[id1->id()].define(op->lineNumber());
+            //     }
+            // } else {
+            m_symbolTable[id1->id()].define(op->lineNumber());
+            // }
+
+        } else if (((AST::Node *)op->exp1())->is(AST::BinaryOpType::Index)) {
+
+            auto *indexOp = (AST::Exp::Op::Binary *)op->exp1();
+            if (indexOp->exp1()->is(AST::ExpType::Id)) {
+                auto *arrayId = (AST::Exp::Id *)indexOp->exp1();
+
+                // if (indexOp->exp2()->is(AST::ExpType::Id)) {
+                //     auto* valueId = (AST::Exp::Id*)indexOp->exp2();
+                //     if (m_symbolTable[valueId->id()].isDefined()) {
+
+                //     }
+                // } else {
+                //     m_symbolTable[arrayId->id()].define(arrayId->lineNumber());
+                // }
+
+                // if (m_symbolTable[arrayId->id()].isDefined()) {
+                m_symbolTable[arrayId->id()].define(arrayId->lineNumber());
+                // }
             }
+            // if (indexOp->is(AST::OpType::Binary)) {
+            //     auto *id = (AST::Exp::Id *)((AST::Exp::Op::Binary
+            //     *)op)->exp1();
+            //     m_symbolTable[id->id()].define(op->lineNumber());
+            // }
         }
 
         if (op->exp1()->typeInfo().isArray != op->exp2()->typeInfo().isArray) {
@@ -570,7 +622,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
     }
 }
 
-void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool::Bool *op) {
+void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
     if (op->boolOpType() == AST::BoolOpType::And ||
         op->boolOpType() == AST::BoolOpType::Or) {
 
@@ -628,20 +680,15 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
         break;
     }
     case AST::StmtType::For: {
-        // auto *forNode = (AST::Stmt::For *)stmt;
-        // auto *id = (AST::Exp::Id *)forNode->id();
-        // m_symbolTable.removeImmediately(id->id());
         break;
     }
     case AST::StmtType::Return: {
         auto *returnNode = (AST::Stmt::Return *)stmt;
-        if (!returnNode->children().empty()) {
-            auto *returnExp = (AST::Exp::Exp *)returnNode->children().front();
-            if (returnExp != nullptr && returnExp->typeInfo().isArray) {
-                std::string error = "Cannot return an array.";
-                m_messages[returnNode->lineNumber()].push_back(
-                    {Message::Type::Error, error});
-            }
+        if (returnNode->exp() != nullptr &&
+            returnNode->exp()->typeInfo().isArray) {
+            std::string error = "Cannot return an array.";
+            m_messages[returnNode->lineNumber()].push_back(
+                {Message::Type::Error, error});
         }
         break;
     }

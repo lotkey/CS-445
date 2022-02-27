@@ -1,5 +1,7 @@
 #include "For.hpp"
+#include "../Exp/Id.hpp"
 #include "../Node.hpp"
+#include "Range.hpp"
 #include "Stmt.hpp"
 
 #include <string>
@@ -15,10 +17,11 @@ For::For(unsigned linenum, Node *id, Node *range, Node *stmt)
     addChild(range);
     addChild(stmt);
 }
-Node *For::id() { return m_children[0]; }
 
-Node *For::range() { return m_children[1]; }
+Exp::Id *For::id() const { return (Exp::Id *)getChild(0); }
 
-Node *For::stmt() { return m_children[2]; }
+Range *For::range() const { return (Range *)getChild(1); }
+
+Stmt *For::stmt() const { return (Stmt *)getChild(2); }
 
 } // namespace AST::Stmt

@@ -27,4 +27,6 @@ class SymbolTable {
   private:
     std::vector<Scope> m_scopes;
     bool m_debug = false;
+
+    std::string scopeString() const;
 };

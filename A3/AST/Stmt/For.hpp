@@ -1,6 +1,8 @@
 #pragma once
 
+#include "../Exp/Id.hpp"
 #include "../Node.hpp"
+#include "Range.hpp"
 #include "Stmt.hpp"
 
 #include <string>
@@ -17,8 +19,8 @@ class For : public Stmt {
     /// @param range Iteration range
     /// @param stmt Loop body
     For(unsigned linenum, Node *id, Node *range, Node *stmt);
-    Node *id();
-    Node *range();
-    Node *stmt();
+    Exp::Id *id() const;
+    Range *range() const;
+    Stmt *stmt() const;
 };
 } // namespace AST::Stmt

@@ -328,7 +328,9 @@ iterStmtOpen        : WHILE simpleExp DO openStmt
                     }
                     | FOR ID ASGN iterRange DO openStmt
                     {
-                        $$ = new AST::Stmt::For($1->linenum, new AST::Exp::Id($2->linenum, $2->tokenstr), $4, $6);
+                        AST::Decl::Var *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                        iterator->setType(AST::Type::Int);
+                        $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                     }
                     ;
 
@@ -338,7 +340,9 @@ iterStmtClosed      : WHILE simpleExp DO closedStmt
                     }
                     | FOR ID ASGN iterRange DO closedStmt
                     {
-                        $$ = new AST::Stmt::For($1->linenum, new AST::Exp::Id($2->linenum, $2->tokenstr), $4, $6);
+                        AST::Decl::Var *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                        iterator->setType(AST::Type::Int);
+                        $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                     }
                     ;
 
@@ -412,7 +416,7 @@ assignop            : ASGN
 
 simpleExp           : simpleExp OR andExp
                     {
-                        AST::Exp::Op::Bool::Bool* boolop = new AST::Exp::Op::Bool::Bool($1->lineNumber(), AST::BoolOpType::Or);
+                        AST::Exp::Op::Bool* boolop = new AST::Exp::Op::Bool($1->lineNumber(), AST::BoolOpType::Or);
                         boolop->addChildren($1, $3);
                         $$ = boolop;
                     }
@@ -424,7 +428,7 @@ simpleExp           : simpleExp OR andExp
 
 andExp              : andExp AND unaryRelExp
                     {
-                        AST::Exp::Op::Bool::Bool* boolop = new AST::Exp::Op::Bool::Bool($1->lineNumber(), AST::BoolOpType::And);
+                        AST::Exp::Op::Bool* boolop = new AST::Exp::Op::Bool($1->lineNumber(), AST::BoolOpType::And);
                         boolop->addChildren($1, $3);
                         $$ = boolop;
                     }
@@ -458,27 +462,27 @@ relExp              : sumExp relop sumExp
 
 relop               : LT
                     {
-                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::LT);
+                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::LT);
 					}
                     | LEQ
                     {
-                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::LEQ);
+                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::LEQ);
 					}
                     | GT
                     {
-                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::GT);
+                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::GT);
 					}
                     | GEQ
                     {
-                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::GEQ);
+                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::GEQ);
 					}
                     | EQ
                     {
-                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::EQ);
+                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::EQ);
 					}
                     | NEQ
                     {
-                        $$ = new AST::Exp::Op::Bool::Bool($1->linenum, AST::BoolOpType::NEQ);
+                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::NEQ);
 					}
                     ;
 

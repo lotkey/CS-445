@@ -1,6 +1,6 @@
 #include "Bool.hpp"
 
-namespace AST::Exp::Op::Bool {
+namespace AST::Exp::Op {
 Bool::Bool() : Binary::Binary() {
     m_binaryOpType = BinaryOpType::Bool;
     m_typeInfo.type = Type::Bool;
@@ -27,4 +27,8 @@ std::string Bool::toString(bool debugging) const {
 }
 
 const BoolOpType &Bool::boolOpType() const { return m_boolOpType; }
-} // namespace AST::Exp::Op::Bool
+
+bool Bool::is(BoolOpType t) const {
+    return this != nullptr && m_boolOpType == t;
+}
+} // namespace AST::Exp::Op

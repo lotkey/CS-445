@@ -15,19 +15,19 @@ SymbolTable::SymbolTable(bool debug) : m_debug(debug) { enter("global"); }
 int SymbolTable::depth() const { return m_scopes.size(); }
 
 void SymbolTable::enter(const std::string &id) {
-    if (m_debug) {
-        std::cout << "DEBUG(SymbolTable): enter scope \"" << id << "\"."
-                  << std::endl;
-    }
-
     m_scopes.push_back(Scope(id));
+
+    if (m_debug) {
+        std::cout << "DEBUG(SymbolTable): enter scope \"" << scopeString()
+                  << "\"." << std::endl;
+    }
 }
 
 void SymbolTable::leave() {
 
     if (m_debug) {
-        std::cout << "DEBUG(SymbolTable): leave scope \""
-                  << m_scopes.back().name() << "\"." << std::endl;
+        std::cout << "DEBUG(SymbolTable): leave scope \"" << scopeString()
+                  << "\"." << std::endl;
     }
 
     if (m_scopes.size() == 1) {
@@ -47,7 +47,7 @@ void SymbolTable::declare(const std::string &id, AST::Decl::Decl *node) {
 
     if (m_debug) {
         std::cout << "DEBUG(SymbolTable): declared symbol " << id
-                  << " in scope " << m_scopes.back().name() << std::endl;
+                  << " in scope " << scopeString() << std::endl;
     }
 }
 
@@ -84,8 +84,8 @@ Symbol &SymbolTable::getSymbol(const std::string &id) {
     for (int i = m_scopes.size() - 1; i >= 0; i--) {
         if (m_scopes[i].contains(id)) {
             if (m_debug) {
-                std::cout << "found it in the scope named \""
-                          << m_scopes[i].name() << "\"." << std::endl;
+                std::cout << "found it in the scope named \"" << scopeString()
+                          << "\"." << std::endl;
             }
             return m_scopes[i].getSymbol(id);
         }
@@ -114,4 +114,15 @@ void SymbolTable::removeImmediately(const std::string &id) {
     if (m_scopes.back().contains(id)) {
         m_scopes.back().remove(id);
     }
+}
+
+std::string SymbolTable::scopeString() const {
+    std::string str;
+    for (const auto &scope : m_scopes) {
+        str += scope.name() + "::";
+    }
+    if (!str.empty()) {
+        str = str.substr(0, str.length() - 2);
+    }
+    return str;
 }

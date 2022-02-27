@@ -14,6 +14,7 @@ class Exp : public Node {
     virtual void setType(TypeInfo);
     virtual const TypeInfo &typeInfo() const;
     virtual TypeInfo &typeInfo();
+    virtual bool is(ExpType) const override;
 
   protected:
     TypeInfo m_typeInfo;

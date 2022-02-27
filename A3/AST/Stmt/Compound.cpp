@@ -1,4 +1,5 @@
 #include "Compound.hpp"
+#include "../Decl/Decl.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -15,4 +16,8 @@ Compound::Compound(unsigned linenum, Node *localdecls, Node *stmtlist)
     addChild(localdecls);
     addChild(stmtlist);
 }
+
+Decl::Decl *Compound::localdecls() const { return (Decl::Decl *)getChild(0); }
+
+Stmt *Compound::stmtlist() const { return (Stmt *)getChild(1); }
 } // namespace AST::Stmt

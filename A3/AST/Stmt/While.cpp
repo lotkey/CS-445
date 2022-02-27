@@ -1,4 +1,5 @@
 #include "While.hpp"
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -14,4 +15,8 @@ While::While(unsigned linenum, Node *exp, Node *stmt)
     addChild(exp);
     addChild(stmt);
 }
+
+Exp::Exp *While::exp() const { return (Exp::Exp *)getChild(0); }
+
+Stmt *While::stmt() const { return (Stmt *)getChild(1); }
 } // namespace AST::Stmt

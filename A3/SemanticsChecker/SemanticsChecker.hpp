@@ -33,6 +33,7 @@ class SemanticsChecker {
     AST::Decl::Parm *m_parms = nullptr;
 
     void enterScope();
+    void enterScope(const std::optional<std::string> &);
     void leaveScope();
 
     void analyzeTree(AST::Node *);
@@ -40,6 +41,6 @@ class SemanticsChecker {
     void analyzeNode(AST::Exp::Op::Op *);
     void analyzeNode(AST::Exp::Op::Unary *);
     void analyzeNode(AST::Exp::Op::Asgn *);
-    void analyzeNode(AST::Exp::Op::Bool::Bool *);
+    void analyzeNode(AST::Exp::Op::Bool *);
     void analyzeNode(AST::Stmt::Stmt *);
 };

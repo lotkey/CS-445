@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -14,5 +15,6 @@ class Return : public Stmt {
     Return(unsigned linenum);
     /// @param linenum Line number the node appears on
     Return(unsigned linenum, Node *exp);
+    Exp::Exp *exp() const;
 };
 } // namespace AST::Stmt

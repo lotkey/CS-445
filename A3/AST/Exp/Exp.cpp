@@ -17,4 +17,6 @@ TypeInfo &Exp::typeInfo() { return m_typeInfo; }
 const TypeInfo &Exp::typeInfo() const { return m_typeInfo; }
 
 std::string Exp::typeTag() const { return Types::toString(m_typeInfo); }
+
+bool Exp::is(ExpType t) const { return this != nullptr && m_expType == t; }
 } // namespace AST::Exp

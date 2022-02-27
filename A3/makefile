@@ -3,8 +3,8 @@ AR = ar rvs
 CC = g++ --std=c++17 -g
 
 AST_DIR = .ast.d
-AST_SRCS = AST/*.cpp AST/*/*.cpp AST/*/*/*.cpp AST/*/*/*/*.cpp
-AST_HDRS = AST/*.hpp AST/*/*.hpp AST/*/*/*.hpp AST/*/*/*/*.hpp
+AST_SRCS = AST/*.cpp AST/*/*.cpp AST/*/*/*.cpp
+AST_HDRS = AST/*.hpp AST/*/*.hpp AST/*/*/*.hpp
 OPTIONS_DIR = .options.d
 OPTIONS_SRCS = Options/*.cpp Options/*/*.cpp
 OPTIONS_HDRS = Options/*.hpp Options/*/*.hpp

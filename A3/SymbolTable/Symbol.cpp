@@ -39,6 +39,10 @@ bool Symbol::isDefined() const {
 
 bool Symbol::isUsed() const { return !m_linesUsed.empty(); }
 
+bool Symbol::isIterator() const { return m_isIterator; }
+
+void Symbol::setIterator(bool b) { m_isIterator = b; }
+
 AST::Decl::Decl *Symbol::decl() const { return m_decl; }
 
 const std::vector<unsigned> &Symbol::linesUsed() const { return m_linesUsed; }

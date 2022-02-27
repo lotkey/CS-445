@@ -14,12 +14,11 @@ UnaryAsgn::UnaryAsgn(unsigned linenum)
 
 UnaryAsgn::UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp)
     : Unary::Unary(linenum, UnaryOpType::Asgn), m_unaryAsgnType(opType) {
-    if (m_children.size() == 1 && m_children[0] == nullptr) {
-        m_children[0] = exp;
+    if (m_children.size() == 1 && getChild(0) == nullptr) {
+        setChild(0, exp);
     } else {
         addChild(exp);
     }
-    m_mutable = (Exp *)exp;
 }
 
 UnaryAsgnType UnaryAsgn::unaryAsgnType() const { return m_unaryAsgnType; }
@@ -36,8 +35,14 @@ std::string UnaryAsgn::toString(bool debugging) const {
 }
 
 void UnaryAsgn::deduceType() {
-    if (m_mutable != nullptr) {
-        m_typeInfo = m_mutable->typeInfo();
+    if (mutableExp() != nullptr) {
+        m_typeInfo = mutableExp()->typeInfo();
     }
+}
+
+Exp *UnaryAsgn::mutableExp() const { return (Exp *)getChild(0); }
+
+bool UnaryAsgn::is(UnaryAsgnType t) const {
+    return this != nullptr && m_unaryAsgnType == t;
 }
 } // namespace AST::Exp::Op

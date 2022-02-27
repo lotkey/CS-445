@@ -30,4 +30,6 @@ TypeInfo &Decl::typeInfo() { return m_typeInfo; }
 const TypeInfo &Decl::typeInfo() const { return m_typeInfo; }
 
 std::string Decl::typeTag() const { return Types::toString(m_typeInfo); }
+
+bool Decl::is(DeclType t) const { return this != nullptr && m_declType == t; }
 } // namespace AST::Decl

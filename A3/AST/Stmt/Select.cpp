@@ -1,4 +1,5 @@
 #include "Select.hpp"
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -15,4 +16,10 @@ Select::Select(unsigned linenum, Node *exp, Node *stmt1, Node *stmt2)
     addChild(stmt1);
     addChild(stmt2);
 }
+
+Exp::Exp *Select::exp() const { return (Exp::Exp *)getChild(0); }
+
+Stmt *Select::stmt1() const { return (Stmt *)getChild(1); };
+
+Stmt *Select::stmt2() const { return (Stmt *)getChild(2); };
 } // namespace AST::Stmt

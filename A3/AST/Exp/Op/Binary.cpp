@@ -15,39 +15,29 @@ Binary::Binary(unsigned linenum, BinaryOpType opType, Node *exp1, Node *exp2)
     : Op::Op(linenum, OpType::Binary), m_binaryOpType(opType) {
     addChild(exp1);
     addChild(exp2);
-    m_exp1 = (Exp *)exp1;
-    m_exp2 = (Exp *)exp2;
 }
 
 void Binary::addChildren(Node *exp1, Node *exp2) {
     if (m_children.size() >= 1) {
-        if (m_children[0] != nullptr && exp1 != nullptr) {
+        if (getChild(0) != nullptr && exp1 != nullptr) {
             throw std::runtime_error(
                 "Binary operator already has a first child!");
-        } else {
-            if (m_children[0] == nullptr) {
-                m_children[0] = exp1;
-                m_exp1 = (Exp *)exp1;
-            }
+        } else if (getChild(0) == nullptr) {
+            setChild(0, exp1);
         }
     } else {
-        m_children.push_back(exp1);
-        m_exp1 = (Exp *)exp1;
+        addChild(exp1);
     }
 
     if (m_children.size() >= 2) {
-        if (m_children[1] != nullptr && exp2 != nullptr) {
+        if (getChild(1) != nullptr && exp2 != nullptr) {
             throw std::runtime_error(
                 "Binary operator already has a second child!");
-        } else {
-            if (m_children[1] == nullptr) {
-                m_children[1] = exp2;
-                m_exp2 = (Exp *)exp2;
-            }
+        } else if (getChild(1) == nullptr) {
+            setChild(1, exp2);
         }
     } else {
-        m_children.push_back(exp2);
-        m_exp2 = (Exp *)exp2;
+        addChild(exp2);
     }
 }
 
@@ -74,8 +64,8 @@ void Binary::deduceType() {
     } else {
         switch (m_binaryOpType) {
         case BinaryOpType::Asgn: {
-            if (m_exp1 != nullptr) {
-                m_typeInfo.type = m_exp1->typeInfo().type;
+            if (exp1() != nullptr) {
+                m_typeInfo.type = exp1()->typeInfo().type;
             }
             break;
         }
@@ -84,8 +74,8 @@ void Binary::deduceType() {
             break;
         }
         case BinaryOpType::Index: {
-            if (m_exp1 != nullptr) {
-                m_typeInfo.type = m_exp1->typeInfo().type;
+            if (exp1() != nullptr) {
+                m_typeInfo.type = exp1()->typeInfo().type;
             }
             break;
         }
@@ -93,7 +83,11 @@ void Binary::deduceType() {
     }
 }
 
-Exp *Binary::exp1() { return m_exp1; }
+Exp *Binary::exp1() const { return (Exp *)getChild(0); }
 
-Exp *Binary::exp2() { return m_exp2; }
+Exp *Binary::exp2() const { return (Exp *)getChild(1); }
+
+bool Binary::is(BinaryOpType t) const {
+    return this != nullptr && m_binaryOpType == t;
+}
 } // namespace AST::Exp::Op

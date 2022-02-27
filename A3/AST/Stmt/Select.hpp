@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -18,5 +19,8 @@ class Select : public Stmt {
     /// @param stmt2 Optional, statement executed if exp is evaluated to false
     /// (else part)
     Select(unsigned linenum, Node *exp, Node *stmt1, Node *stmt2 = nullptr);
+    Exp::Exp *exp() const;
+    Stmt *stmt1() const;
+    Stmt *stmt2() const;
 };
 } // namespace AST::Stmt

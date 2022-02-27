@@ -21,8 +21,8 @@ const UnaryOpType &Unary::unaryOpType() const { return m_unaryOpType; }
 
 void Unary::addExp(Node *exp) {
     if (m_children.size() > 0) {
-        if (m_children[0] == nullptr) {
-            m_children[0] = exp;
+        if (getChild(0) == nullptr) {
+            setChild(0, exp);
         } else {
             throw std::runtime_error(
                 "Unary operator cannot have more than one child.");
@@ -32,12 +32,12 @@ void Unary::addExp(Node *exp) {
     }
 }
 
-Exp *Unary::operand() {
+Exp *Unary::operand() const {
     if (m_children.empty()) {
         throw std::runtime_error("Unary operator has no operand.");
     }
 
-    return (Exp *)m_children[0];
+    return (Exp *)getChild(0);
 }
 
 std::string Unary::toString(bool debugging) const {
@@ -75,4 +75,6 @@ void Unary::deduceType() {
     }
     }
 }
+
+bool Unary::is(UnaryOpType t) const { return this != nullptr && m_unaryOpType == t; }
 } // namespace AST::Exp::Op

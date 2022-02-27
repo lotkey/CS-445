@@ -24,9 +24,10 @@ class UnaryAsgn : public Unary {
     UnaryAsgnType unaryAsgnType() const;
     virtual std::string toString(bool debugging = false) const override;
     virtual void deduceType() override;
+    Exp *mutableExp() const;
+    virtual bool is(UnaryAsgnType) const override;
 
   protected:
-    Exp *m_mutable;
     UnaryAsgnType m_unaryAsgnType;
 };
 } // namespace AST::Exp::Op

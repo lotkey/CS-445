@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace AST {
@@ -60,7 +61,37 @@ void Node::print(bool debugging) const {
     siblingCount--;
 }
 
-void Node::addChild(Node *node) { m_children.push_back(node); }
+void Node::setChild(int index, Node *node) {
+    if (m_children.size() <= index) {
+        throw std::runtime_error("Cannot set child, index out of bounds.");
+    } else {
+        if (m_children[index] != nullptr &&
+            !(m_children[index] == this || m_children[index] == node)) {
+            delete m_children[index];
+        }
+
+        m_children[index] = node;
+        node->m_parent = this;
+        Node *sibling = node->sibling();
+        while (sibling != nullptr) {
+            sibling->m_parent = this;
+            sibling = sibling->sibling();
+        }
+    }
+}
+
+void Node::addChild(Node *node) {
+    m_children.push_back(node);
+    if (node != nullptr) {
+        node->m_parent = this;
+
+        Node *sibling = node->sibling();
+        while (sibling != nullptr) {
+            sibling->m_parent = this;
+            sibling = sibling->sibling();
+        }
+    }
+}
 
 void Node::addSibling(Node *node) {
     if (node == nullptr) {
@@ -69,6 +100,7 @@ void Node::addSibling(Node *node) {
 
     if (m_sibling == nullptr) {
         m_sibling = node;
+        m_sibling->m_parent = m_parent;
     } else {
         m_sibling->addSibling(node);
     }
@@ -91,4 +123,25 @@ bool Node::hasSibling() const { return m_sibling != nullptr; }
 Node *Node::sibling() const { return m_sibling; }
 
 const std::vector<Node *> &Node::children() const { return m_children; }
+
+Node *Node::parent() const { return m_parent; }
+
+Node *Node::getChild(int index) const {
+    if (m_children.size() <= index) {
+        return nullptr;
+    } else {
+        return m_children[index];
+    }
+}
+
+bool Node::is(NodeType t) const { return this != nullptr && nodeType() == t; }
+bool Node::is(StmtType t) const { return false; }
+bool Node::is(DeclType t) const { return false; }
+bool Node::is(ExpType t) const { return false; }
+bool Node::is(OpType t) const { return false; }
+bool Node::is(BoolOpType t) const { return false; }
+bool Node::is(UnaryOpType t) const { return false; }
+bool Node::is(UnaryAsgnType t) const { return false; }
+bool Node::is(BinaryOpType t) const { return false; }
+bool Node::is(AsgnType t) const { return false; }
 } // namespace AST

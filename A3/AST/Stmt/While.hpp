@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -16,5 +17,7 @@ class While : public Stmt {
     /// @param exp Expression to evaluate to Boolean
     /// @param stmt Loop body
     While(unsigned linenum, Node *exp, Node *stmt);
+    Exp::Exp *exp() const;
+    Stmt *stmt() const;
 };
 } // namespace AST::Stmt

@@ -18,9 +18,9 @@ class Call : public Exp {
     Call(unsigned linenum, const std::string &id, Node *arglist = nullptr);
     const std::string &id() const;
     virtual std::string toString(bool debugging = false) const override;
+    Exp* arglist() const;
 
   protected:
     std::string m_id;
-    Exp *m_arglist;
 };
 } // namespace AST::Exp

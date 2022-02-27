@@ -12,7 +12,6 @@ Call::Call(unsigned linenum) : Exp::Exp(linenum, ExpType::Call) {}
 Call::Call(unsigned linenum, const std::string &id, Node *arglist)
     : Exp::Exp(linenum, ExpType::Call), m_id(id) {
     addChild(arglist);
-    m_arglist = (Exp *)arglist;
 }
 
 const std::string &Call::id() const { return m_id; }
@@ -27,4 +26,6 @@ std::string Call::toString(bool debugging) const {
     str += lineTag();
     return str;
 }
+
+Exp *Call::arglist() const { return (Exp *)getChild(0); }
 } // namespace AST::Exp

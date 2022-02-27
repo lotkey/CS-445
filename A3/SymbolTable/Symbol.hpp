@@ -17,6 +17,8 @@ class Symbol {
     bool isDeclared() const;
     bool isDefined() const;
     bool isUsed() const;
+    bool isIterator() const;
+    void setIterator(bool);
     AST::Decl::Decl *decl() const;
     const std::vector<unsigned> &linesUsed() const;
     const std::optional<unsigned> &lineDefined() const;
@@ -26,4 +28,5 @@ class Symbol {
     AST::Decl::Decl *m_decl = nullptr;
     std::vector<unsigned> m_linesUsed;
     std::optional<unsigned> m_lineDefined;
+    bool m_isIterator = false;
 };

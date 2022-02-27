@@ -1,4 +1,5 @@
 #include "Range.hpp"
+#include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Stmt.hpp"
 
@@ -15,4 +16,10 @@ Range::Range(unsigned linenum, Node *from, Node *to, Node *by)
     addChild(to);
     addChild(by);
 }
+
+Exp::Exp *Range::from() const { return (Exp::Exp *)getChild(0); }
+
+Exp::Exp *Range::to() const { return (Exp::Exp *)getChild(1); }
+
+Exp::Exp *Range::by() const { return (Exp::Exp *)getChild(2); }
 } // namespace AST::Stmt

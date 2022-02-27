@@ -1,9 +1,17 @@
-#include "awesomelibrary.hpp"
-#include "oklibrary.hpp"
-
 #include <iostream>
+#include <string>
+
+class Test {
+  public:
+    bool isnullptr() {
+        if (this == nullptr)
+            return true;
+        else
+            return false;
+    }
+};
 
 int main() {
-    std::cout << awesomelibrary::get0() << std::endl;
-    oklibrary::doliterallynothing();
+    Test *t = nullptr;
+    std::cout << t->isnullptr() << std::endl;
 }
