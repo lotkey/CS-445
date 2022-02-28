@@ -1,6 +1,6 @@
 #include "Return.hpp"
-#include "../Node.hpp"
 #include "../Exp/Exp.hpp"
+#include "../Node.hpp"
 #include "Stmt.hpp"
 
 #include <string>
@@ -15,5 +15,5 @@ Return::Return(unsigned linenum, Node *exp)
     addChild(exp);
 }
 
-Exp::Exp *Return::exp() const { return (Exp::Exp *)getChild(0); }
+Exp::Exp *Return::exp() const { return getChild(0)->cast<Exp::Exp *>(); }
 } // namespace AST::Stmt

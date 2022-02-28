@@ -19,8 +19,11 @@ class Select : public Stmt {
     /// @param stmt2 Optional, statement executed if exp is evaluated to false
     /// (else part)
     Select(unsigned linenum, Node *exp, Node *stmt1, Node *stmt2 = nullptr);
+    /// @returns Expression/condition to evaluate
     Exp::Exp *exp() const;
+    /// @returns Statement to execute if true
     Stmt *stmt1() const;
+    /// @returns Statement to execute if false
     Stmt *stmt2() const;
 };
 } // namespace AST::Stmt

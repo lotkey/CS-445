@@ -57,7 +57,8 @@ std::string Const::toString(bool debugging) const {
     }
     case Type::Char: {
         if (m_typeInfo.isArray) {
-            str += "\"" + std::get<std::string>(m_value) + "\"";
+            str += "is array \"" + std::get<std::string>(m_value) +
+                   "\" of type char";
             break;
         } else {
             str += "'" + std::string(1, std::get<char>(m_value)) + "'";
@@ -70,7 +71,8 @@ std::string Const::toString(bool debugging) const {
     }
     };
 
-    if (debugging) {
+    if (debugging &&
+        !(m_typeInfo.type.value() == Type::Char && m_typeInfo.isArray)) {
         str += typeTag();
     }
 

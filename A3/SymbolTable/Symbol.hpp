@@ -20,14 +20,14 @@ class Symbol {
     bool isIterator() const;
     void setIterator(bool);
     AST::Decl::Decl *decl() const;
-    std::vector<unsigned> linesUsed() const;
+    std::vector<unsigned> linesUsedBeforeDefined() const;
     const std::optional<unsigned> &lineDefined() const;
 
   private:
     std::string m_id;
     AST::Decl::Decl *m_decl = nullptr;
-    std::vector<unsigned> m_linesUsed;
     std::vector<unsigned> m_linesUsedBeforeDefined;
+    std::vector<unsigned> m_linesUsedAfterDefined;
     std::optional<unsigned> m_lineDefined;
     bool m_isIterator = false;
 };

@@ -18,10 +18,10 @@ For::For(unsigned linenum, Node *id, Node *range, Node *stmt)
     addChild(stmt);
 }
 
-Exp::Id *For::id() const { return (Exp::Id *)getChild(0); }
+Exp::Id *For::id() const { return getChild(0)->cast<Exp::Id *>(); }
 
-Range *For::range() const { return (Range *)getChild(1); }
+Range *For::range() const { return getChild(1)->cast<Range *>(); }
 
-Stmt *For::stmt() const { return (Stmt *)getChild(2); }
+Stmt *For::stmt() const { return getChild(2)->cast<Stmt *>(); }
 
 } // namespace AST::Stmt

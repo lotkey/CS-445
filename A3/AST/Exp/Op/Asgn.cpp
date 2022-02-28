@@ -37,9 +37,9 @@ void Asgn::deduceType() {
     }
 }
 
-Exp *Asgn::mutableExp() const { return (Exp *)getChild(0); }
+Exp *Asgn::mutableExp() const { return getChild(0)->cast<Exp *>(); }
 
-Exp *Asgn::exp() const { return (Exp *)getChild(1); }
+Exp *Asgn::exp() const { return getChild(1)->cast<Exp *>(); }
 
 bool Asgn::is(AsgnType t) const { return this != nullptr && m_asgnType == t; }
 } // namespace AST::Exp::Op

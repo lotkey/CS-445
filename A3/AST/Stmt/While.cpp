@@ -16,7 +16,7 @@ While::While(unsigned linenum, Node *exp, Node *stmt)
     addChild(stmt);
 }
 
-Exp::Exp *While::exp() const { return (Exp::Exp *)getChild(0); }
+Exp::Exp *While::exp() const { return getChild(0)->cast<Exp::Exp *>(); }
 
-Stmt *While::stmt() const { return (Stmt *)getChild(1); }
+Stmt *While::stmt() const { return getChild(1)->cast<Stmt *>(); }
 } // namespace AST::Stmt

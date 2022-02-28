@@ -29,8 +29,10 @@ class Func : public Decl {
     /// @param compoundstmt Function body
     Func(unsigned linenum, Type type, const std::string &id, Node *parms,
          Node *compoundstmt);
+
     bool hasParms() const;
     Parm *parms();
+    
     virtual std::string toString(bool debugging = false) const override;
 
   protected:

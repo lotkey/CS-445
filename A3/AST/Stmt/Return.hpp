@@ -15,6 +15,7 @@ class Return : public Stmt {
     Return(unsigned linenum);
     /// @param linenum Line number the node appears on
     Return(unsigned linenum, Node *exp);
+    /// @returns Value to return
     Exp::Exp *exp() const;
 };
 } // namespace AST::Stmt

@@ -37,7 +37,7 @@ Exp *Unary::operand() const {
         throw std::runtime_error("Unary operator has no operand.");
     }
 
-    return (Exp *)getChild(0);
+    return getChild(0)->cast<Exp *>();
 }
 
 std::string Unary::toString(bool debugging) const {

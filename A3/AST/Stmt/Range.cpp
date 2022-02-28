@@ -17,9 +17,9 @@ Range::Range(unsigned linenum, Node *from, Node *to, Node *by)
     addChild(by);
 }
 
-Exp::Exp *Range::from() const { return (Exp::Exp *)getChild(0); }
+Exp::Exp *Range::from() const { return getChild(0)->cast<Exp::Exp *>(); }
 
-Exp::Exp *Range::to() const { return (Exp::Exp *)getChild(1); }
+Exp::Exp *Range::to() const { return getChild(1)->cast<Exp::Exp *>(); }
 
-Exp::Exp *Range::by() const { return (Exp::Exp *)getChild(2); }
+Exp::Exp *Range::by() const { return getChild(2)->cast<Exp::Exp *>(); }
 } // namespace AST::Stmt

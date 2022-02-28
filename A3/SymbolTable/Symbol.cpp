@@ -27,9 +27,10 @@ Symbol &Symbol::define(unsigned linenum) {
 }
 
 Symbol &Symbol::use(unsigned linenum) {
-    m_linesUsed.push_back(linenum);
     if (!isDefined()) {
         m_linesUsedBeforeDefined.push_back(linenum);
+    } else {
+        m_linesUsedAfterDefined.push_back(linenum);
     }
     return *this;
 }
@@ -41,7 +42,10 @@ bool Symbol::isDefined() const {
            (isDeclared() && m_decl->declType() == AST::DeclType::Parm);
 }
 
-bool Symbol::isUsed() const { return !m_linesUsed.empty(); }
+bool Symbol::isUsed() const {
+    return !(m_linesUsedBeforeDefined.empty() &&
+             m_linesUsedAfterDefined.empty());
+}
 
 bool Symbol::isIterator() const { return m_isIterator; }
 
@@ -49,15 +53,9 @@ void Symbol::setIterator(bool b) { m_isIterator = b; }
 
 AST::Decl::Decl *Symbol::decl() const { return m_decl; }
 
-std::vector<unsigned> Symbol::linesUsed() const {
-    std::vector<unsigned> linesused = m_linesUsed;
+std::vector<unsigned> Symbol::linesUsedBeforeDefined() const {
+    std::vector<unsigned> linesused = m_linesUsedBeforeDefined;
     std::sort(linesused.begin(), linesused.end());
-
-    auto linedefined =
-        std::find(linesused.begin(), linesused.end(), m_lineDefined);
-    if (linedefined != linesused.end()) {
-        linesused.erase(linedefined);
-    }
 
     return linesused;
 }

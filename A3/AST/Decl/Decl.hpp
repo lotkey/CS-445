@@ -16,10 +16,12 @@ class Decl : public Node {
     /// @param linenum Line number the node appears on
     Decl(unsigned linenum);
     Decl(unsigned linenum, DeclType declType);
+    
     const std::string &id() const;
     const DeclType &declType() const;
     TypeInfo &typeInfo();
     const TypeInfo &typeInfo() const;
+
     virtual bool is(DeclType t) const override;
     /// Set the node and its sibling's types to the provided type
     /// @param type Type to set

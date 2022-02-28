@@ -17,7 +17,9 @@ class While : public Stmt {
     /// @param exp Expression to evaluate to Boolean
     /// @param stmt Loop body
     While(unsigned linenum, Node *exp, Node *stmt);
+    /// @returns Expression/condition to evaluate
     Exp::Exp *exp() const;
+    /// @returns Statement to execute every loop
     Stmt *stmt() const;
 };
 } // namespace AST::Stmt

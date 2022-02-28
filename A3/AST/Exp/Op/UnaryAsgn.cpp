@@ -40,7 +40,7 @@ void UnaryAsgn::deduceType() {
     }
 }
 
-Exp *UnaryAsgn::mutableExp() const { return (Exp *)getChild(0); }
+Exp *UnaryAsgn::mutableExp() const { return getChild(0)->cast<Exp *>(); }
 
 bool UnaryAsgn::is(UnaryAsgnType t) const {
     return this != nullptr && m_unaryAsgnType == t;

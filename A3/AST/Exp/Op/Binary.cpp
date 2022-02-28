@@ -83,9 +83,9 @@ void Binary::deduceType() {
     }
 }
 
-Exp *Binary::exp1() const { return (Exp *)getChild(0); }
+Exp *Binary::exp1() const { return getChild(0)->cast<Exp *>(); }
 
-Exp *Binary::exp2() const { return (Exp *)getChild(1); }
+Exp *Binary::exp2() const { return getChild(1)->cast<Exp *>(); }
 
 bool Binary::is(BinaryOpType t) const {
     return this != nullptr && m_binaryOpType == t;

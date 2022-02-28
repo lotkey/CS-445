@@ -17,9 +17,9 @@ Select::Select(unsigned linenum, Node *exp, Node *stmt1, Node *stmt2)
     addChild(stmt2);
 }
 
-Exp::Exp *Select::exp() const { return (Exp::Exp *)getChild(0); }
+Exp::Exp *Select::exp() const { return getChild(0)->cast<Exp::Exp *>(); }
 
-Stmt *Select::stmt1() const { return (Stmt *)getChild(1); };
+Stmt *Select::stmt1() const { return getChild(1)->cast<Stmt *>(); };
 
-Stmt *Select::stmt2() const { return (Stmt *)getChild(2); };
+Stmt *Select::stmt2() const { return getChild(2)->cast<Stmt *>(); };
 } // namespace AST::Stmt

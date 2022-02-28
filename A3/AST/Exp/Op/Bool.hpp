@@ -9,7 +9,9 @@ class Bool : public Binary {
     Bool();
     Bool(unsigned linenum);
     Bool(unsigned linenum, BoolOpType boolOpType);
+
     const BoolOpType &boolOpType() const;
+    
     virtual std::string toString(bool debugging = false) const override;
     virtual bool is(BoolOpType) const override;
 

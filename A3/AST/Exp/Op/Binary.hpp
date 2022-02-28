@@ -25,12 +25,14 @@ class Binary : public Op {
     /// @param exp2 Second argument
     Binary(unsigned linenum, BinaryOpType opType, Node *exp1 = nullptr,
            Node *exp2 = nullptr);
+
     const BinaryOpType &binaryOpType() const;
+    Exp *exp1() const;
+    Exp *exp2() const;
+
     /// @param exp1 First argument
     /// @param exp2 Second argument
     virtual void addChildren(Node *exp1, Node *exp2);
-    Exp *exp1() const;
-    Exp *exp2() const;
     virtual std::string toString(bool debugging = false) const override;
     virtual void deduceType() override;
     virtual bool is(BinaryOpType) const override;

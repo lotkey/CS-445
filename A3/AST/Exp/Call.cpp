@@ -27,5 +27,5 @@ std::string Call::toString(bool debugging) const {
     return str;
 }
 
-Exp *Call::arglist() const { return (Exp *)getChild(0); }
+Exp *Call::arglist() const { return getChild(0)->cast<Exp *>(); }
 } // namespace AST::Exp

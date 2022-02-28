@@ -17,7 +17,9 @@ Compound::Compound(unsigned linenum, Node *localdecls, Node *stmtlist)
     addChild(stmtlist);
 }
 
-Decl::Decl *Compound::localdecls() const { return (Decl::Decl *)getChild(0); }
+Decl::Decl *Compound::localdecls() const {
+    return getChild(0)->cast<Decl::Decl *>();
+}
 
-Stmt *Compound::stmtlist() const { return (Stmt *)getChild(1); }
+Stmt *Compound::stmtlist() const { return getChild(1)->cast<Stmt *>(); }
 } // namespace AST::Stmt

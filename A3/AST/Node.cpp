@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace AST {
+#pragma region Constructors / Destructors
+
 Node::Node() : m_sibling(nullptr) {}
 
 Node::Node(unsigned linenum) : m_sibling(nullptr), m_linenum(linenum) {}
@@ -25,6 +27,65 @@ Node::~Node() {
         }
     }
 }
+
+#pragma endregion
+
+#pragma region Tree traversal and construction
+
+void Node::addChild(Node *node) {
+    m_children.push_back(node);
+    if (node != nullptr) {
+        node->m_parent = this;
+
+        Node *sibling = node->sibling();
+        while (sibling != nullptr) {
+            sibling->m_parent = this;
+            sibling = sibling->sibling();
+        }
+    }
+}
+
+void Node::setChild(int index, Node *node) {
+    if (m_children.size() <= index) {
+        throw std::runtime_error("Cannot set child, index out of bounds.");
+    } else {
+        if (m_children[index] != nullptr &&
+            !(m_children[index] == this || m_children[index] == node)) {
+            delete m_children[index];
+        }
+
+        m_children[index] = node;
+        node->m_parent = this;
+        Node *sibling = node->sibling();
+        while (sibling != nullptr) {
+            sibling->m_parent = this;
+            sibling = sibling->sibling();
+        }
+    }
+}
+
+void Node::addSibling(Node *node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    if (m_sibling == nullptr) {
+        m_sibling = node;
+        m_sibling->m_parent = m_parent;
+    } else {
+        m_sibling->addSibling(node);
+    }
+}
+
+Node *Node::sibling() const { return m_sibling; }
+
+Node *Node::parent() const { return m_parent; }
+
+const std::vector<Node *> &Node::children() const { return m_children; }
+
+#pragma endregion
+
+#pragma region Info
 
 void Node::print(bool debugging) const {
     static int siblingCount = 0;
@@ -61,78 +122,17 @@ void Node::print(bool debugging) const {
     siblingCount--;
 }
 
-void Node::setChild(int index, Node *node) {
-    if (m_children.size() <= index) {
-        throw std::runtime_error("Cannot set child, index out of bounds.");
-    } else {
-        if (m_children[index] != nullptr &&
-            !(m_children[index] == this || m_children[index] == node)) {
-            delete m_children[index];
-        }
-
-        m_children[index] = node;
-        node->m_parent = this;
-        Node *sibling = node->sibling();
-        while (sibling != nullptr) {
-            sibling->m_parent = this;
-            sibling = sibling->sibling();
-        }
-    }
-}
-
-void Node::addChild(Node *node) {
-    m_children.push_back(node);
-    if (node != nullptr) {
-        node->m_parent = this;
-
-        Node *sibling = node->sibling();
-        while (sibling != nullptr) {
-            sibling->m_parent = this;
-            sibling = sibling->sibling();
-        }
-    }
-}
-
-void Node::addSibling(Node *node) {
-    if (node == nullptr) {
-        return;
-    }
-
-    if (m_sibling == nullptr) {
-        m_sibling = node;
-        m_sibling->m_parent = m_parent;
-    } else {
-        m_sibling->addSibling(node);
-    }
-}
-
-std::string Node::toString(bool debugging) const { return lineTag(); }
-
-std::string Node::lineTag() const {
-    return " [line: " + std::to_string(m_linenum) + "]";
-}
-
-std::string Node::typeTag() const { return ""; }
+bool Node::hasSibling() const { return m_sibling != nullptr; }
 
 unsigned &Node::lineNumber() { return m_linenum; }
 
 const NodeType &Node::nodeType() const { return m_nodeType; }
 
-bool Node::hasSibling() const { return m_sibling != nullptr; }
+#pragma endregion
 
-Node *Node::sibling() const { return m_sibling; }
+#pragma region Virtual functions
 
-const std::vector<Node *> &Node::children() const { return m_children; }
-
-Node *Node::parent() const { return m_parent; }
-
-Node *Node::getChild(int index) const {
-    if (m_children.size() <= index) {
-        return nullptr;
-    } else {
-        return m_children[index];
-    }
-}
+std::string Node::toString(bool debugging) const { return lineTag(); }
 
 bool Node::is(NodeType t) const { return this != nullptr && nodeType() == t; }
 bool Node::is(StmtType t) const { return false; }
@@ -144,4 +144,24 @@ bool Node::is(UnaryOpType t) const { return false; }
 bool Node::is(UnaryAsgnType t) const { return false; }
 bool Node::is(BinaryOpType t) const { return false; }
 bool Node::is(AsgnType t) const { return false; }
+
+#pragma endregion
+
+#pragma region Private functions
+
+std::string Node::lineTag() const {
+    return " [line: " + std::to_string(m_linenum) + "]";
+}
+
+std::string Node::typeTag() const { return ""; }
+
+Node *Node::getChild(int index) const {
+    if (m_children.size() <= index) {
+        return nullptr;
+    } else {
+        return m_children[index];
+    }
+}
+
+#pragma endregion
 } // namespace AST

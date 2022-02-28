@@ -19,8 +19,11 @@ class For : public Stmt {
     /// @param range Iteration range
     /// @param stmt Loop body
     For(unsigned linenum, Node *id, Node *range, Node *stmt);
+    /// @returns The identifier of the iterator
     Exp::Id *id() const;
+    /// @returns The range of the for loop
     Range *range() const;
+    /// @returns The statement to execute every loop
     Stmt *stmt() const;
 };
 } // namespace AST::Stmt

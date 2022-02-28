@@ -11,7 +11,9 @@ class Op : public Exp {
     Op();
     Op(unsigned linenum);
     Op(unsigned linenum, OpType opType);
+    
     const OpType &opType() const;
+
     virtual void deduceType() = 0;
     virtual bool is(OpType t) const override;
 

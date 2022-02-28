@@ -10,7 +10,9 @@ class Exp : public Node {
     Exp();
     Exp(unsigned);
     Exp(unsigned, ExpType);
+    
     const ExpType &expType() const;
+
     virtual void setType(TypeInfo);
     virtual const TypeInfo &typeInfo() const;
     virtual TypeInfo &typeInfo();

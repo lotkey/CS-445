@@ -17,6 +17,7 @@ class Parm : public Decl {
     /// @param id Parameter name
     /// @param isArray Whether or not the parameter is an array
     Parm(unsigned linenum, const std::string &id, bool isArray);
+    
     virtual std::string toString(bool debugging = false) const override;
 };
 } // namespace AST::Decl

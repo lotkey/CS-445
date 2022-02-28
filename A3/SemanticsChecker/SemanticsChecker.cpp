@@ -26,6 +26,7 @@ void SemanticsChecker::print() const {
     }
 
     for (const auto &[lineNumber, bucket] : m_messages) {
+        /// Iterate backwards through bucket
         for (int i = bucket.size() - 1; i >= 0; i--) {
             auto message = bucket[i];
             std::string tag;
@@ -41,6 +42,7 @@ void SemanticsChecker::print() const {
 }
 
 void SemanticsChecker::enterScope() {
+    /// Use function name as name for the scope
     if (m_scopeName.has_value()) {
         enterScope(m_scopeName.value());
         m_scopeName.reset();
@@ -56,6 +58,9 @@ void SemanticsChecker::enterScope(const std::optional<std::string> &name) {
         m_symbolTable.enter();
     }
 
+    /// Add any saved function parameters to the scope
+    /// Parameters are declared before the scope begins, but exist inside of the
+    /// scope
     auto *parm = m_parms->cast<AST::Decl::Decl *>();
     while (parm != nullptr) {
 
@@ -83,8 +88,7 @@ void SemanticsChecker::leaveScope() {
 
     for (const auto &[id, symbol] : symbols) {
 
-        if (!symbol.isUsed() ||
-            (symbol.isIterator() && symbol.linesUsed().empty())) {
+        if (!symbol.isUsed()) {
             std::string warning =
                 "The variable '" + id + "' seems not to be used.";
 
@@ -99,9 +103,9 @@ void SemanticsChecker::leaveScope() {
             symbol.decl()->declType() != AST::DeclType::Parm &&
             !symbol.decl()->typeInfo().isStatic) {
 
-            if (!symbol.linesUsed().empty()) {
+            if (!symbol.linesUsedBeforeDefined().empty()) {
 
-                auto linenumber = symbol.linesUsed().front();
+                auto linenumber = symbol.linesUsedBeforeDefined().front();
                 if (!symbol.isDefined() || linenumber <= symbol.lineDefined()) {
                     std::string warning =
                         "Variable '" + id +
@@ -130,86 +134,27 @@ void SemanticsChecker::analyze(AST::Node *tree) {
 
 void SemanticsChecker::analyzeTree(AST::Node *tree) {
 
+    /// This is where nodes should be analyzed if they are declarations, uses,
+    /// or definitions. They will be analyzed before their children. Set
+    /// nodeWasAnalyzed to make sure they do not get analyzed twice.
+    bool nodeWasAnalyzed = true;
     if (tree->is(AST::NodeType::Decl)) {
-        auto *decl = tree->cast<AST::Decl::Decl *>();
-
-        // Check to see if it's defining main()
-        if (decl->is(AST::DeclType::Func)) {
-            m_scopeName = decl->id();
-            auto *func = decl->cast<AST::Decl::Func *>();
-
-            m_parms = func->parms();
-
-            if (func->id() == "main") {
-                if (!(func->hasParms() &&
-                      func->typeInfo().type.value() == AST::Type::Void)) {
-                    m_mainIsDefined = true;
-                } else {
-                    m_mainIsDefined = false;
-                }
-            }
-        }
-
-        // If it's a parameter declaration, that is handled by enterScope()
-        if (!decl->is(AST::DeclType::Parm)) {
-
-            if (m_symbolTable.containsImmediately(decl->id())) {
-                if (m_symbolTable[decl->id()].isDeclared()) {
-
-                    auto *originalSymbol = m_symbolTable[decl->id()].decl();
-                    std::string error =
-                        "Symbol '" + decl->id() +
-                        "' is already declared at line " +
-                        std::to_string(originalSymbol->lineNumber()) + ".";
-
-                    m_messages[decl->lineNumber()].push_back(
-                        {Message::Type::Error, error});
-                }
-            } else {
-                m_symbolTable.declare(decl->id(), decl);
-            }
-        }
-
-        if (decl->is(AST::DeclType::Var)) {
-            auto *var = decl->cast<AST::Decl::Var *>();
-
-            if (var->isInitialized()) {
-
-                m_symbolTable[decl->id()].define(
-                    var->initValue()->lineNumber());
-            } else if (decl->parent() != nullptr &&
-                       decl->parent()->is(AST::StmtType::For)) {
-
-                auto *forParent = var->parent()->cast<AST::Stmt::For *>();
-                m_symbolTable[decl->id()].define(
-                    forParent->range()->from()->lineNumber());
-                m_symbolTable[decl->id()].setIterator(true);
-            }
-        }
+        analyzeNode(tree->cast<AST::Decl::Decl *>());
+    } else if (tree->is(AST::ExpType::Id)) {
+        analyzeNode(tree->cast<AST::Exp::Exp *>());
+    } else if (tree->is(AST::ExpType::Call)) {
+        analyzeNode(tree->cast<AST::Exp::Exp *>());
+    } else {
+        nodeWasAnalyzed = false;
     }
 
     if (tree->is(AST::AsgnType::Asgn)) {
-        auto *op = tree->cast<AST::Exp::Op::Asgn *>();
-        if (op->exp1()->is(AST::ExpType::Id)) {
-            auto *id1 = op->exp1()->cast<AST::Exp::Id *>();
-            if (m_symbolTable[id1->id()].isDeclared() &&
-                m_symbolTable[id1->id()].decl()->declType() ==
-                    AST::DeclType::Func) {
-            } else {
-                m_symbolTable[id1->id()].define(op->lineNumber());
-            }
-
-        } else if (op->exp1()->cast<AST::Node *>()->is(
-                       AST::BinaryOpType::Index)) {
-
-            auto *indexOp = op->exp1()->cast<AST::Exp::Op::Binary *>();
-            if (indexOp->exp1()->is(AST::ExpType::Id)) {
-                auto *arrayId = indexOp->exp1()->cast<AST::Exp::Id *>();
-                m_symbolTable[arrayId->id()].define(arrayId->lineNumber());
-            }
-        }
+        analyzeDefinitions(tree->cast<AST::Exp::Op::Asgn *>());
     }
 
+    /// Entering scopes
+    /// Compound statements define scopes, but they can share the same scope as
+    /// a for scope.
     if (tree->is(AST::StmtType::Compound) &&
         !(tree->parent() != nullptr &&
           tree->parent()->is(AST::StmtType::For))) {
@@ -223,30 +168,35 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
         enterScope("for");
     }
 
+    /// Analyze children of the node
     for (auto &child : tree->children()) {
         if (child != nullptr) {
             analyzeTree(child);
         }
     }
 
-    switch (tree->nodeType()) {
-    case AST::NodeType::Decl: {
-        break;
-    }
-    case AST::NodeType::Stmt: {
-        AST::Stmt::Stmt *stmt = (AST::Stmt::Stmt *)tree;
-        analyzeNode(stmt);
-        break;
-    }
-    case AST::NodeType::Exp: {
-        AST::Exp::Exp *exp = (AST::Exp::Exp *)tree;
-        analyzeNode(exp);
-        break;
-    }
-    default:
-        break;
+    /// If the node wasn't analyzed, then the children were analyzed first
+    if (!nodeWasAnalyzed) {
+        switch (tree->nodeType()) {
+        case AST::NodeType::Decl: {
+            break;
+        }
+        case AST::NodeType::Stmt: {
+            AST::Stmt::Stmt *stmt = (AST::Stmt::Stmt *)tree;
+            analyzeNode(stmt);
+            break;
+        }
+        case AST::NodeType::Exp: {
+            AST::Exp::Exp *exp = (AST::Exp::Exp *)tree;
+            analyzeNode(exp);
+            break;
+        }
+        default:
+            break;
+        }
     }
 
+    /// Handle exiting scopes
     if (tree->is(AST::StmtType::Compound) &&
         !(tree->parent() != nullptr &&
           tree->parent()->is(AST::StmtType::For))) {
@@ -255,8 +205,120 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
         leaveScope();
     }
 
+    /// Analyze siblings
     if (tree->hasSibling()) {
         analyzeTree(tree->sibling());
+    }
+}
+
+void SemanticsChecker::analyzeDefinitions(AST::Exp::Op::Asgn *op) {
+    if (op->exp1()->is(AST::ExpType::Id)) {
+
+        bool shouldDefine = true;
+
+        auto *id1 = op->exp1()->cast<AST::Exp::Id *>();
+        if (m_symbolTable[id1->id()].isDeclared() &&
+            m_symbolTable[id1->id()].decl()->declType() ==
+                AST::DeclType::Func) {
+            shouldDefine = false;
+        } else if (op->exp2()->is(AST::ExpType::Id) &&
+                   op->exp2()->cast<AST::Exp::Id *>()->id() == id1->id()) {
+            shouldDefine = false;
+        } else if (op->exp2()->cast<AST::Node *>()->is(
+                       AST::BinaryOpType::Index)) {
+            auto *indexOp = op->exp2()->cast<AST::Exp::Op::Binary *>();
+            if (indexOp->exp1()->is(AST::ExpType::Id) &&
+                indexOp->exp1()->cast<AST::Exp::Id *>()->id() == id1->id()) {
+                shouldDefine = false;
+            }
+        }
+
+        if (shouldDefine) {
+            m_symbolTable[id1->id()].define(op->lineNumber());
+        }
+
+    } else if (op->exp1()->cast<AST::Node *>()->is(AST::BinaryOpType::Index)) {
+
+        auto *indexOp = op->exp1()->cast<AST::Exp::Op::Binary *>();
+        if (indexOp->exp1()->is(AST::ExpType::Id)) {
+            bool shouldDefine = true;
+
+            auto *id1 = indexOp->exp1()->cast<AST::Exp::Id *>();
+            if (m_symbolTable[id1->id()].isDeclared() &&
+                m_symbolTable[id1->id()].decl()->declType() ==
+                    AST::DeclType::Func) {
+                shouldDefine = false;
+            } else if (op->exp2()->is(AST::ExpType::Id) &&
+                       op->exp2()->cast<AST::Exp::Id *>()->id() == id1->id()) {
+                shouldDefine = false;
+            } else if (op->exp2()->cast<AST::Node *>()->is(
+                           AST::BinaryOpType::Index)) {
+                auto *indexOp = op->exp2()->cast<AST::Exp::Op::Binary *>();
+                if (indexOp->exp1()->is(AST::ExpType::Id) &&
+                    indexOp->exp1()->cast<AST::Exp::Id *>()->id() ==
+                        id1->id()) {
+                    shouldDefine = false;
+                }
+            }
+
+            if (shouldDefine) {
+                m_symbolTable[id1->id()].define(op->lineNumber());
+            }
+        }
+    }
+}
+
+void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
+    // Check to see if it's defining main()
+    if (decl->is(AST::DeclType::Func)) {
+        m_scopeName = decl->id();
+        auto *func = decl->cast<AST::Decl::Func *>();
+
+        m_parms = func->parms();
+
+        if (func->id() == "main") {
+            if (!(func->hasParms() &&
+                  func->typeInfo().type.value() == AST::Type::Void)) {
+                m_mainIsDefined = true;
+            } else {
+                m_mainIsDefined = false;
+            }
+        }
+    }
+
+    // If it's a parameter declaration, that is handled by enterScope()
+    if (!decl->is(AST::DeclType::Parm)) {
+
+        if (m_symbolTable.containsImmediately(decl->id())) {
+            if (m_symbolTable[decl->id()].isDeclared()) {
+
+                auto *originalSymbol = m_symbolTable[decl->id()].decl();
+                std::string error =
+                    "Symbol '" + decl->id() + "' is already declared at line " +
+                    std::to_string(originalSymbol->lineNumber()) + ".";
+
+                m_messages[decl->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+        } else {
+            m_symbolTable.declare(decl->id(), decl);
+        }
+    }
+
+    if (decl->is(AST::DeclType::Var)) {
+        auto *var = decl->cast<AST::Decl::Var *>();
+
+        if (var->isInitialized()) {
+
+            m_symbolTable[decl->id()].define(var->initValue()->lineNumber());
+        } else if (decl->parent() != nullptr &&
+                   decl->parent()->is(AST::StmtType::For)) {
+
+            auto *forParent = var->parent()->cast<AST::Stmt::For *>();
+            m_symbolTable[decl->id()].define(
+                forParent->range()->from()->lineNumber());
+            m_symbolTable[decl->id()].setIterator(true);
+        }
     }
 }
 
@@ -313,9 +375,19 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
         }
 
         bool isUsed = true;
-        // if (id->hasAncestor<AST::StmtType>(AST::StmtType::Range)) {
-        //     isUsed = false;
-        // }
+        if (id->hasAncestor<AST::StmtType>(AST::StmtType::Range)) {
+            auto *range =
+                id->getClosestAncestor<AST::StmtType>(AST::StmtType::Range)
+                    ->cast<AST::Stmt::Range *>();
+
+            if (range->parent() != nullptr) {
+                auto *forstmt = range->parent()->cast<AST::Stmt::For *>();
+
+                if (forstmt->id()->id() == id->id()) {
+                    isUsed = false;
+                }
+            }
+        }
 
         if (isUsed) {
             m_symbolTable[id->id()].use(id->lineNumber());
@@ -594,26 +666,6 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
 
     switch (op->asgnType()) {
     case AST::AsgnType::Asgn: {
-
-        // if (op->exp1()->is(AST::ExpType::Id)) {
-        //     AST::Exp::Id *id1 = (AST::Exp::Id *)op->exp1();
-        //     if (m_symbolTable[id1->id()].isDeclared() &&
-        //         m_symbolTable[id1->id()].decl()->declType() ==
-        //             AST::DeclType::Func) {
-        //         return;
-        //     }
-
-        //     m_symbolTable[id1->id()].define(op->lineNumber());
-
-        // } else if (op->exp1()->cast<AST::Node *>()->is(
-        //                AST::BinaryOpType::Index)) {
-
-        //     auto *indexOp = op->exp1()->cast<AST::Exp::Op::Binary *>();
-        //     if (indexOp->exp1()->is(AST::ExpType::Id)) {
-        //         auto *arrayId = indexOp->exp1()->cast<AST::Exp::Id *>();
-        //         m_symbolTable[arrayId->id()].define(arrayId->lineNumber());
-        //     }
-        // }
 
         if (op->exp1()->typeInfo().isArray != op->exp2()->typeInfo().isArray) {
             auto isArrayToString = [](bool b) {

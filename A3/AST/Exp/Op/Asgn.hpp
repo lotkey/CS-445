@@ -25,11 +25,13 @@ class Asgn : public Binary {
     /// @param exp2 The expression assigned to exp1
     Asgn(unsigned linenum, AsgnType asgnType, Node *exp1 = nullptr,
          Node *exp2 = nullptr);
+
     const AsgnType &asgnType() const;
-    virtual std::string toString(bool debugging = false) const override;
-    virtual void deduceType() override;
     Exp *mutableExp() const;
     Exp *exp() const;
+
+    virtual std::string toString(bool debugging = false) const override;
+    virtual void deduceType() override;
     virtual bool is(AsgnType) const override;
 
   protected:

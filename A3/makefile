@@ -2,6 +2,8 @@ BIN = c-
 AR = ar rvs
 CC = g++ --std=c++17 -g
 
+# Changed this to multiple compile steps that can be executed at the same time
+
 AST_DIR = .ast.d
 AST_SRCS = AST/*.cpp AST/*/*.cpp AST/*/*/*.cpp
 AST_HDRS = AST/*.hpp AST/*/*.hpp AST/*/*/*.hpp

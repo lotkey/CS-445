@@ -17,8 +17,11 @@ class Range : public Stmt {
     /// @param to End of range
     /// @param by Optional, amount to increment by
     Range(unsigned linenum, Node *from, Node *to, Node *by = nullptr);
+    /// @returns The start of the range
     Exp::Exp *from() const;
+    /// @returns The end of the range
     Exp::Exp *to() const;
+    /// @returns The increment of the range
     Exp::Exp *by() const;
 };
 } // namespace AST::Stmt

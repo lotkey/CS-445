@@ -18,10 +18,12 @@ class Var : public Decl {
     /// @param id String identifier
     /// @param isArray Whether or not the variable is an array
     Var(unsigned linenum, const std::string &id, bool isArray);
-    virtual std::string toString(bool debugging = false) const override;
+
     bool isInitialized() const;
     Exp::Exp *initValue();
     /// Set the variable and its siblings to static
     void setStatic();
+
+    virtual std::string toString(bool debugging = false) const override;
 };
 } // namespace AST::Decl
