@@ -662,7 +662,11 @@ int main(int argc, char *argv[])
             }
 
             if (tree_root != nullptr && semantics.numErrors() == 0) {
-                tree_root->print(options.printTypeInfo());
+                if (options.printTypeInfo()) {
+                    tree_root->print(options.printTypeInfo());
+                } else if (options.print()) {
+                    tree_root->print(false);
+                }
             }
 
             
