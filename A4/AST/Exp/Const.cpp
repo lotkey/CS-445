@@ -7,7 +7,9 @@
 #include <variant>
 
 namespace AST::Exp {
-Const::Const() : Exp::Exp() {}
+Const::Const() : Exp::Exp() {
+    m_typeInfo.isConst = true;
+}
 
 Const::Const(unsigned linenum) : Exp::Exp(linenum, ExpType::Const) {
     m_typeInfo.isConst = true;

@@ -661,7 +661,7 @@ int main(int argc, char *argv[])
                 semantics.print();
             }
 
-            if (tree_root != nullptr && semantics.numErrors() == 0) {
+            if (tree_root != nullptr){// && semantics.numErrors() == 0) {
                 if (options.printTypeInfo()) {
                     tree_root->print(options.printTypeInfo());
                 } else if (options.print()) {

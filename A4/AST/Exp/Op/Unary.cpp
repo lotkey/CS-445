@@ -52,6 +52,11 @@ std::string Unary::toString(bool debugging) const {
 }
 
 void Unary::deduceType() {
+
+    if (operand() != nullptr && operand()->is(ExpType::Op)) {
+        operand()->cast<Op *>()->deduceType();
+    }
+
     switch (m_unaryOpType) {
     case UnaryOpType::Asgn: {
         // never reaches here, because deduceType is overloaded by UnaryAsgn

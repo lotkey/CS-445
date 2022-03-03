@@ -55,12 +55,21 @@ std::string Binary::toString(bool debugging) const {
 }
 
 void Binary::deduceType() {
+    if (exp1() != nullptr && exp1()->is(ExpType::Op)) {
+        exp1()->cast<Op *>()->deduceType();
+    }
+
+    if (exp2() != nullptr && exp2()->is(ExpType::Op)) {
+        exp2()->cast<Op *>()->deduceType();
+    }
+
     if (m_binaryOpType == BinaryOpType::Add ||
         m_binaryOpType == BinaryOpType::Div ||
         m_binaryOpType == BinaryOpType::Mod ||
         m_binaryOpType == BinaryOpType::Mul ||
         m_binaryOpType == BinaryOpType::Subtract) {
         m_typeInfo.type = Type::Int;
+
         m_typeInfo.isConst = exp1() != nullptr && exp2() != nullptr &&
                              exp1()->typeInfo().isConst &&
                              exp2()->typeInfo().isConst;

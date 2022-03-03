@@ -312,6 +312,9 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         auto *var = decl->cast<AST::Decl::Var *>();
 
         if (var->isInitialized()) {
+            if (var->initValue() != nullptr && var->initValue()->is(AST::ExpType::Op)) {
+                var->cast<AST::Exp::Op::Op *>()->deduceType();
+            }
 
             if (!var->initValue()->typeInfo().isConst) {
                 std::string error = "Initializer for variable '" + var->id() +
@@ -827,6 +830,48 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
             m_messages[returnNode->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
+
+        auto *functionParent =
+            returnNode->getClosestAncestor<AST::DeclType>(AST::DeclType::Func)
+                ->cast<AST::Decl::Func *>();
+
+        if (functionParent != nullptr) {
+            if (functionParent->typeInfo().type.value() == AST::Type::Void &&
+                returnNode->exp() != nullptr) {
+                std::string error =
+                    "Function '" + functionParent->id() + "' at line " +
+                    std::to_string(functionParent->lineNumber()) +
+                    " is expecting no return value, but return has a value.";
+                m_messages[returnNode->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            } else if (functionParent->typeInfo().type.value() !=
+                           AST::Type::Void &&
+                       returnNode->exp() == nullptr) {
+                std::string error =
+                    "Function '" + functionParent->id() + "' at line " +
+                    std::to_string(functionParent->lineNumber()) +
+                    "is expecting to return type " +
+                    AST::Types::toString(
+                        functionParent->typeInfo().type.value()) +
+                    " but return has no value.";
+                m_messages[returnNode->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            } else if (functionParent->typeInfo().type.value() !=
+                       returnNode->exp()->typeInfo().type.value()) {
+                std::string error =
+                    "Function '" + functionParent->id() +
+                    "' is expecting to return type " +
+                    AST::Types::toString(
+                        functionParent->typeInfo().type.value()) +
+                    " but returns type " +
+                    AST::Types::toString(
+                        returnNode->exp()->typeInfo().type.value()) +
+                    ".";
+                m_messages[returnNode->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+        }
+
         break;
     }
     case AST::StmtType::Range: {
