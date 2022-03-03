@@ -127,6 +127,11 @@ void SemanticsChecker::analyze(AST::Node *tree) {
     m_messages.clear();
     m_numErrors = 0;
     m_numWarnings = 0;
+
+    auto *ioLibrary = AST::ioLibraryTree();
+    analyzeTree(ioLibrary);
+    delete ioLibrary;
+
     analyzeTree(tree);
 }
 
