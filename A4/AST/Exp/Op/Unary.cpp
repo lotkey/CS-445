@@ -59,10 +59,14 @@ void Unary::deduceType() {
     }
     case UnaryOpType::Chsign: {
         m_typeInfo.type = Type::Int;
+        m_typeInfo.isConst =
+            operand() != nullptr && operand()->typeInfo().isConst;
         break;
     }
     case UnaryOpType::Not: {
         m_typeInfo.type = Type::Bool;
+        m_typeInfo.isConst =
+            operand() != nullptr && operand()->typeInfo().isConst;
         break;
     }
     case UnaryOpType::Random: {
@@ -76,5 +80,7 @@ void Unary::deduceType() {
     }
 }
 
-bool Unary::is(UnaryOpType t) const { return this != nullptr && m_unaryOpType == t; }
+bool Unary::is(UnaryOpType t) const {
+    return this != nullptr && m_unaryOpType == t;
+}
 } // namespace AST::Exp::Op

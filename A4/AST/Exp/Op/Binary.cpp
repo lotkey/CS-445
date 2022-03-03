@@ -61,6 +61,9 @@ void Binary::deduceType() {
         m_binaryOpType == BinaryOpType::Mul ||
         m_binaryOpType == BinaryOpType::Subtract) {
         m_typeInfo.type = Type::Int;
+        m_typeInfo.isConst = exp1() != nullptr && exp2() != nullptr &&
+                             exp1()->typeInfo().isConst &&
+                             exp2()->typeInfo().isConst;
     } else {
         switch (m_binaryOpType) {
         case BinaryOpType::Asgn: {
@@ -71,6 +74,9 @@ void Binary::deduceType() {
         }
         case BinaryOpType::Bool: {
             m_typeInfo.type = Type::Bool;
+            m_typeInfo.isConst = exp1() != nullptr && exp2() != nullptr &&
+                                 exp1()->typeInfo().isConst &&
+                                 exp2()->typeInfo().isConst;
             break;
         }
         case BinaryOpType::Index: {

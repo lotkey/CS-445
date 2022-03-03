@@ -185,12 +185,12 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
             break;
         }
         case AST::NodeType::Stmt: {
-            AST::Stmt::Stmt *stmt = (AST::Stmt::Stmt *)tree;
+            auto *stmt = tree->cast<AST::Stmt::Stmt *>();
             analyzeNode(stmt);
             break;
         }
         case AST::NodeType::Exp: {
-            AST::Exp::Exp *exp = (AST::Exp::Exp *)tree;
+            auto *exp = tree->cast<AST::Exp::Exp *>();
             analyzeNode(exp);
             break;
         }
@@ -313,6 +313,45 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 
         if (var->isInitialized()) {
 
+            if (!var->initValue()->typeInfo().isConst) {
+                std::string error = "Initializer for variable '" + var->id() +
+                                    "' is not a constant expression.";
+                m_messages[var->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+
+            if (var->initValue()->typeInfo().type.has_value() &&
+                var->typeInfo().type.has_value() &&
+                var->initValue()->typeInfo().type.value() !=
+                    var->typeInfo().type.value()) {
+                std::string error =
+                    "Initializer for variable '" + var->id() + "' of type " +
+                    AST::Types::toString(var->typeInfo().type) +
+                    " is of type " +
+                    AST::Types::toString(var->initValue()->typeInfo().type);
+                m_messages[var->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+
+            if (var->initValue()->typeInfo().isArray !=
+                var->typeInfo().isArray) {
+                auto isArrayToString = [](bool b) {
+                    if (b) {
+                        return std::string(" is an array");
+                    } else {
+                        return std::string(" is not an array");
+                    }
+                };
+
+                std::string error =
+                    "Initializer for variable '" + var->id() +
+                    "' requires both operands be arrays or not but variable" +
+                    isArrayToString(var->typeInfo().isArray) + " and rhs" +
+                    isArrayToString(var->initValue()->typeInfo().isArray) + ".";
+                m_messages[var->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
+
             m_symbolTable[decl->id()].define(var->initValue()->lineNumber());
         } else if (decl->parent() != nullptr &&
                    decl->parent()->is(AST::StmtType::For)) {
@@ -329,7 +368,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
 
     switch (exp->expType()) {
     case AST::ExpType::Call: {
-        AST::Exp::Call *call = (AST::Exp::Call *)exp;
+        auto *call = exp->cast<AST::Exp::Call *>();
 
         if (!m_symbolTable.contains(call->id())) {
 
@@ -475,7 +514,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
             }
             case AST::BinaryOpType::Index: {
 
-                AST::Exp::Id *id = (AST::Exp::Id *)binary->exp1();
+                auto *id = binary->exp1()->cast<AST::Exp::Id *>();
                 if (!id->typeInfo().isArray) {
                     std::string error =
                         "Cannot index nonarray '" + id->id() + "'.";
@@ -786,6 +825,73 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
             returnNode->exp()->typeInfo().isArray) {
             std::string error = "Cannot return an array.";
             m_messages[returnNode->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
+        break;
+    }
+    case AST::StmtType::Range: {
+        auto *range = stmt->cast<AST::Stmt::Range *>();
+        std::vector<AST::Exp::Exp *> rangeChildren = {range->from(),
+                                                      range->to(), range->by()};
+
+        for (int i = 0; i < rangeChildren.size(); i++) {
+            if (rangeChildren[i] != nullptr) {
+                if (rangeChildren[i]->typeInfo().isArray) {
+                    std::string error = "Cannot use array in position " +
+                                        std::to_string(i + 1) +
+                                        " in range of for statement.";
+                    m_messages[range->lineNumber()].push_back(
+                        {Message::Type::Error, error});
+                }
+
+                if (rangeChildren[i]->typeInfo().type != AST::Type::Int) {
+                    std::string error =
+                        "Expecting type int in position " +
+                        std::to_string(i + 1) +
+                        " in range of for statement but got type " +
+                        AST::Types::toString(
+                            rangeChildren[i]->typeInfo().type) +
+                        ".";
+                    m_messages[range->lineNumber()].push_back(
+                        {Message::Type::Error, error});
+                }
+            }
+        }
+
+        break;
+    }
+    case AST::StmtType::Break: {
+        if (!(stmt->hasAncestor<AST::StmtType>(AST::StmtType::For) ||
+              stmt->hasAncestor<AST::StmtType>(AST::StmtType::While))) {
+            std::string error =
+                "Cannot have a break statement outside of loop.";
+            m_messages[stmt->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
+        break;
+    }
+    case AST::StmtType::While: {
+        auto *whilestmt = stmt->cast<AST::Stmt::While *>();
+        if (whilestmt->exp()->typeInfo().type != AST::Type::Bool) {
+            std::string error =
+                "Expecting Boolean test condition in while statement but got "
+                "type " +
+                AST::Types::toString(whilestmt->exp()->typeInfo().type) + ".";
+
+            m_messages[whilestmt->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
+        break;
+    }
+    case AST::StmtType::Select: {
+        auto *ifstmt = stmt->cast<AST::Stmt::Select *>();
+        if (ifstmt->exp()->typeInfo().type != AST::Type::Bool) {
+            std::string error =
+                "Expecting Boolean test condition in if statement but got "
+                "type " +
+                AST::Types::toString(ifstmt->exp()->typeInfo().type) + ".";
+
+            m_messages[ifstmt->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
         break;
