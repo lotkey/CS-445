@@ -3,6 +3,7 @@
 #include "../Exp.hpp"
 #include "Op.hpp"
 
+#include <iostream>
 #include <map>
 #include <string>
 

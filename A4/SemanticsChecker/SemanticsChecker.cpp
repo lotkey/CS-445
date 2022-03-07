@@ -312,8 +312,9 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         auto *var = decl->cast<AST::Decl::Var *>();
 
         if (var->isInitialized()) {
-            if (var->initValue() != nullptr && var->initValue()->is(AST::ExpType::Op)) {
-                var->cast<AST::Exp::Op::Op *>()->deduceType();
+            if (var->initValue() != nullptr &&
+                var->initValue()->is(AST::ExpType::Op)) {
+                var->initValue()->cast<AST::Exp::Op::Op *>()->deduceType();
             }
 
             if (!var->initValue()->typeInfo().isConst) {
@@ -856,8 +857,9 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                     " but return has no value.";
                 m_messages[returnNode->lineNumber()].push_back(
                     {Message::Type::Error, error});
-            } else if (functionParent->typeInfo().type.value() !=
-                       returnNode->exp()->typeInfo().type.value()) {
+            } else if (returnNode->exp() != nullptr &&
+                       functionParent->typeInfo().type.value() !=
+                           returnNode->exp()->typeInfo().type.value()) {
                 std::string error =
                     "Function '" + functionParent->id() +
                     "' is expecting to return type " +
@@ -870,6 +872,9 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                 m_messages[returnNode->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }
+        } else {
+            // there shouldn't be a return statement outside of a function get
+            // real
         }
 
         break;
