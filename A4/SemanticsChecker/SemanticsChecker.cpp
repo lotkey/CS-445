@@ -21,7 +21,8 @@ int SemanticsChecker::numWarnings() const { return Message::numWarnings(); }
 
 void SemanticsChecker::print() const {
     if (!m_mainIsDefined) {
-        std::cout << "ERROR(LINKER): A function named 'main()' must be defined."
+        std::cout << "ERROR(LINKER): A function named 'main()' with no "
+                     "parameters must be defined."
                   << std::endl;
     }
 
@@ -81,16 +82,31 @@ void SemanticsChecker::enterScope(const std::optional<std::string> &name) {
     m_parms = nullptr;
 }
 
-void SemanticsChecker::leaveScope() {
+void SemanticsChecker::checkTopScope() {
     auto symbols = m_symbolTable.getImmediateSymbols();
 
     for (const auto &[id, symbol] : symbols) {
 
+        if (symbol.isDeclared() && symbol.decl()->lineNumber() == 0) {
+            continue;
+        }
+
         if (!symbol.isUsed()) {
-            std::string warning =
-                "The variable '" + id + "' seems not to be used.";
 
             if (symbol.isDeclared()) {
+
+                std::string warning = "The ";
+
+                if (symbol.decl()->is(AST::DeclType::Parm)) {
+                    warning += "parameter ";
+                } else if (symbol.decl()->is(AST::DeclType::Func)) {
+                    warning += "function ";
+                } else if (symbol.decl()->is(AST::DeclType::Var)) {
+                    warning += "variable ";
+                }
+
+                warning += "'" + id + "' seems not to be used.";
+
                 m_messages[symbol.decl()->lineNumber()].insert(
                     m_messages[symbol.decl()->lineNumber()].begin(),
                     {Message::Type::Warning, warning});
@@ -116,7 +132,10 @@ void SemanticsChecker::leaveScope() {
             }
         }
     }
+}
 
+void SemanticsChecker::leaveScope() {
+    checkTopScope();
     m_symbolTable.leave();
 }
 
@@ -133,6 +152,8 @@ void SemanticsChecker::analyze(AST::Node *tree) {
     delete ioLibrary;
 
     analyzeTree(tree);
+    // Check global scope
+    checkTopScope();
 }
 
 void SemanticsChecker::analyzeTree(AST::Node *tree) {
@@ -305,6 +326,9 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
             }
         } else {
             m_symbolTable.declare(decl->id(), decl);
+            if (decl->is(AST::DeclType::Func)) {
+                std::cout << "decl function" << std::endl;
+            }
         }
     }
 
@@ -861,8 +885,9 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                        functionParent->typeInfo().type.value() !=
                            returnNode->exp()->typeInfo().type.value()) {
                 std::string error =
-                    "Function '" + functionParent->id() +
-                    "' is expecting to return type " +
+                    "Function '" + functionParent->id() + "' at line " +
+                    std::to_string(functionParent->lineNumber()) +
+                    " is expecting to return type " +
                     AST::Types::toString(
                         functionParent->typeInfo().type.value()) +
                     " but returns type " +
@@ -872,9 +897,6 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                 m_messages[returnNode->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }
-        } else {
-            // there shouldn't be a return statement outside of a function get
-            // real
         }
 
         break;

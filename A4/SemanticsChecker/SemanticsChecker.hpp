@@ -34,6 +34,7 @@ class SemanticsChecker {
 
     void enterScope();
     void enterScope(const std::optional<std::string> &);
+    void checkTopScope();
     void leaveScope();
 
     void analyzeDefinitions(AST::Exp::Op::Asgn *);
