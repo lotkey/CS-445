@@ -31,12 +31,10 @@ class Func : public Decl {
          Node *compoundstmt);
 
     bool hasParms() const;
-    Parm *parms();
-    
-    virtual std::string toString(bool debugging = false) const override;
+    Parm *parms() const;
+    int numParms() const;
+    std::vector<Parm *> parmsVector() const;
 
-  protected:
-    Parm *m_parms = nullptr;
-    Stmt::Compound *m_compoundStmt = nullptr;
+    virtual std::string toString(bool debugging = false) const override;
 };
 } // namespace AST::Decl

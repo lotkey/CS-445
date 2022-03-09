@@ -3,6 +3,7 @@
 #include "Exp.hpp"
 
 #include <string>
+#include <vector>
 
 namespace AST::Exp {
 Call::Call() : Exp::Exp() { m_expType = ExpType::Call; }
@@ -28,4 +29,26 @@ std::string Call::toString(bool debugging) const {
 }
 
 Exp *Call::arglist() const { return getChild(0)->cast<Exp *>(); }
+
+int Call::numArgs() const {
+    int counter = 0;
+    Exp *arg = arglist();
+    while (arg != nullptr) {
+        counter++;
+        arg = arg->sibling()->cast<Exp *>();
+    }
+
+    return counter;
+}
+
+std::vector<Exp *> Call::argsVector() const {
+    std::vector<Exp *> v;
+    auto *arg = arglist();
+    while (arg != nullptr) {
+        v.push_back(arg);
+        arg = arg->sibling()->cast<Exp *>();
+    }
+
+    return v;
+}
 } // namespace AST::Exp

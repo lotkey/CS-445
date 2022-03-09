@@ -21,7 +21,7 @@ int SemanticsChecker::numWarnings() const { return Message::numWarnings(); }
 
 void SemanticsChecker::print() const {
     if (!m_mainIsDefined) {
-        std::cout << "ERROR(LINKER): A function named 'main()' with no "
+        std::cout << "ERROR(LINKER): A function named 'main' with no "
                      "parameters must be defined."
                   << std::endl;
     }
@@ -100,6 +100,9 @@ void SemanticsChecker::checkTopScope() {
                 if (symbol.decl()->is(AST::DeclType::Parm)) {
                     warning += "parameter ";
                 } else if (symbol.decl()->is(AST::DeclType::Func)) {
+                    if (symbol.decl()->cast<AST::Decl::Func*>()->id() == "main") {
+                        continue;
+                    }
                     warning += "function ";
                 } else if (symbol.decl()->is(AST::DeclType::Var)) {
                     warning += "variable ";
@@ -149,14 +152,17 @@ void SemanticsChecker::analyze(AST::Node *tree) {
 
     auto *ioLibrary = AST::ioLibraryTree();
     analyzeTree(ioLibrary);
-    delete ioLibrary;
 
     analyzeTree(tree);
     // Check global scope
     checkTopScope();
+    delete ioLibrary;
 }
 
 void SemanticsChecker::analyzeTree(AST::Node *tree) {
+    if (tree == nullptr) {
+        return;
+    }
 
     /// This is where nodes should be analyzed if they are declarations, uses,
     /// or definitions. They will be analyzed before their children. Set
@@ -326,9 +332,6 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
             }
         } else {
             m_symbolTable.declare(decl->id(), decl);
-            if (decl->is(AST::DeclType::Func)) {
-                std::cout << "decl function" << std::endl;
-            }
         }
     }
 
@@ -417,6 +420,54 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                     {Message::Type::Error, error});
             } else {
                 call->typeInfo() = m_symbolTable[call->id()].decl()->typeInfo();
+            }
+
+            auto *decl =
+                m_symbolTable[call->id()].decl()->cast<AST::Decl::Func *>();
+            if (decl->numParms() > call->numArgs()) {
+                std::string error = "Too few parameters passed for function '" +
+                                    call->id() + "' declared on line " +
+                                    std::to_string(decl->lineNumber()) + ".";
+
+                m_messages[call->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            } else if (decl->numParms() < call->numArgs()) {
+                std::string error =
+                    "Too many parameters passed for function '" + call->id() +
+                    "' declared on line " + std::to_string(decl->lineNumber()) +
+                    ".";
+
+                m_messages[call->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            } else {
+
+                auto parms = decl->parmsVector();
+                auto args = call->argsVector();
+
+                for (int i = 0; i < decl->numParms(); i++) {
+
+                    if (parms[i]->typeInfo().isArray &&
+                        !args[i]->typeInfo().isArray) {
+                        std::string error =
+                            "Expecting array in parameter " +
+                            std::to_string(i + 1) + " of call to '" +
+                            call->id() + "' declared on line " +
+                            std::to_string(decl->lineNumber()) + ".";
+
+                        m_messages[call->lineNumber()].push_back(
+                            {Message::Type::Error, error});
+                    } else if (!parms[i]->typeInfo().isArray &&
+                               args[i]->typeInfo().isArray) {
+                        std::string error =
+                            "Not expecting array in parameter " +
+                            std::to_string(i + 1) + " of call to '" +
+                            call->id() + "' declared on line " +
+                            std::to_string(decl->lineNumber()) + ".";
+
+                        m_messages[call->lineNumber()].push_back(
+                            {Message::Type::Error, error});
+                    }
+                }
             }
         }
 

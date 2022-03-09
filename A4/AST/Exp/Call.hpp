@@ -4,6 +4,7 @@
 #include "Exp.hpp"
 
 #include <string>
+#include <vector>
 
 namespace AST::Exp {
 /// Function call node
@@ -19,6 +20,8 @@ class Call : public Exp {
 
     const std::string &id() const;
     Exp* arglist() const;
+    int numArgs() const;
+    std::vector<Exp*> argsVector() const;
 
     virtual std::string toString(bool debugging = false) const override;
 

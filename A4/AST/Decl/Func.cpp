@@ -6,6 +6,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 namespace AST::Decl {
 Func::Func() : Decl::Decl() {
@@ -24,8 +25,6 @@ Func::Func(unsigned linenum, const std::string &id, Node *parms,
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);
-    m_parms = (Parm *)parms;
-    m_compoundStmt = (Stmt::Compound *)compoundstmt;
 }
 
 Func::Func(unsigned linenum, Type returnType, const std::string &id,
@@ -35,8 +34,6 @@ Func::Func(unsigned linenum, Type returnType, const std::string &id,
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);
-    m_parms = (Parm *)parms;
-    m_compoundStmt = (Stmt::Compound *)compoundstmt;
 }
 
 std::string Func::toString(bool debugging) const {
@@ -44,7 +41,29 @@ std::string Func::toString(bool debugging) const {
            Types::toString(m_typeInfo.type) + lineTag();
 }
 
-bool Func::hasParms() const { return m_parms != nullptr; }
+bool Func::hasParms() const { return getChild(0) != nullptr; }
 
-Parm *Func::parms() { return m_parms; }
+Parm *Func::parms() const { return getChild(0)->cast<Parm *>(); }
+
+int Func::numParms() const {
+    auto *parm = parms();
+    int counter = 0;
+    while (parm != nullptr) {
+        counter++;
+        parm = parm->sibling()->cast<Parm *>();
+    }
+
+    return counter;
+}
+
+std::vector<Parm *> Func::parmsVector() const {
+    std::vector<Parm *> v;
+    auto *parm = parms();
+    while (parm != nullptr) {
+        v.push_back(parm);
+        parm = parm->sibling()->cast<Parm *>();
+    }
+
+    return v;
+}
 } // namespace AST::Decl
