@@ -10,6 +10,7 @@ class Message {
     Type type() const;
     std::string content() const;
 
+    static void reset();
     static unsigned numWarnings();
     static unsigned numErrors();
 

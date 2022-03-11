@@ -4,30 +4,23 @@ namespace AST {
 [[nodiscard]] Node *ioLibraryTree() {
     auto *output_parm = new Decl::Parm(0, "i", false);
     output_parm->setType(Type::Int);
-    auto *output = new Decl::Func(0, "output", output_parm, nullptr);
-    output->setType(Type::Void);
+    auto *output = new Decl::Func(0, Type::Void, "output", output_parm, nullptr);
 
     auto *outputb_parm = new Decl::Parm(0, "b", false);
     outputb_parm->setType(Type::Bool);
-    auto *outputb = new Decl::Func(0, "outputb", outputb_parm, nullptr);
-    outputb->setType(Type::Void);
+    auto *outputb = new Decl::Func(0, Type::Void, "outputb", outputb_parm, nullptr);
 
     auto *outputc_parm = new Decl::Parm(0, "c", false);
     outputc_parm->setType(Type::Char);
-    auto *outputc = new Decl::Func(0, "outputc", outputc_parm, nullptr);
-    outputc->setType(Type::Void);
+    auto *outputc = new Decl::Func(0, Type::Void, "outputc", outputc_parm, nullptr);
 
-    auto *input = new Decl::Func(0, "input", nullptr, nullptr);
-    input->setType(Type::Int);
+    auto *input = new Decl::Func(0, Type::Int, "input", nullptr, nullptr);
 
-    auto *inputb = new Decl::Func(0, "inputb", nullptr, nullptr);
-    input->setType(Type::Bool);
+    auto *inputb = new Decl::Func(0, Type::Bool, "inputb", nullptr, nullptr);
 
-    auto *inputc = new Decl::Func(0, "inputc", nullptr, nullptr);
-    input->setType(Type::Char);
+    auto *inputc = new Decl::Func(0, Type::Char, "inputc", nullptr, nullptr);
 
-    auto *outnl = new Decl::Func(0, "outnl", nullptr, nullptr);
-    outnl->setType(Type::Void);
+    auto *outnl = new Decl::Func(0, Type::Void, "outnl", nullptr, nullptr);
 
     input->addSibling(inputb);
     input->addSibling(inputc);

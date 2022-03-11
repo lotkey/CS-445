@@ -19,3 +19,8 @@ std::string Message::content() const { return m_content; }
 unsigned Message::numErrors() { return s_numerrors; }
 
 unsigned Message::numWarnings() { return s_numwarnings; }
+
+void Message::reset() {
+    s_numerrors = 0;
+    s_numwarnings = 0;
+}

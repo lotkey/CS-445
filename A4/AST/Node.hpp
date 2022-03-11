@@ -56,6 +56,30 @@ class Node {
     const NodeType &nodeType() const;
 #pragma endregion
 
+#pragma region Ancestor
+    bool hasAncestor(NodeType) const;
+    bool hasAncestor(StmtType) const;
+    bool hasAncestor(DeclType) const;
+    bool hasAncestor(ExpType) const;
+    bool hasAncestor(OpType) const;
+    bool hasAncestor(BoolOpType) const;
+    bool hasAncestor(UnaryOpType) const;
+    bool hasAncestor(UnaryAsgnType) const;
+    bool hasAncestor(BinaryOpType) const;
+    bool hasAncestor(AsgnType) const;
+
+    Node* getClosestAncestor(NodeType) const;
+    Node* getClosestAncestor(StmtType) const;
+    Node* getClosestAncestor(DeclType) const;
+    Node* getClosestAncestor(ExpType) const;
+    Node* getClosestAncestor(OpType) const;
+    Node* getClosestAncestor(BoolOpType) const;
+    Node* getClosestAncestor(UnaryOpType) const;
+    Node* getClosestAncestor(UnaryAsgnType) const;
+    Node* getClosestAncestor(BinaryOpType) const;
+    Node* getClosestAncestor(AsgnType) const;
+#pragma endregion
+
 #pragma region Virtual functions
     /// Get a string representation of the node
     virtual std::string toString(bool debugging = false) const;
@@ -74,38 +98,9 @@ class Node {
 #pragma endregion
 
 #pragma region Templated functions
-
-    /// @param t Node type (enum)
-    /// @returns True if the node has an ancestor of type t
-    template <typename T> bool hasAncestor(T t) const {
-        Node *walker = parent();
-        while (walker != nullptr) {
-            if (walker->is(t)) {
-                return true;
-            }
-
-            walker = walker->parent();
-        }
-        return false;
-    }
-
     /// Casts the address of the Node to some type
     /// @returns The casted address
     template <typename T> T cast() const { return (T)this; }
-
-    /// @param t Node type (enum)
-    /// @returns Address of the closest ancestor that is the provided type
-    template <typename T> Node *getClosestAncestor(T t) const {
-        Node *walker = parent();
-        while (walker != nullptr) {
-            if (walker->is(t)) {
-                return walker;
-            }
-            walker = walker->parent();
-        }
-
-        return nullptr;
-    }
 #pragma endregion
 
   private:
@@ -123,5 +118,35 @@ class Node {
     /// @param index Returns the child at the specified index, nullptr if none
     /// exists
     Node *getChild(int index) const;
+
+#pragma region Private template functions
+    /// @param t Node type (enum)
+    /// @returns True if the node has an ancestor of type t
+    template <typename T> bool hasAncestor(T t) const {
+        Node *walker = parent();
+        while (walker != nullptr) {
+            if (walker->is(t)) {
+                return true;
+            }
+
+            walker = walker->parent();
+        }
+        return false;
+    }
+
+    /// @param t Node type (enum)
+    /// @returns Address of the closest ancestor that is the provided type
+    template <typename T> Node *getClosestAncestor(T t) const {
+        Node *walker = parent();
+        while (walker != nullptr) {
+            if (walker->is(t)) {
+                return walker;
+            }
+            walker = walker->parent();
+        }
+
+        return nullptr;
+    }
+#pragma endregion
 };
 } // namespace AST

@@ -11,11 +11,11 @@
 namespace AST::Decl {
 Func::Func() : Decl::Decl() {
     m_declType = DeclType::Func;
-    m_typeInfo.type = Type::Void;
+    m_typeInfo = {Type::Void, false, false};
 }
 
 Func::Func(unsigned linenum) : Decl::Decl(linenum, DeclType::Func) {
-    m_typeInfo.type = Type::Void;
+    m_typeInfo = {Type::Void, false, false};
 }
 
 Func::Func(unsigned linenum, const std::string &id, Node *parms,
@@ -29,7 +29,7 @@ Func::Func(unsigned linenum, const std::string &id, Node *parms,
 
 Func::Func(unsigned linenum, Type returnType, const std::string &id,
            Node *parms, Node *compoundstmt)
-    : Decl::Decl(linenum) {
+    : Decl::Decl(linenum, DeclType::Func) {
     m_typeInfo = {returnType, false, false};
     m_id = id;
     addChild(parms);
@@ -41,7 +41,7 @@ std::string Func::toString(bool debugging) const {
            Types::toString(m_typeInfo.type) + lineTag();
 }
 
-bool Func::hasParms() const { return getChild(0) != nullptr; }
+bool Func::hasParms() const { return parms() != nullptr; }
 
 Parm *Func::parms() const { return getChild(0)->cast<Parm *>(); }
 

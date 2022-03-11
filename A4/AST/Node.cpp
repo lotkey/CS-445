@@ -130,6 +130,77 @@ const NodeType &Node::nodeType() const { return m_nodeType; }
 
 #pragma endregion
 
+#pragma region Ancestor
+bool Node::hasAncestor(NodeType t) const { return hasAncestor<NodeType>(t); }
+
+bool Node::hasAncestor(StmtType t) const { return hasAncestor<StmtType>(t); }
+
+bool Node::hasAncestor(DeclType t) const { return hasAncestor<DeclType>(t); }
+
+bool Node::hasAncestor(ExpType t) const { return hasAncestor<ExpType>(t); }
+
+bool Node::hasAncestor(OpType t) const { return hasAncestor<OpType>(t); }
+
+bool Node::hasAncestor(BoolOpType t) const {
+    return hasAncestor<BoolOpType>(t);
+}
+
+bool Node::hasAncestor(UnaryOpType t) const {
+    return hasAncestor<UnaryOpType>(t);
+}
+
+bool Node::hasAncestor(UnaryAsgnType t) const {
+    return hasAncestor<UnaryAsgnType>(t);
+}
+
+bool Node::hasAncestor(BinaryOpType t) const {
+    return hasAncestor<BinaryOpType>(t);
+}
+
+bool Node::hasAncestor(AsgnType t) const { return hasAncestor<AsgnType>(t); }
+
+Node *Node::getClosestAncestor(NodeType t) const {
+    return getClosestAncestor<NodeType>(t);
+}
+
+Node *Node::getClosestAncestor(StmtType t) const {
+    return getClosestAncestor<StmtType>(t);
+}
+
+Node *Node::getClosestAncestor(DeclType t) const {
+    return getClosestAncestor<DeclType>(t);
+}
+
+Node *Node::getClosestAncestor(ExpType t) const {
+    return getClosestAncestor<ExpType>(t);
+}
+
+Node *Node::getClosestAncestor(OpType t) const {
+    return getClosestAncestor<OpType>(t);
+}
+
+Node *Node::getClosestAncestor(BoolOpType t) const {
+    return getClosestAncestor<BoolOpType>(t);
+}
+
+Node *Node::getClosestAncestor(UnaryOpType t) const {
+    return getClosestAncestor<UnaryOpType>(t);
+}
+
+Node *Node::getClosestAncestor(UnaryAsgnType t) const {
+    return getClosestAncestor<UnaryAsgnType>(t);
+}
+
+Node *Node::getClosestAncestor(BinaryOpType t) const {
+    return getClosestAncestor<BinaryOpType>(t);
+}
+
+Node *Node::getClosestAncestor(AsgnType t) const {
+    return getClosestAncestor<AsgnType>(t);
+}
+
+#pragma endregion
+
 #pragma region Virtual functions
 
 std::string Node::toString(bool debugging) const { return lineTag(); }

@@ -24,8 +24,6 @@ class SemanticsChecker {
     /// Mapping for errors and warning messages
     /// Maps from line number to bucket of messages
     std::map<unsigned, std::vector<Message>> m_messages;
-    unsigned m_numErrors = 0;
-    unsigned m_numWarnings = 0;
     std::optional<std::string> m_scopeName;
     bool m_mainIsDefined;
     bool m_analyzed = false;
