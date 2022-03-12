@@ -10,12 +10,12 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
     case AST::ExpType::Call: {
         auto *call = exp->cast<AST::Exp::Call *>();
 
-        if (!m_symbolTable.contains(call->id())) {
+        if (!m_symbolTable[call->id()].isDeclared()) {
 
             std::string error = "Symbol '" + call->id() + "' is not declared.";
             m_messages[call->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        } else if (m_symbolTable[call->id()].isDeclared()) {
+        } else {
 
             m_symbolTable[call->id()].use(call->lineNumber());
 
@@ -29,53 +29,75 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                     {Message::Type::Error, error});
             } else {
                 call->typeInfo() = m_symbolTable[call->id()].decl()->typeInfo();
-            }
 
-            auto *decl =
-                m_symbolTable[call->id()].decl()->cast<AST::Decl::Func *>();
-            if (decl->numParms() > call->numArgs()) {
-                std::string error = "Too few parameters passed for function '" +
-                                    call->id() + "' declared on line " +
-                                    std::to_string(decl->lineNumber()) + ".";
+                auto *decl =
+                    m_symbolTable[call->id()].decl()->cast<AST::Decl::Func *>();
+                if (decl->numParms() > call->numArgs()) {
+                    std::string error =
+                        "Too few parameters passed for function '" +
+                        call->id() + "' declared on line " +
+                        std::to_string(decl->lineNumber()) + ".";
 
-                m_messages[call->lineNumber()].push_back(
-                    {Message::Type::Error, error});
-            } else if (decl->numParms() < call->numArgs()) {
-                std::string error =
-                    "Too many parameters passed for function '" + call->id() +
-                    "' declared on line " + std::to_string(decl->lineNumber()) +
-                    ".";
+                    m_messages[call->lineNumber()].push_back(
+                        {Message::Type::Error, error});
+                } else if (decl->numParms() < call->numArgs()) {
+                    std::string error =
+                        "Too many parameters passed for function '" +
+                        call->id() + "' declared on line " +
+                        std::to_string(decl->lineNumber()) + ".";
 
-                m_messages[call->lineNumber()].push_back(
-                    {Message::Type::Error, error});
-            } else {
+                    m_messages[call->lineNumber()].push_back(
+                        {Message::Type::Error, error});
+                } else {
 
-                auto parms = decl->parmsVector();
-                auto args = call->argsVector();
+                    auto parms = decl->parmsVector();
+                    auto args = call->argsVector();
 
-                for (int i = 0; i < decl->numParms(); i++) {
+                    for (int i = 0; i < decl->numParms(); i++) {
 
-                    if (parms[i]->typeInfo().isArray &&
-                        !args[i]->typeInfo().isArray) {
+                        if (parms[i]->typeInfo().isArray &&
+                            !args[i]->typeInfo().isArray) {
 
-                        std::string error =
-                            "Expecting array in parameter " +
-                            std::to_string(i + 1) + " of call to '" +
-                            call->id() + "' declared on line " +
-                            std::to_string(decl->lineNumber()) + ".";
+                            std::string error =
+                                "Expecting array in parameter " +
+                                std::to_string(i + 1) + " of call to '" +
+                                call->id() + "' declared on line " +
+                                std::to_string(decl->lineNumber()) + ".";
 
-                        m_messages[call->lineNumber()].push_back(
-                            {Message::Type::Error, error});
-                    } else if (!parms[i]->typeInfo().isArray &&
-                               args[i]->typeInfo().isArray) {
-                        std::string error =
-                            "Not expecting array in parameter " +
-                            std::to_string(i + 1) + " of call to '" +
-                            call->id() + "' declared on line " +
-                            std::to_string(decl->lineNumber()) + ".";
+                            m_messages[call->lineNumber()].push_back(
+                                {Message::Type::Error, error});
+                        } else if (!parms[i]->typeInfo().isArray &&
+                                   args[i]->typeInfo().isArray) {
+                            std::string error =
+                                "Not expecting array in parameter " +
+                                std::to_string(i + 1) + " of call to '" +
+                                call->id() + "' declared on line " +
+                                std::to_string(decl->lineNumber()) + ".";
 
-                        m_messages[call->lineNumber()].push_back(
-                            {Message::Type::Error, error});
+                            m_messages[call->lineNumber()].push_back(
+                                {Message::Type::Error, error});
+                        }
+
+                        if (parms[i]->typeInfo().type.has_value() &&
+                            args[i]->typeInfo().type.has_value() &&
+                            parms[i]->typeInfo().type.value() !=
+                                args[i]->typeInfo().type.value()) {
+                            std::string error =
+                                "Expecting type " +
+                                AST::Types::toString(
+                                    parms[i]->typeInfo().type.value()) +
+                                " in parameter " + std::to_string(i + 1) +
+                                " of call to '" + call->id() +
+                                "' declared on line " +
+                                std::to_string(decl->lineNumber()) +
+                                " but got type " +
+                                AST::Types::toString(
+                                    args[i]->typeInfo().type.value()) +
+                                ".";
+
+                            m_messages[call->lineNumber()].push_back(
+                                {Message::Type::Error, error});
+                        }
                     }
                 }
             }
@@ -87,7 +109,6 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
         auto *id = exp->cast<AST::Exp::Id *>();
 
         if (m_symbolTable[id->id()].isDeclared()) {
-            id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
 
             if (m_symbolTable[id->id()].decl()->declType() ==
                 AST::DeclType::Func) {
@@ -96,6 +117,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                     "Cannot use function '" + id->id() + "' as a variable.";
                 m_messages[id->lineNumber()].push_back(
                     {Message::Type::Error, error});
+            } else {
+                id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
             }
 
         } else {
@@ -444,8 +467,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
                 {Message::Type::Error, error});
         }
 
-        if (op->exp1()->typeInfo().type != AST::Type::Bool &&
-            op->exp1()->typeInfo().type.has_value()) {
+        if (op->exp1()->typeInfo().type.has_value() &&
+            op->exp1()->typeInfo().type.value() != AST::Type::Bool) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires operands of type bool but lhs is of type " +
@@ -455,7 +478,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
                 {Message::Type::Error, error});
         }
 
-        if (op->exp2()->typeInfo().type != AST::Type::Bool) {
+        if (op->exp2()->typeInfo().type.has_value() &&
+            op->exp2()->typeInfo().type.value() != AST::Type::Bool) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires operands of type bool but rhs is of type " +
@@ -465,9 +489,10 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
                 {Message::Type::Error, error});
         }
     } else {
-        if (op->exp1()->typeInfo().type != op->exp2()->typeInfo().type &&
-            op->exp1()->typeInfo().type.has_value() &&
-            op->exp2()->typeInfo().type.has_value()) {
+        if (op->exp1()->typeInfo().type.has_value() &&
+            op->exp2()->typeInfo().type.has_value() &&
+            op->exp1()->typeInfo().type.value() !=
+                op->exp2()->typeInfo().type.value()) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires operands of the same type but lhs is "

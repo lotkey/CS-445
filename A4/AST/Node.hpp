@@ -39,6 +39,7 @@ class Node {
     void addSibling(Node *node);
     /// @returns The address of the sibling, nullptr if none
     Node *sibling() const;
+    std::vector<Node *> siblings() const;
     /// @returns The address of the parent, nullptr if none
     Node *parent() const;
     /// @returns The vector of children nodes
@@ -68,16 +69,29 @@ class Node {
     bool hasAncestor(BinaryOpType) const;
     bool hasAncestor(AsgnType) const;
 
-    Node* getClosestAncestor(NodeType) const;
-    Node* getClosestAncestor(StmtType) const;
-    Node* getClosestAncestor(DeclType) const;
-    Node* getClosestAncestor(ExpType) const;
-    Node* getClosestAncestor(OpType) const;
-    Node* getClosestAncestor(BoolOpType) const;
-    Node* getClosestAncestor(UnaryOpType) const;
-    Node* getClosestAncestor(UnaryAsgnType) const;
-    Node* getClosestAncestor(BinaryOpType) const;
-    Node* getClosestAncestor(AsgnType) const;
+    Node *getClosestAncestor(NodeType) const;
+    Node *getClosestAncestor(StmtType) const;
+    Node *getClosestAncestor(DeclType) const;
+    Node *getClosestAncestor(ExpType) const;
+    Node *getClosestAncestor(OpType) const;
+    Node *getClosestAncestor(BoolOpType) const;
+    Node *getClosestAncestor(UnaryOpType) const;
+    Node *getClosestAncestor(UnaryAsgnType) const;
+    Node *getClosestAncestor(BinaryOpType) const;
+    Node *getClosestAncestor(AsgnType) const;
+#pragma endregion
+
+#pragma region Children
+    bool hasChild(NodeType) const;
+    bool hasChild(StmtType) const;
+    bool hasChild(DeclType) const;
+    bool hasChild(ExpType) const;
+    bool hasChild(OpType) const;
+    bool hasChild(BoolOpType) const;
+    bool hasChild(UnaryOpType) const;
+    bool hasChild(UnaryAsgnType) const;
+    bool hasChild(BinaryOpType) const;
+    bool hasChild(AsgnType) const;
 #pragma endregion
 
 #pragma region Virtual functions
@@ -120,6 +134,31 @@ class Node {
     Node *getChild(int index) const;
 
 #pragma region Private template functions
+    template <typename T> bool hasChildInclusive(T t) const {
+
+        if (this == nullptr) {
+            return false;
+        }
+
+        if (is(t)) {
+            return true;
+        }
+
+        for (const auto &sibling : siblings()) {
+            if (sibling->hasChildInclusive<T>(t)) {
+                return true;
+            }
+        }
+
+        for (const auto &child : children()) {
+            if (child->hasChildInclusive<T>(t)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// @param t Node type (enum)
     /// @returns True if the node has an ancestor of type t
     template <typename T> bool hasAncestor(T t) const {

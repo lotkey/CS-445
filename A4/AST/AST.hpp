@@ -9,4 +9,5 @@
 /// Abstract Syntax Tree
 namespace AST {
 [[nodiscard]] Node *ioLibraryTree();
+static constexpr int libraryLineNumber = -1;
 }

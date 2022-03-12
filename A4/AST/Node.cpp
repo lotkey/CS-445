@@ -79,6 +79,16 @@ void Node::addSibling(Node *node) {
 
 Node *Node::sibling() const { return m_sibling; }
 
+std::vector<Node *> Node::siblings() const {
+    std::vector<Node *> v;
+    Node *walker = sibling();
+    while (walker != nullptr) {
+        v.push_back(walker);
+        walker = walker->sibling();
+    }
+    return v;
+}
+
 Node *Node::parent() const { return m_parent; }
 
 const std::vector<Node *> &Node::children() const { return m_children; }
@@ -199,6 +209,98 @@ Node *Node::getClosestAncestor(AsgnType t) const {
     return getClosestAncestor<AsgnType>(t);
 }
 
+#pragma endregion
+
+#pragma region Child
+bool Node::hasChild(NodeType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<NodeType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(StmtType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<StmtType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(DeclType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<DeclType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(ExpType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<ExpType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(OpType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<OpType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(BoolOpType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<BoolOpType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(UnaryOpType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<UnaryOpType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(UnaryAsgnType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<UnaryAsgnType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(BinaryOpType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<BinaryOpType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::hasChild(AsgnType t) const {
+    for (const auto &child : children()) {
+        if (child->hasChildInclusive<AsgnType>(t)) {
+            return true;
+        }
+    }
+    return false;
+}
 #pragma endregion
 
 #pragma region Virtual functions

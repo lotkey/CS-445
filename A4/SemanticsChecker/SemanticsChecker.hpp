@@ -34,9 +34,10 @@ class SemanticsChecker {
     void enterScope(const std::optional<std::string> &);
     void checkTopScope();
     void leaveScope();
-
+    void deduceTypeFromTable(AST::Node *);
     void analyzeDefinitions(AST::Exp::Op::Asgn *);
     void analyzeTree(AST::Node *);
+
     void analyzeNode(AST::Decl::Decl *);
     void analyzeNode(AST::Exp::Exp *);
     void analyzeNode(AST::Exp::Op::Op *);

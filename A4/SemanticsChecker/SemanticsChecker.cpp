@@ -87,39 +87,52 @@ void SemanticsChecker::checkTopScope() {
 
     for (const auto &[id, symbol] : symbols) {
 
-        if (symbol.isDeclared() && symbol.decl()->lineNumber() == 0) {
+        if (!symbol.isDeclared()) {
             continue;
+        } else if (symbol.decl()->lineNumber() == AST::libraryLineNumber) {
+            // library symbol
+            continue;
+        }
+
+        if (symbol.decl()->is(AST::DeclType::Func)) {
+            auto *funcdecl = symbol.decl()->cast<AST::Decl::Func *>();
+            if (funcdecl->typeInfo().type.value() != AST::Type::Void &&
+                !funcdecl->hasChild(AST::StmtType::Return)) {
+                std::string error =
+                    "Expecting to return type " +
+                    AST::Types::toString(funcdecl->typeInfo().type.value()) +
+                    " but function '" + funcdecl->id() +
+                    "' has no return statement.";
+
+                m_messages[funcdecl->lineNumber()].push_back(
+                    {Message::Type::Error, error});
+            }
         }
 
         if (!symbol.isUsed()) {
 
-            if (symbol.isDeclared()) {
+            std::string warning = "The ";
 
-                std::string warning = "The ";
-
-                if (symbol.decl()->is(AST::DeclType::Parm)) {
-                    warning += "parameter ";
-                } else if (symbol.decl()->is(AST::DeclType::Func)) {
-                    if (symbol.decl()->cast<AST::Decl::Func *>()->id() ==
-                        "main") {
-                        continue;
-                    }
-                    warning += "function ";
-                } else if (symbol.decl()->is(AST::DeclType::Var)) {
-                    warning += "variable ";
+            if (symbol.decl()->is(AST::DeclType::Parm)) {
+                warning += "parameter ";
+            } else if (symbol.decl()->is(AST::DeclType::Func)) {
+                if (symbol.decl()->cast<AST::Decl::Func *>()->id() == "main") {
+                    continue;
                 }
-
-                warning += "'" + id + "' seems not to be used.";
-
-                m_messages[symbol.decl()->lineNumber()].insert(
-                    m_messages[symbol.decl()->lineNumber()].begin(),
-                    {Message::Type::Warning, warning});
+                warning += "function ";
+            } else if (symbol.decl()->is(AST::DeclType::Var)) {
+                warning += "variable ";
             }
+
+            warning += "'" + id + "' seems not to be used.";
+
+            m_messages[symbol.decl()->lineNumber()].insert(
+                m_messages[symbol.decl()->lineNumber()].begin(),
+                {Message::Type::Warning, warning});
         }
 
-        if (symbol.isDeclared() &&
-            symbol.decl()->declType() == AST::DeclType::Var &&
-            !symbol.decl()->typeInfo().isStatic) {
+        if (symbol.decl()->declType() == AST::DeclType::Var &&
+            !symbol.decl()->typeInfo().isStatic && m_symbolTable.depth() > 1) {
 
             if (!symbol.linesUsedBeforeDefined().empty()) {
 
@@ -143,6 +156,33 @@ void SemanticsChecker::leaveScope() {
     m_symbolTable.leave();
 }
 
+void SemanticsChecker::deduceTypeFromTable(AST::Node *node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    if (node->is(AST::ExpType::Id)) {
+        auto *id = node->cast<AST::Exp::Id *>();
+        if (m_symbolTable[id->id()].isDeclared() &&
+            m_symbolTable[id->id()].decl()->declType() != AST::DeclType::Func) {
+            id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
+        }
+
+    } else if (node->is(AST::ExpType::Call)) {
+        auto *call = node->cast<AST::Exp::Call *>();
+
+        for (const auto &arg : call->argsVector()) {
+            deduceTypeFromTable(arg);
+        }
+
+        if (m_symbolTable[call->id()].isDeclared() &&
+            m_symbolTable[call->id()].decl()->declType() ==
+                AST::DeclType::Func) {
+            call->typeInfo() = m_symbolTable[call->id()].decl()->typeInfo();
+        }
+    }
+}
+
 void SemanticsChecker::analyze(AST::Node *tree) {
     m_analyzed = true;
     m_mainIsDefined = false;
@@ -164,39 +204,31 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
         return;
     }
 
-    /// This is where nodes should be analyzed if they are declarations, uses,
-    /// or definitions. They will be analyzed before their children. Set
-    /// nodeWasAnalyzed to make sure they do not get analyzed twice.
+    /// This is where nodes should be analyzed if they are declarations,
+    /// uses, or definitions. They will be analyzed before their children.
+    /// Set nodeWasAnalyzed to make sure they do not get analyzed twice.
     bool nodeWasAnalyzed = true;
     if (tree->is(AST::NodeType::Decl)) {
-        analyzeNode(tree->cast<AST::Decl::Decl *>());
-    } else if (tree->is(AST::ExpType::Id)) {
-        analyzeNode(tree->cast<AST::Exp::Exp *>());
-    } else if (tree->is(AST::ExpType::Call)) {
-
-        auto *call = tree->cast<AST::Exp::Call *>();
-
-        for (const auto &parm : call->argsVector()) {
-            if (parm->cast<AST::Node *>()->is(AST::ExpType::Id)) {
-                analyzeNode(parm->cast<AST::Exp::Exp *>());
-            } else if (parm->cast<AST::Node *>()->is(AST::ExpType::Call)) {
-                analyzeNode(parm->cast<AST::Exp::Exp *>());
-            }
+        auto *decl = tree->cast<AST::Decl::Decl *>();
+        if (decl->is(AST::DeclType::Var) &&
+            decl->cast<AST::Decl::Var *>()->isInitialized()) {
+            deduceTypeFromTable(decl->cast<AST::Decl::Var *>()->initValue());
         }
 
-        analyzeNode(call);
-
+        analyzeNode(tree->cast<AST::Decl::Decl *>());
     } else {
         nodeWasAnalyzed = false;
     }
+
+    deduceTypeFromTable(tree);
 
     if (tree->is(AST::AsgnType::Asgn)) {
         analyzeDefinitions(tree->cast<AST::Exp::Op::Asgn *>());
     }
 
     /// Entering scopes
-    /// Compound statements define scopes, but they can share the same scope as
-    /// a for scope.
+    /// Compound statements define scopes, but they can share the same scope
+    /// as a for scope.
     if (tree->is(AST::StmtType::Compound) &&
         !(tree->parent() != nullptr &&
           tree->parent()->is(AST::StmtType::For))) {

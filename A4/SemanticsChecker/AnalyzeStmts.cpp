@@ -1,6 +1,6 @@
-#include "SemanticsChecker.hpp"
 #include "../AST/AST.hpp"
 #include "../SymbolTable/SymbolTable.hpp"
+#include "SemanticsChecker.hpp"
 
 #include <iostream>
 
@@ -81,7 +81,9 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                         {Message::Type::Error, error});
                 }
 
-                if (rangeChildren[i]->typeInfo().type != AST::Type::Int) {
+                if (rangeChildren[i]->typeInfo().type.has_value() &&
+                    rangeChildren[i]->typeInfo().type.value() !=
+                        AST::Type::Int) {
                     std::string error =
                         "Expecting type int in position " +
                         std::to_string(i + 1) +
@@ -109,7 +111,16 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     }
     case AST::StmtType::While: {
         auto *whilestmt = stmt->cast<AST::Stmt::While *>();
-        if (whilestmt->exp()->typeInfo().type != AST::Type::Bool) {
+
+        if (whilestmt->exp()->typeInfo().isArray) {
+            std::string error =
+                "Cannot use array as test condition in while statement.";
+            m_messages[whilestmt->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
+
+        if (whilestmt->exp()->typeInfo().type.has_value() &&
+            whilestmt->exp()->typeInfo().type.value() != AST::Type::Bool) {
             std::string error =
                 "Expecting Boolean test condition in while statement but got "
                 "type " +
@@ -122,7 +133,16 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     }
     case AST::StmtType::Select: {
         auto *ifstmt = stmt->cast<AST::Stmt::Select *>();
-        if (ifstmt->exp()->typeInfo().type != AST::Type::Bool) {
+
+        if (ifstmt->exp()->typeInfo().isArray) {
+            std::string error =
+                "Cannot use array as test condition in if statement.";
+            m_messages[ifstmt->lineNumber()].push_back(
+                {Message::Type::Error, error});
+        }
+
+        if (ifstmt->exp()->typeInfo().type.has_value() &&
+            ifstmt->exp()->typeInfo().type.value() != AST::Type::Bool) {
             std::string error =
                 "Expecting Boolean test condition in if statement but got "
                 "type " +

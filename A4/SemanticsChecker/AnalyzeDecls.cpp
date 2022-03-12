@@ -14,8 +14,8 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 
         if (func->id() == "main") {
             if (!func->hasParms() &&
-                    func->typeInfo().type.value() == AST::Type::Void ||
-                func->typeInfo().type.value() == AST::Type::Int) {
+                (func->typeInfo().type.value() == AST::Type::Void ||
+                 func->typeInfo().type.value() == AST::Type::Int)) {
                 m_mainIsDefined = true;
             } else {
                 m_mainIsDefined = false;
