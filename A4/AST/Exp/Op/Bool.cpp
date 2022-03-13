@@ -3,16 +3,16 @@
 namespace AST::Exp::Op {
 Bool::Bool() : Binary::Binary() {
     m_binaryOpType = BinaryOpType::Bool;
-    m_typeInfo.type = Type::Bool;
+    setType(Type::Bool);
 }
 
 Bool::Bool(unsigned linenum) : Binary::Binary(linenum, BinaryOpType::Bool) {
-    m_typeInfo.type = Type::Bool;
+    setType(Type::Bool);
 }
 
 Bool::Bool(unsigned linenum, BoolOpType boolOpType)
     : Binary::Binary(linenum, BinaryOpType::Bool), m_boolOpType(boolOpType) {
-    m_typeInfo.type = Type::Bool;
+    setType(Type::Bool);
 }
 
 std::string Bool::toString(bool debugging) const {

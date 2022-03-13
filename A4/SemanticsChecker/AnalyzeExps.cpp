@@ -252,7 +252,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                 }
 
                 op->setTypeInfo(id->getTypeInfo());
-                op->isArray() = false;
+                op->setIsArray(false);
 
                 if (binary->exp2()->hasType() &&
                     binary->exp2()->type() != AST::Type::Int) {

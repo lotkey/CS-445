@@ -65,12 +65,12 @@ void Unary::deduceType() {
     }
     case UnaryOpType::Chsign: {
         setType(Type::Int);
-        isConst() = operand() != nullptr && operand()->isConst();
+        setIsConst(operand() != nullptr && operand()->isConst());
         break;
     }
     case UnaryOpType::Not: {
         setType(Type::Bool);
-        isConst() = operand() != nullptr && operand()->isConst();
+        setIsConst(operand() != nullptr && operand()->isConst());
         break;
     }
     case UnaryOpType::Random: {

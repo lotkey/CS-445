@@ -16,7 +16,6 @@ class Exp : public TypedNode {
     virtual bool is(ExpType) const override;
 
   protected:
-    TypeInfo m_typeInfo;
     ExpType m_expType;
 
     virtual std::string typeTag() const override;

@@ -37,8 +37,8 @@ Func::Func(unsigned linenum, Type returnType, const std::string &id,
 }
 
 std::string Func::toString(bool debugging) const {
-    return "Func: " + m_id + " returns type " + Types::toString(type()) +
-           lineTag();
+    return "Func: " + m_id + " returns type " +
+           Types::toString(typeOptional()) + lineTag();
 }
 
 bool Func::hasParms() const { return parms() != nullptr; }

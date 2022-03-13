@@ -7,23 +7,23 @@
 #include <variant>
 
 namespace AST::Exp {
-Const::Const() : Exp::Exp() { m_typeInfo.isConst = true; }
+Const::Const() : Exp::Exp() { setIsConst(true); }
 
 Const::Const(unsigned linenum) : Exp::Exp(linenum, ExpType::Const) {
-    m_typeInfo.isConst = true;
+    setIsConst(true);
 }
 
 Const::Const(unsigned linenum, TypeInfo typeInfo, std::string value)
     : Exp::Exp(linenum, ExpType::Const) {
-    m_typeInfo = typeInfo;
-    m_typeInfo.isConst = true;
-    switch (m_typeInfo.type.value()) {
+    setTypeInfo(typeInfo);
+    setIsConst(true);
+    switch (type()) {
     case Type::Bool: {
         m_value = (value == "true");
         break;
     }
     case Type::Char: {
-        if (m_typeInfo.isArray) {
+        if (isArray()) {
             m_value = strutil::remove_quotes(value);
             break;
         } else {

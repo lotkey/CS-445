@@ -3,6 +3,8 @@
 #include "Node.hpp"
 #include "Types.hpp"
 
+#include <optional>
+
 namespace AST {
 class TypedNode : public Node {
   public:
@@ -11,13 +13,14 @@ class TypedNode : public Node {
     TypedNode(unsigned linenum, NodeType nodeType);
 
     bool isConst() const;
-    bool &isConst();
+    void setIsConst(bool);
     bool isArray() const;
-    bool &isArray();
+    void setIsArray(bool);
     bool isStatic() const;
-    bool &isStatic();
+    void setIsStatic(bool);
     bool hasType() const;
     Type type() const;
+    std::optional<Type> typeOptional() const;
     void setType(Type);
     TypeInfo getTypeInfo() const;
     void setTypeInfo(TypeInfo);
