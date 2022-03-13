@@ -24,6 +24,7 @@ class Var : public Decl {
     /// Set the variable and its siblings to static
     void setStatic();
 
+    virtual void setType(Type) override;
     virtual std::string toString(bool debugging = false) const override;
 };
 } // namespace AST::Decl

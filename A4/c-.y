@@ -97,7 +97,7 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI
                     {
                         AST::Decl::Var *var = (AST::Decl::Var *)$3;
                         var->setType($2);
-                        var->setStatic();
+                        var->setIsStatic(true);
                         $$ = var;
 					}
                     | typeSpec varDeclList SEMI

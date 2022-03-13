@@ -23,4 +23,11 @@ std::string Parm::toString(bool debugging) const {
     str += " of type " + Types::toString(typeOptional()) + lineTag();
     return str;
 }
+
+void Parm::setType(Type t) {
+    TypedNode::setType(t);
+    if (hasSibling() && sibling()->is(DeclType::Parm)) {
+        sibling()->cast<Parm *>()->setType(t);
+    }
+}
 } // namespace AST::Decl

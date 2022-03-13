@@ -42,5 +42,12 @@ bool Var::isInitialized() const {
     return !m_children.empty() && m_children[0] != nullptr;
 }
 
+void Var::setType(Type t) {
+    TypedNode::setType(t);
+    if (sibling() != nullptr && sibling()->is(DeclType::Var)) {
+        sibling()->cast<Var *>()->setType(t);
+    }
+}
+
 Exp::Exp *Var::initValue() { return getChild(0)->cast<Exp::Exp *>(); }
 } // namespace AST::Decl

@@ -94,7 +94,7 @@ void SemanticsChecker::checkTopScope() {
             continue;
         }
 
-        if (!(symbol.isUsed() || symbol.isIterator())) {
+        if (!symbol.isUsed()) {
 
             std::string warning = "The ";
 

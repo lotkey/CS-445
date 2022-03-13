@@ -21,7 +21,7 @@ class TypedNode : public Node {
     bool hasType() const;
     Type type() const;
     std::optional<Type> typeOptional() const;
-    void setType(Type);
+    virtual void setType(Type);
     TypeInfo getTypeInfo() const;
     void setTypeInfo(TypeInfo);
 
