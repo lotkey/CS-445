@@ -19,14 +19,14 @@ Symbol &Symbol::declare(AST::Decl::Decl *decl) {
     return *this;
 }
 
-Symbol &Symbol::define(unsigned linenum) {
+Symbol &Symbol::define(int linenum) {
     if (!m_lineDefined.has_value()) {
         m_lineDefined = linenum;
     }
     return *this;
 }
 
-Symbol &Symbol::use(unsigned linenum) {
+Symbol &Symbol::use(int linenum) {
     if (!isDefined()) {
         m_linesUsedBeforeDefined.push_back(linenum);
     } else {
@@ -53,13 +53,13 @@ void Symbol::setIterator(bool b) { m_isIterator = b; }
 
 AST::Decl::Decl *Symbol::decl() const { return m_decl; }
 
-std::vector<unsigned> Symbol::linesUsedBeforeDefined() const {
-    std::vector<unsigned> linesused = m_linesUsedBeforeDefined;
+std::vector<int> Symbol::linesUsedBeforeDefined() const {
+    std::vector<int> linesused = m_linesUsedBeforeDefined;
     std::sort(linesused.begin(), linesused.end());
 
     return linesused;
 }
 
-const std::optional<unsigned> &Symbol::lineDefined() const {
+const std::optional<int> &Symbol::lineDefined() const {
     return m_lineDefined;
 }
