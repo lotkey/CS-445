@@ -36,7 +36,7 @@ std::string UnaryAsgn::toString(bool debugging) const {
 
 void UnaryAsgn::deduceType() {
     if (mutableExp() != nullptr) {
-        m_typeInfo = mutableExp()->typeInfo();
+        setTypeInfo(mutableExp()->getTypeInfo());
     }
 }
 

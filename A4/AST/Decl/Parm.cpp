@@ -11,16 +11,16 @@ Parm::Parm(unsigned linenum) : Decl::Decl(linenum, DeclType::Parm) {}
 
 Parm::Parm(unsigned linenum, const std::string &id, bool isArray)
     : Decl::Decl(linenum, DeclType::Parm) {
-    m_typeInfo.isArray = isArray;
+    this->isArray() = isArray;
     m_id = id;
 }
 
 std::string Parm::toString(bool debugging) const {
     std::string str = "Parm: " + m_id;
-    if (m_typeInfo.isArray) {
+    if (isArray()) {
         str += " is array";
     }
-    str += " of type " + Types::toString(m_typeInfo.type.value()) + lineTag();
+    str += " of type " + Types::toString(type()) + lineTag();
     return str;
 }
 } // namespace AST::Decl

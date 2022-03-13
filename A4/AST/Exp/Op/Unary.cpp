@@ -64,23 +64,21 @@ void Unary::deduceType() {
         break;
     }
     case UnaryOpType::Chsign: {
-        m_typeInfo.type = Type::Int;
-        m_typeInfo.isConst =
-            operand() != nullptr && operand()->typeInfo().isConst;
+        setType(Type::Int);
+        isConst() = operand() != nullptr && operand()->isConst();
         break;
     }
     case UnaryOpType::Not: {
-        m_typeInfo.type = Type::Bool;
-        m_typeInfo.isConst =
-            operand() != nullptr && operand()->typeInfo().isConst;
+        setType(Type::Bool);
+        isConst() = operand() != nullptr && operand()->isConst();
         break;
     }
     case UnaryOpType::Random: {
-        m_typeInfo.type = Type::Int;
+        setType(Type::Int);
         break;
     }
     case UnaryOpType::Sizeof: {
-        m_typeInfo.type = Type::Int;
+        setType(Type::Int);
         break;
     }
     }

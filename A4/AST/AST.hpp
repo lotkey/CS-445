@@ -4,6 +4,7 @@
 #include "Exp/include.hpp"
 #include "Node.hpp"
 #include "Stmt/include.hpp"
+#include "TypedNode.hpp"
 #include "Types.hpp"
 
 /// Abstract Syntax Tree

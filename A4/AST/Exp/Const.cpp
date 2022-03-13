@@ -7,9 +7,7 @@
 #include <variant>
 
 namespace AST::Exp {
-Const::Const() : Exp::Exp() {
-    m_typeInfo.isConst = true;
-}
+Const::Const() : Exp::Exp() { m_typeInfo.isConst = true; }
 
 Const::Const(unsigned linenum) : Exp::Exp(linenum, ExpType::Const) {
     m_typeInfo.isConst = true;
@@ -44,7 +42,7 @@ Const::Const(unsigned linenum, TypeInfo typeInfo, std::string value)
 std::string Const::toString(bool debugging) const {
     std::string str = "Const ";
 
-    switch (m_typeInfo.type.value()) {
+    switch (type()) {
     case Type::Int: {
         str += std::to_string(std::get<int>(m_value));
         break;
@@ -58,7 +56,7 @@ std::string Const::toString(bool debugging) const {
         break;
     }
     case Type::Char: {
-        if (m_typeInfo.isArray) {
+        if (isArray()) {
             str += "is array \"" + std::get<std::string>(m_value) +
                    "\" of type char";
             break;
@@ -73,8 +71,7 @@ std::string Const::toString(bool debugging) const {
     }
     };
 
-    if (debugging &&
-        !(m_typeInfo.type.value() == Type::Char && m_typeInfo.isArray)) {
+    if (debugging && !(type() == Type::Char && isArray())) {
         str += typeTag();
     }
 

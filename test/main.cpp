@@ -1,17 +1,10 @@
 #include <iostream>
 #include <string>
 
-class Test {
-  public:
-    bool isnullptr() {
-        if (this == nullptr)
-            return true;
-        else
-            return false;
-    }
-};
-
 int main() {
-    Test *t = nullptr;
-    std::cout << t->isnullptr() << std::endl;
+    float x = 1.1;
+    {
+        int x = x * 10;
+        std::cout << x << std::endl;
+    }
 }

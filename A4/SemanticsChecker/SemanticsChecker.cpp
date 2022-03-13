@@ -94,22 +94,7 @@ void SemanticsChecker::checkTopScope() {
             continue;
         }
 
-        if (symbol.decl()->is(AST::DeclType::Func)) {
-            auto *funcdecl = symbol.decl()->cast<AST::Decl::Func *>();
-            if (funcdecl->typeInfo().type.value() != AST::Type::Void &&
-                !funcdecl->hasChild(AST::StmtType::Return)) {
-                std::string error =
-                    "Expecting to return type " +
-                    AST::Types::toString(funcdecl->typeInfo().type.value()) +
-                    " but function '" + funcdecl->id() +
-                    "' has no return statement.";
-
-                m_messages[funcdecl->lineNumber()].push_back(
-                    {Message::Type::Error, error});
-            }
-        }
-
-        if (!symbol.isUsed()) {
+        if (!(symbol.isUsed() || symbol.isIterator())) {
 
             std::string warning = "The ";
 
@@ -132,7 +117,7 @@ void SemanticsChecker::checkTopScope() {
         }
 
         if (symbol.decl()->declType() == AST::DeclType::Var &&
-            !symbol.decl()->typeInfo().isStatic && m_symbolTable.depth() > 1) {
+            !symbol.decl()->isStatic() && m_symbolTable.depth() > 1) {
 
             if (!symbol.linesUsedBeforeDefined().empty()) {
 
@@ -165,7 +150,7 @@ void SemanticsChecker::deduceTypeFromTable(AST::Node *node) {
         auto *id = node->cast<AST::Exp::Id *>();
         if (m_symbolTable[id->id()].isDeclared() &&
             m_symbolTable[id->id()].decl()->declType() != AST::DeclType::Func) {
-            id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
+            id->setTypeInfo(m_symbolTable[id->id()].decl()->getTypeInfo());
         }
 
     } else if (node->is(AST::ExpType::Call)) {
@@ -178,7 +163,7 @@ void SemanticsChecker::deduceTypeFromTable(AST::Node *node) {
         if (m_symbolTable[call->id()].isDeclared() &&
             m_symbolTable[call->id()].decl()->declType() ==
                 AST::DeclType::Func) {
-            call->typeInfo() = m_symbolTable[call->id()].decl()->typeInfo();
+            call->setTypeInfo(m_symbolTable[call->id()].decl()->getTypeInfo());
         }
     }
 }
@@ -187,11 +172,11 @@ void SemanticsChecker::analyze(AST::Node *tree) {
     m_analyzed = true;
     m_mainIsDefined = false;
     m_symbolTable = SymbolTable(m_debug);
-    m_messages.clear();
-    Message::reset();
 
     auto *ioLibrary = AST::ioLibraryTree();
     analyzeTree(ioLibrary);
+    m_messages.clear();
+    Message::reset();
 
     analyzeTree(tree);
     // Check global scope

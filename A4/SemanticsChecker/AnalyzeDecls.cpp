@@ -13,13 +13,22 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         m_parms = func->parms();
 
         if (func->id() == "main") {
-            if (!func->hasParms() &&
-                (func->typeInfo().type.value() == AST::Type::Void ||
-                 func->typeInfo().type.value() == AST::Type::Int)) {
+            if (!func->hasParms() && func->hasType() &&
+                (func->type() == AST::Type::Void ||
+                 func->type() == AST::Type::Int)) {
                 m_mainIsDefined = true;
-            } else {
-                m_mainIsDefined = false;
             }
+        }
+
+        if (func->hasType() && func->type() != AST::Type::Void &&
+            !func->hasChild(AST::StmtType::Return)) {
+            std::string warning = "Expecting to return type " +
+                                  AST::Types::toString(func->type()) +
+                                  " but function '" + func->id() +
+                                  "' has no return statement.";
+
+            m_messages[func->lineNumber()].push_back(
+                {Message::Type::Warning, warning});
         }
     }
 
@@ -51,28 +60,24 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
                 var->initValue()->cast<AST::Exp::Op::Op *>()->deduceType();
             }
 
-            if (!var->initValue()->typeInfo().isConst) {
+            if (!var->initValue()->isConst()) {
                 std::string error = "Initializer for variable '" + var->id() +
                                     "' is not a constant expression.";
                 m_messages[var->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }
 
-            if (var->initValue()->typeInfo().type.has_value() &&
-                var->typeInfo().type.has_value() &&
-                var->initValue()->typeInfo().type.value() !=
-                    var->typeInfo().type.value()) {
+            if (var->initValue()->hasType() && var->hasType() &&
+                var->initValue()->type() != var->type()) {
                 std::string error =
                     "Initializer for variable '" + var->id() + "' of type " +
-                    AST::Types::toString(var->typeInfo().type) +
-                    " is of type " +
-                    AST::Types::toString(var->initValue()->typeInfo().type);
+                    AST::Types::toString(var->type()) + " is of type " +
+                    AST::Types::toString(var->initValue()->type());
                 m_messages[var->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }
 
-            if (var->initValue()->typeInfo().isArray !=
-                var->typeInfo().isArray) {
+            if (var->initValue()->isArray() != var->isArray()) {
                 auto isArrayToString = [](bool b) {
                     if (b) {
                         return std::string(" is an array");
@@ -84,8 +89,8 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
                 std::string error =
                     "Initializer for variable '" + var->id() +
                     "' requires both operands be arrays or not but variable" +
-                    isArrayToString(var->typeInfo().isArray) + " and rhs" +
-                    isArrayToString(var->initValue()->typeInfo().isArray) + ".";
+                    isArrayToString(var->isArray()) + " and rhs" +
+                    isArrayToString(var->initValue()->isArray()) + ".";
                 m_messages[var->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }

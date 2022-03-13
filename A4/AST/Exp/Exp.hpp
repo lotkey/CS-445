@@ -1,21 +1,18 @@
 #pragma once
 
 #include "../Node.hpp"
+#include "../TypedNode.hpp"
 
 /// Namespace for expression nodes
 namespace AST::Exp {
 
-class Exp : public Node {
+class Exp : public TypedNode {
   public:
     Exp();
     Exp(unsigned);
     Exp(unsigned, ExpType);
-    
-    const ExpType &expType() const;
 
-    virtual void setType(TypeInfo);
-    virtual const TypeInfo &typeInfo() const;
-    virtual TypeInfo &typeInfo();
+    const ExpType &expType() const;
     virtual bool is(ExpType) const override;
 
   protected:

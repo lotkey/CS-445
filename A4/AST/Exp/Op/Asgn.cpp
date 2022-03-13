@@ -33,7 +33,7 @@ std::string Asgn::toString(bool debugging) const {
 
 void Asgn::deduceType() {
     if (mutableExp() != nullptr) {
-        m_typeInfo = mutableExp()->typeInfo();
+        setTypeInfo(mutableExp()->getTypeInfo());
     }
 }
 

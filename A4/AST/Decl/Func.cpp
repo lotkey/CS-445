@@ -11,17 +11,17 @@
 namespace AST::Decl {
 Func::Func() : Decl::Decl() {
     m_declType = DeclType::Func;
-    m_typeInfo = {Type::Void, false, false};
+    setTypeInfo({Type::Void, false, false});
 }
 
 Func::Func(unsigned linenum) : Decl::Decl(linenum, DeclType::Func) {
-    m_typeInfo = {Type::Void, false, false};
+    setTypeInfo({Type::Void, false, false});
 }
 
 Func::Func(unsigned linenum, const std::string &id, Node *parms,
            Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
-    m_typeInfo = {Type::Void, false, false};
+    setTypeInfo({Type::Void, false, false});
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);
@@ -30,15 +30,15 @@ Func::Func(unsigned linenum, const std::string &id, Node *parms,
 Func::Func(unsigned linenum, Type returnType, const std::string &id,
            Node *parms, Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
-    m_typeInfo = {returnType, false, false};
+    setTypeInfo({returnType, false, false});
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);
 }
 
 std::string Func::toString(bool debugging) const {
-    return "Func: " + m_id + " returns type " +
-           Types::toString(m_typeInfo.type) + lineTag();
+    return "Func: " + m_id + " returns type " + Types::toString(type()) +
+           lineTag();
 }
 
 bool Func::hasParms() const { return parms() != nullptr; }

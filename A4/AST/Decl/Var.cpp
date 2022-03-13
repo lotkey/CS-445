@@ -13,7 +13,7 @@ Var::Var(unsigned linenum) : Decl::Decl(linenum, DeclType::Var) {}
 
 Var::Var(unsigned linenum, const std::string &id, bool isArray)
     : Decl::Decl(linenum, DeclType::Var) {
-    m_typeInfo.isArray = isArray;
+    this->isArray() = isArray;
     m_id = id;
 }
 
@@ -22,19 +22,19 @@ void Var::setStatic() {
         ((Var *)m_sibling)->setStatic();
     }
 
-    m_typeInfo.isStatic = true;
+    isStatic() = true;
 }
 
 std::string Var::toString(bool debugging) const {
     std::string str = "Var: " + m_id;
-    if (m_typeInfo.isArray) {
+    if (isArray()) {
         str += " is array";
     }
     str += " of";
-    if (m_typeInfo.isStatic) {
+    if (isStatic()) {
         str += " static";
     }
-    str += " type " + Types::toString(m_typeInfo.type.value()) + lineTag();
+    str += " type " + Types::toString(type()) + lineTag();
     return str;
 }
 

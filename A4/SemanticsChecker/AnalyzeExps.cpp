@@ -28,7 +28,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                 m_messages[call->lineNumber()].push_back(
                     {Message::Type::Error, error});
             } else {
-                call->typeInfo() = m_symbolTable[call->id()].decl()->typeInfo();
+                call->setTypeInfo(
+                    m_symbolTable[call->id()].decl()->getTypeInfo());
 
                 auto *decl =
                     m_symbolTable[call->id()].decl()->cast<AST::Decl::Func *>();
@@ -48,56 +49,49 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
 
                     m_messages[call->lineNumber()].push_back(
                         {Message::Type::Error, error});
-                } else {
+                }
 
-                    auto parms = decl->parmsVector();
-                    auto args = call->argsVector();
+                auto parms = decl->parmsVector();
+                auto args = call->argsVector();
 
-                    for (int i = 0; i < decl->numParms(); i++) {
+                for (int i = 0; i < decl->numParms() && i < call->numArgs();
+                     i++) {
 
-                        if (parms[i]->typeInfo().isArray &&
-                            !args[i]->typeInfo().isArray) {
+                    if (parms[i]->isArray() && !args[i]->isArray()) {
 
-                            std::string error =
-                                "Expecting array in parameter " +
-                                std::to_string(i + 1) + " of call to '" +
-                                call->id() + "' declared on line " +
-                                std::to_string(decl->lineNumber()) + ".";
+                        std::string error =
+                            "Expecting array in parameter " +
+                            std::to_string(i + 1) + " of call to '" +
+                            call->id() + "' declared on line " +
+                            std::to_string(decl->lineNumber()) + ".";
 
-                            m_messages[call->lineNumber()].push_back(
-                                {Message::Type::Error, error});
-                        } else if (!parms[i]->typeInfo().isArray &&
-                                   args[i]->typeInfo().isArray) {
-                            std::string error =
-                                "Not expecting array in parameter " +
-                                std::to_string(i + 1) + " of call to '" +
-                                call->id() + "' declared on line " +
-                                std::to_string(decl->lineNumber()) + ".";
+                        m_messages[call->lineNumber()].push_back(
+                            {Message::Type::Error, error});
+                    } else if (!parms[i]->isArray() && args[i]->isArray()) {
+                        std::string error =
+                            "Not expecting array in parameter " +
+                            std::to_string(i + 1) + " of call to '" +
+                            call->id() + "' declared on line " +
+                            std::to_string(decl->lineNumber()) + ".";
 
-                            m_messages[call->lineNumber()].push_back(
-                                {Message::Type::Error, error});
-                        }
+                        m_messages[call->lineNumber()].push_back(
+                            {Message::Type::Error, error});
+                    }
 
-                        if (parms[i]->typeInfo().type.has_value() &&
-                            args[i]->typeInfo().type.has_value() &&
-                            parms[i]->typeInfo().type.value() !=
-                                args[i]->typeInfo().type.value()) {
-                            std::string error =
-                                "Expecting type " +
-                                AST::Types::toString(
-                                    parms[i]->typeInfo().type.value()) +
-                                " in parameter " + std::to_string(i + 1) +
-                                " of call to '" + call->id() +
-                                "' declared on line " +
-                                std::to_string(decl->lineNumber()) +
-                                " but got type " +
-                                AST::Types::toString(
-                                    args[i]->typeInfo().type.value()) +
-                                ".";
+                    if (parms[i]->hasType() && args[i]->hasType() &&
+                        parms[i]->type() != args[i]->type()) {
+                        std::string error =
+                            "Expecting type " +
+                            AST::Types::toString(parms[i]->type()) +
+                            " in parameter " + std::to_string(i + 1) +
+                            " of call to '" + call->id() +
+                            "' declared on line " +
+                            std::to_string(decl->lineNumber()) +
+                            " but got type " +
+                            AST::Types::toString(args[i]->type()) + ".";
 
-                            m_messages[call->lineNumber()].push_back(
-                                {Message::Type::Error, error});
-                        }
+                        m_messages[call->lineNumber()].push_back(
+                            {Message::Type::Error, error});
                     }
                 }
             }
@@ -107,6 +101,19 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
     }
     case AST::ExpType::Id: {
         auto *id = exp->cast<AST::Exp::Id *>();
+        bool isUsed = true;
+
+        // // x <- x;
+        // // doesn't use x
+        // if (id->parent()->is(AST::AsgnType::Asgn)) {
+        //     auto *asgn = id->parent()->cast<AST::Exp::Op::Binary *>();
+        //     if (asgn->exp2() == id && asgn->exp1()->is(AST::ExpType::Id)) {
+        //         auto *exp1 = asgn->exp1()->cast<AST::Exp::Id*>();
+        //         if (exp1->id() == id->id()) {
+        //             isUsed = false;
+        //         }
+        //     }
+        // }
 
         if (m_symbolTable[id->id()].isDeclared()) {
 
@@ -118,7 +125,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                 m_messages[id->lineNumber()].push_back(
                     {Message::Type::Error, error});
             } else {
-                id->typeInfo() = m_symbolTable[id->id()].decl()->typeInfo();
+                id->setTypeInfo(m_symbolTable[id->id()].decl()->getTypeInfo());
             }
 
         } else {
@@ -127,7 +134,6 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                 {Message::Type::Error, error});
         }
 
-        bool isUsed = true;
         if (id->hasAncestor(AST::StmtType::Range)) {
             auto *range = id->getClosestAncestor(AST::StmtType::Range)
                               ->cast<AST::Stmt::Range *>();
@@ -171,10 +177,9 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
             binary->is(AST::BinaryOpType::Mul) ||
             binary->is(AST::BinaryOpType::Subtract)) {
 
-            if (binary->exp1()->typeInfo().isArray ||
-                binary->exp2()->typeInfo().isArray &&
-                    binary->exp1()->typeInfo().type.has_value() &&
-                    binary->exp2()->typeInfo().type.has_value()) {
+            if (binary->exp1()->isArray() || binary->exp2()->isArray() &&
+                                                 binary->exp1()->hasType() &&
+                                                 binary->exp2()->hasType()) {
                 std::string error =
                     "The operation '" +
                     AST::Types::toString(binary->binaryOpType()) +
@@ -184,22 +189,22 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                     {Message::Type::Error, error});
             }
 
-            if (binary->exp1()->typeInfo().type != AST::Type::Int &&
-                binary->exp1()->typeInfo().type.has_value()) {
+            if (binary->exp1()->hasType() &&
+                binary->exp1()->type() != AST::Type::Int) {
                 std::string error =
                     "'" + AST::Types::toString(binary->binaryOpType()) +
                     "' requires operands of type int but lhs is of type " +
-                    AST::Types::toString(binary->exp1()->typeInfo().type) + ".";
+                    AST::Types::toString(binary->exp1()->type()) + ".";
                 m_messages[binary->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }
 
-            if (binary->exp2()->typeInfo().type != AST::Type::Int &&
-                binary->exp2()->typeInfo().type.has_value()) {
+            if (binary->exp2()->hasType() &&
+                binary->exp2()->type() != AST::Type::Int) {
                 std::string error =
                     "'" + AST::Types::toString(binary->binaryOpType()) +
                     "' requires operands of type int but rhs is of type " +
-                    AST::Types::toString(binary->exp2()->typeInfo().type) + ".";
+                    AST::Types::toString(binary->exp2()->type()) + ".";
                 m_messages[binary->lineNumber()].push_back(
                     {Message::Type::Error, error});
             }
@@ -225,7 +230,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
             case AST::BinaryOpType::Index: {
 
                 auto *id = binary->exp1()->cast<AST::Exp::Id *>();
-                if (!id->typeInfo().isArray) {
+                if (!id->isArray()) {
                     std::string error =
                         "Cannot index nonarray '" + id->id() + "'.";
                     m_messages[id->lineNumber()].push_back(
@@ -237,10 +242,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                     auto *indexId = index->cast<AST::Exp::Id *>();
 
                     if (m_symbolTable[indexId->id()].isDeclared() &&
-                        m_symbolTable[indexId->id()]
-                            .decl()
-                            ->typeInfo()
-                            .isArray) {
+                        m_symbolTable[indexId->id()].decl()->isArray()) {
                         std::string error =
                             "Array index is the unindexed array '" +
                             indexId->id() + "'.";
@@ -249,16 +251,15 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                     }
                 }
 
-                op->typeInfo() = id->typeInfo();
-                op->typeInfo().isArray = false;
+                op->setTypeInfo(id->getTypeInfo());
+                op->isArray() = false;
 
-                if (binary->exp2()->typeInfo().type != AST::Type::Int &&
-                    binary->exp2()->typeInfo().type.has_value()) {
+                if (binary->exp2()->hasType() &&
+                    binary->exp2()->type() != AST::Type::Int) {
                     std::string error =
                         "Array '" + id->id() +
                         "' should be indexed by type int but got type " +
-                        AST::Types::toString(binary->exp2()->typeInfo().type) +
-                        ".";
+                        AST::Types::toString(binary->exp2()->type()) + ".";
                     m_messages[binary->lineNumber()].push_back(
                         {Message::Type::Error, error});
                 }
@@ -295,8 +296,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
     case AST::UnaryOpType::Asgn: {
         auto *unaryasgn = op->cast<AST::Exp::Op::UnaryAsgn *>();
 
-        if (unaryasgn->operand()->typeInfo().isArray &&
-            unaryasgn->operand()->typeInfo().type.has_value()) {
+        if (unaryasgn->operand()->hasType() &&
+            unaryasgn->operand()->isArray()) {
             std::string error =
                 "The operation '" +
                 AST::Types::toString(unaryasgn->unaryAsgnType()) +
@@ -305,13 +306,12 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
                 {Message::Type::Error, error});
         }
 
-        if (unaryasgn->operand()->typeInfo().type != AST::Type::Int &&
-            unaryasgn->operand()->typeInfo().type.has_value()) {
+        if (unaryasgn->operand()->hasType() &&
+            unaryasgn->operand()->type() != AST::Type::Int) {
             std::string error =
                 "Unary '" + AST::Types::toString(unaryasgn->unaryAsgnType()) +
                 "' requires an operand of type int but was given type " +
-                AST::Types::toString(unaryasgn->operand()->typeInfo().type) +
-                ".";
+                AST::Types::toString(unaryasgn->operand()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
@@ -319,8 +319,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
         break;
     }
     case AST::UnaryOpType::Chsign: {
-        if (op->operand()->typeInfo().isArray &&
-            op->operand()->typeInfo().type.has_value()) {
+        if (op->operand()->isArray() && op->operand()->hasType()) {
             std::string error = "The operation '" +
                                 AST::Types::toString(op->unaryOpType()) +
                                 "' does not work with arrays.";
@@ -328,20 +327,19 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
                 {Message::Type::Error, error});
         }
 
-        if (op->operand()->typeInfo().type != AST::Type::Int &&
-            op->operand()->typeInfo().type.has_value()) {
+        if (op->operand()->hasType() &&
+            op->operand()->type() != AST::Type::Int) {
             std::string error =
                 "Unary '" + AST::Types::toString(op->unaryOpType()) +
                 "' requires an operand of type int but was given type " +
-                AST::Types::toString(op->operand()->typeInfo().type) + ".";
+                AST::Types::toString(op->operand()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
         break;
     }
     case AST::UnaryOpType::Not: {
-        if (op->operand()->typeInfo().isArray &&
-            op->operand()->typeInfo().type.has_value()) {
+        if (op->operand()->hasType() && op->operand()->isArray()) {
             std::string error = "The operation '" +
                                 AST::Types::toString(op->unaryOpType()) +
                                 "' does not work with arrays.";
@@ -349,39 +347,37 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
                 {Message::Type::Error, error});
         }
 
-        if (op->operand()->typeInfo().type != AST::Type::Bool &&
-            op->operand()->typeInfo().type.has_value()) {
+        if (op->operand()->hasType() &&
+            op->operand()->type() != AST::Type::Bool) {
             std::string error =
                 "Unary '" + AST::Types::toString(op->unaryOpType()) +
                 "' requires an operand of type bool but was given type " +
-                AST::Types::toString(op->operand()->typeInfo().type) + ".";
+                AST::Types::toString(op->operand()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
         break;
     }
     case AST::UnaryOpType::Random: {
-        if (op->operand()->typeInfo().isArray &&
-            op->operand()->typeInfo().type.has_value()) {
+        if (op->operand()->hasType() && op->operand()->isArray()) {
             std::string error = "The operation '?' does not work with arrays.";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (op->operand()->typeInfo().type != AST::Type::Int &&
-            op->operand()->typeInfo().type.has_value()) {
-            std::string error =
-                "Unary '?' requires an operand of type int but "
-                "was given type " +
-                AST::Types::toString(op->operand()->typeInfo().type) + ".";
+        if (op->operand()->hasType() &&
+            op->operand()->type() != AST::Type::Int) {
+            std::string error = "Unary '?' requires an operand of type int but "
+                                "was given type " +
+                                AST::Types::toString(op->operand()->type()) +
+                                ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
         break;
     }
     case AST::UnaryOpType::Sizeof: {
-        if (!op->operand()->typeInfo().isArray &&
-            op->operand()->typeInfo().type.has_value()) {
+        if (op->operand()->hasType() && !op->operand()->isArray()) {
             std::string error =
                 "The operation 'sizeof' only works with arrays.";
             m_messages[op->lineNumber()].push_back(
@@ -395,22 +391,20 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
 void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
 
     if (!op->is(AST::AsgnType::Asgn)) {
-        if (op->exp1()->typeInfo().type != AST::Type::Int &&
-            op->exp1()->typeInfo().type.has_value()) {
+        if (op->exp1()->hasType() && op->exp1()->type() != AST::Type::Int) {
             std::string error =
                 "'" + AST::Types::toString(op->asgnType()) +
                 "' requires operands of type int but lhs is of type " +
-                AST::Types::toString(op->exp1()->typeInfo().type) + ".";
+                AST::Types::toString(op->exp1()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (op->exp2()->typeInfo().type != AST::Type::Int &&
-            op->exp2()->typeInfo().type.has_value()) {
+        if (op->exp2()->hasType() && op->exp2()->type() != AST::Type::Int) {
             std::string error =
                 "'" + AST::Types::toString(op->asgnType()) +
                 "' requires operands of type int but rhs is of type " +
-                AST::Types::toString(op->exp2()->typeInfo().type) + ".";
+                AST::Types::toString(op->exp2()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
@@ -419,7 +413,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
     switch (op->asgnType()) {
     case AST::AsgnType::Asgn: {
 
-        if (op->exp1()->typeInfo().isArray != op->exp2()->typeInfo().isArray) {
+        if (op->exp1()->isArray() != op->exp2()->isArray()) {
             auto isArrayToString = [](bool b) {
                 if (b) {
                     return std::string(" is an array");
@@ -430,20 +424,18 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
 
             std::string error =
                 "'<-' requires both operands be arrays or not but lhs" +
-                isArrayToString(op->exp1()->typeInfo().isArray) + " and rhs" +
-                isArrayToString(op->exp2()->typeInfo().isArray) + ".";
+                isArrayToString(op->exp1()->isArray()) + " and rhs" +
+                isArrayToString(op->exp2()->isArray()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (op->exp1()->typeInfo().type != op->exp2()->typeInfo().type &&
-            op->exp1()->typeInfo().type.has_value() &&
-            op->exp2()->typeInfo().type.has_value()) {
+        if (op->exp1()->hasType() && op->exp2()->hasType() &&
+            op->exp1()->type() != op->exp2()->type()) {
             std::string error =
                 "'<-' requires operands of the same type but lhs is type " +
-                AST::Types::toString(op->exp1()->typeInfo().type) +
-                " and rhs is type " +
-                AST::Types::toString(op->exp2()->typeInfo().type) + ".";
+                AST::Types::toString(op->exp1()->type()) + " and rhs is type " +
+                AST::Types::toString(op->exp2()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
@@ -456,10 +448,9 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
     if (op->boolOpType() == AST::BoolOpType::And ||
         op->boolOpType() == AST::BoolOpType::Or) {
 
-        if (op->exp1()->typeInfo().isArray ||
-            op->exp2()->typeInfo().isArray &&
-                op->exp1()->typeInfo().type.has_value() &&
-                op->exp2()->typeInfo().type.has_value()) {
+        if (op->exp1()->isArray() || op->exp2()->isArray() &&
+                                         op->exp1()->hasType() &&
+                                         op->exp2()->hasType()) {
             std::string error = "The operation '" +
                                 AST::Types::toString(op->boolOpType()) +
                                 "' does not work with arrays.";
@@ -467,44 +458,39 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
                 {Message::Type::Error, error});
         }
 
-        if (op->exp1()->typeInfo().type.has_value() &&
-            op->exp1()->typeInfo().type.value() != AST::Type::Bool) {
+        if (op->exp1()->hasType() && op->exp1()->type() != AST::Type::Bool) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires operands of type bool but lhs is of type " +
-                AST::Types::toString(op->exp1()->typeInfo().type) + ".";
+                AST::Types::toString(op->exp1()->type()) + ".";
 
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (op->exp2()->typeInfo().type.has_value() &&
-            op->exp2()->typeInfo().type.value() != AST::Type::Bool) {
+        if (op->exp2()->hasType() && op->exp2()->type() != AST::Type::Bool) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires operands of type bool but rhs is of type " +
-                AST::Types::toString(op->exp2()->typeInfo().type) + ".";
+                AST::Types::toString(op->exp2()->type()) + ".";
 
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
     } else {
-        if (op->exp1()->typeInfo().type.has_value() &&
-            op->exp2()->typeInfo().type.has_value() &&
-            op->exp1()->typeInfo().type.value() !=
-                op->exp2()->typeInfo().type.value()) {
+        if (op->exp1()->hasType() && op->exp2()->hasType() &&
+            op->exp1()->type() != op->exp2()->type()) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires operands of the same type but lhs is "
                 "type " +
-                AST::Types::toString(op->exp1()->typeInfo().type) +
-                " and rhs is type " +
-                AST::Types::toString(op->exp2()->typeInfo().type) + ".";
+                AST::Types::toString(op->exp1()->type()) + " and rhs is type " +
+                AST::Types::toString(op->exp2()->type()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (op->exp1()->typeInfo().isArray != op->exp2()->typeInfo().isArray) {
+        if (op->exp1()->isArray() != op->exp2()->isArray()) {
             auto isArrayToString = [](bool b) {
                 if (b) {
                     return std::string(" is an array");
@@ -515,8 +501,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Bool *op) {
             std::string error =
                 "'" + AST::Types::toString(op->boolOpType()) +
                 "' requires both operands be arrays or not but lhs" +
-                isArrayToString(op->exp1()->typeInfo().isArray) + " and rhs" +
-                isArrayToString(op->exp2()->typeInfo().isArray) + ".";
+                isArrayToString(op->exp1()->isArray()) + " and rhs" +
+                isArrayToString(op->exp2()->isArray()) + ".";
             m_messages[op->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
