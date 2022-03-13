@@ -9,6 +9,8 @@ Scope::Scope() : m_id("global") {}
 
 Scope::Scope(const std::string &id) : m_id(id) {}
 
+Scope::~Scope() {}
+
 bool Scope::contains(const std::string &id) const {
     bool result = m_symbols.find(id) != m_symbols.end();
     return result;

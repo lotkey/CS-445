@@ -7,9 +7,9 @@
 namespace AST::Exp {
 Id::Id() : Exp::Exp() { m_expType = ExpType::Id; }
 
-Id::Id(unsigned linenum) : Exp::Exp(linenum, ExpType::Id) {}
+Id::Id(int linenum) : Exp::Exp(linenum, ExpType::Id) {}
 
-Id::Id(unsigned linenum, const std::string &id)
+Id::Id(int linenum, const std::string &id)
     : Exp::Exp(linenum, ExpType::Id), m_id(id) {}
 
 const std::string &Id::id() const { return m_id; }

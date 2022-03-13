@@ -9,8 +9,8 @@ namespace AST::Exp {
 class Exp : public TypedNode {
   public:
     Exp();
-    Exp(unsigned);
-    Exp(unsigned, ExpType);
+    Exp(int);
+    Exp(int, ExpType);
 
     const ExpType &expType() const;
     virtual bool is(ExpType) const override;

@@ -10,6 +10,7 @@ class Scope {
   public:
     Scope();
     Scope(const std::string &);
+    ~Scope();
     bool contains(const std::string &) const;
     Symbol &getSymbol(const std::string &);
     std::map<std::string, Symbol> &getSymbols();

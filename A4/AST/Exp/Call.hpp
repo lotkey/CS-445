@@ -12,11 +12,11 @@ class Call : public Exp {
   public:
     Call();
     /// @param linenum Line number the node appears on
-    Call(unsigned linenum);
+    Call(int linenum);
     /// @param linenum Line number the node appears on
     /// @param id String identifier of the function
     /// @param arglist Optional, argument list for function call
-    Call(unsigned linenum, const std::string &id, Node *arglist = nullptr);
+    Call(int linenum, const std::string &id, Node *arglist = nullptr);
 
     const std::string &id() const;
     Exp* arglist() const;

@@ -8,9 +8,9 @@
 namespace AST::Stmt {
 Range::Range() : Stmt::Stmt() { m_stmtType = StmtType::Range; }
 
-Range::Range(unsigned linenum) : Stmt::Stmt(linenum, StmtType::Range) {}
+Range::Range(int linenum) : Stmt::Stmt(linenum, StmtType::Range) {}
 
-Range::Range(unsigned linenum, Node *from, Node *to, Node *by)
+Range::Range(int linenum, Node *from, Node *to, Node *by)
     : Stmt::Stmt(linenum, StmtType::Range) {
     addChild(from);
     addChild(to);

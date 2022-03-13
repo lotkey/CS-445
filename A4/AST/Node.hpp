@@ -2,6 +2,8 @@
 
 #include "Types.hpp"
 
+#include <functional>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <variant>
@@ -19,10 +21,10 @@ class Node {
     /// Default constructor
     Node();
     /// @param linenum Line number the node appears on
-    Node(unsigned linenum);
+    Node(int linenum);
     /// @param linenum Line number the node appears on
     /// @param nodeType Type of node
-    Node(unsigned linenum, NodeType nodeType);
+    Node(int linenum, NodeType nodeType);
     /// Virtual destructor, release all dynamically allocated memory
     virtual ~Node();
 #pragma endregion
@@ -52,46 +54,9 @@ class Node {
     /// @returns True if the node has a sibling
     bool hasSibling() const;
     /// Gets reference to the line number member
-    unsigned &lineNumber();
+    int &lineNumber();
     /// @returns Type of node
     const NodeType &nodeType() const;
-#pragma endregion
-
-#pragma region Ancestor
-    bool hasAncestor(NodeType) const;
-    bool hasAncestor(StmtType) const;
-    bool hasAncestor(DeclType) const;
-    bool hasAncestor(ExpType) const;
-    bool hasAncestor(OpType) const;
-    bool hasAncestor(BoolOpType) const;
-    bool hasAncestor(UnaryOpType) const;
-    bool hasAncestor(UnaryAsgnType) const;
-    bool hasAncestor(BinaryOpType) const;
-    bool hasAncestor(AsgnType) const;
-
-    Node *getClosestAncestor(NodeType) const;
-    Node *getClosestAncestor(StmtType) const;
-    Node *getClosestAncestor(DeclType) const;
-    Node *getClosestAncestor(ExpType) const;
-    Node *getClosestAncestor(OpType) const;
-    Node *getClosestAncestor(BoolOpType) const;
-    Node *getClosestAncestor(UnaryOpType) const;
-    Node *getClosestAncestor(UnaryAsgnType) const;
-    Node *getClosestAncestor(BinaryOpType) const;
-    Node *getClosestAncestor(AsgnType) const;
-#pragma endregion
-
-#pragma region Children
-    bool hasChild(NodeType) const;
-    bool hasChild(StmtType) const;
-    bool hasChild(DeclType) const;
-    bool hasChild(ExpType) const;
-    bool hasChild(OpType) const;
-    bool hasChild(BoolOpType) const;
-    bool hasChild(UnaryOpType) const;
-    bool hasChild(UnaryAsgnType) const;
-    bool hasChild(BinaryOpType) const;
-    bool hasChild(AsgnType) const;
 #pragma endregion
 
 #pragma region Virtual functions
@@ -115,6 +80,93 @@ class Node {
     /// Casts the address of the Node to some type
     /// @returns The casted address
     template <typename T> T cast() const { return (T)this; }
+
+    bool hasAncestorWhere(const std::function<bool(Node *)> &predicate) const {
+
+        for (Node *walker = parent(); walker != nullptr;
+             walker = walker->parent()) {
+            if (predicate(walker)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// @param t Node type (enum)
+    /// @returns True if the node has an ancestor of type t
+    template <typename T> bool hasAncestorOfType(T t) const {
+        return hasAncestorWhere([t](Node *node) { return node->is(t); });
+    }
+
+    Node *getClosestAncestorWhere(
+        const std::function<bool(Node *)> &predicate) const {
+
+        for (Node *walker = parent(); walker != nullptr;
+             walker = walker->parent()) {
+            if (predicate(walker)) {
+                return walker;
+            }
+        }
+        return nullptr;
+    }
+
+    /// @param t Node type (enum)
+    /// @returns Address of the closest ancestor that is the provided type
+    template <typename T> Node *getClosestAncestorOfType(T t) const {
+        return getClosestAncestorWhere([t](Node *node) { return node->is(t); });
+    }
+
+    std::vector<Node *> getDescendants() const {
+        std::vector<Node *> descendants;
+        for (const auto &child : children()) {
+            if (child != nullptr) {
+                descendants.push_back(child);
+                std::vector<Node *> v = child->getDescendants();
+                descendants.insert(descendants.end(), v.begin(), v.end());
+            }
+        }
+        return descendants;
+    }
+
+    bool
+    hasDescendantWhere(const std::function<bool(Node *)> &predicate) const {
+        for (const auto &child : children()) {
+            if (child != nullptr) {
+                if (predicate(child)) {
+                    return true;
+                } else if (child->hasDescendantWhere(predicate)) {
+                    return true;
+                } else {
+                    for (const auto &sibling : child->siblings()) {
+                        if (predicate(sibling)) {
+                            return true;
+                        }
+
+                        if (child->hasDescendantWhere(predicate)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    template <typename T> bool hasDescendantOfType(T t) const {
+        return hasDescendantWhere([t](Node *node) { return node->is(t); });
+    }
+
+    std::vector<Node *>
+    getDescendantsWhere(const std::function<bool(Node *)> &predicate) const {
+        auto descendants = getDescendants();
+        std::vector<Node *> v;
+        for (const auto &descendant : descendants) {
+            if (predicate(descendant)) {
+                v.push_back(descendant);
+            }
+        }
+        return v;
+    }
 #pragma endregion
 
   private:
@@ -123,7 +175,7 @@ class Node {
     std::vector<Node *> m_children;
     Node *m_sibling = nullptr;
     Node *m_parent = nullptr;
-    unsigned m_linenum;
+    int m_linenum;
 
     /// @returns The line tag at the end of every node's print statement
     std::string lineTag() const;
@@ -132,60 +184,5 @@ class Node {
     /// @param index Returns the child at the specified index, nullptr if none
     /// exists
     Node *getChild(int index) const;
-
-#pragma region Private template functions
-    template <typename T> bool hasChildInclusive(T t) const {
-
-        if (this == nullptr) {
-            return false;
-        }
-
-        if (is(t)) {
-            return true;
-        }
-
-        for (const auto &sibling : siblings()) {
-            if (sibling->hasChildInclusive<T>(t)) {
-                return true;
-            }
-        }
-
-        for (const auto &child : children()) {
-            if (child->hasChildInclusive<T>(t)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// @param t Node type (enum)
-    /// @returns True if the node has an ancestor of type t
-    template <typename T> bool hasAncestor(T t) const {
-        Node *walker = parent();
-        while (walker != nullptr) {
-            if (walker->is(t)) {
-                return true;
-            }
-
-            walker = walker->parent();
-        }
-        return false;
-    }
-
-    /// @param t Node type (enum)
-    /// @returns Address of the closest ancestor that is the provided type
-    template <typename T> Node *getClosestAncestor(T t) const {
-        Node *walker = parent();
-        while (walker != nullptr) {
-            if (walker->is(t)) {
-                return walker;
-            }
-            walker = walker->parent();
-        }
-
-        return nullptr;
-    }
-#pragma endregion
 };
 } // namespace AST

@@ -11,9 +11,9 @@ namespace AST::Exp::Op {
 
 Unary::Unary() : Op::Op() { m_opType = OpType::Unary; }
 
-Unary::Unary(unsigned linenum) : Op::Op(linenum, OpType::Unary) {}
+Unary::Unary(int linenum) : Op::Op(linenum, OpType::Unary) {}
 
-Unary::Unary(unsigned linenum, UnaryOpType opType, Node *exp)
+Unary::Unary(int linenum, UnaryOpType opType, Node *exp)
     : Op::Op(linenum, OpType::Unary), m_unaryOpType(opType) {
     addChild(exp);
 }

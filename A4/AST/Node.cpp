@@ -11,9 +11,9 @@ namespace AST {
 
 Node::Node() : m_sibling(nullptr) {}
 
-Node::Node(unsigned linenum) : m_sibling(nullptr), m_linenum(linenum) {}
+Node::Node(int linenum) : m_sibling(nullptr), m_linenum(linenum) {}
 
-Node::Node(unsigned linenum, NodeType nodeType)
+Node::Node(int linenum, NodeType nodeType)
     : m_linenum(linenum), m_nodeType(nodeType) {}
 
 Node::~Node() {
@@ -134,173 +134,10 @@ void Node::print(bool debugging) const {
 
 bool Node::hasSibling() const { return m_sibling != nullptr; }
 
-unsigned &Node::lineNumber() { return m_linenum; }
+int &Node::lineNumber() { return m_linenum; }
 
 const NodeType &Node::nodeType() const { return m_nodeType; }
 
-#pragma endregion
-
-#pragma region Ancestor
-bool Node::hasAncestor(NodeType t) const { return hasAncestor<NodeType>(t); }
-
-bool Node::hasAncestor(StmtType t) const { return hasAncestor<StmtType>(t); }
-
-bool Node::hasAncestor(DeclType t) const { return hasAncestor<DeclType>(t); }
-
-bool Node::hasAncestor(ExpType t) const { return hasAncestor<ExpType>(t); }
-
-bool Node::hasAncestor(OpType t) const { return hasAncestor<OpType>(t); }
-
-bool Node::hasAncestor(BoolOpType t) const {
-    return hasAncestor<BoolOpType>(t);
-}
-
-bool Node::hasAncestor(UnaryOpType t) const {
-    return hasAncestor<UnaryOpType>(t);
-}
-
-bool Node::hasAncestor(UnaryAsgnType t) const {
-    return hasAncestor<UnaryAsgnType>(t);
-}
-
-bool Node::hasAncestor(BinaryOpType t) const {
-    return hasAncestor<BinaryOpType>(t);
-}
-
-bool Node::hasAncestor(AsgnType t) const { return hasAncestor<AsgnType>(t); }
-
-Node *Node::getClosestAncestor(NodeType t) const {
-    return getClosestAncestor<NodeType>(t);
-}
-
-Node *Node::getClosestAncestor(StmtType t) const {
-    return getClosestAncestor<StmtType>(t);
-}
-
-Node *Node::getClosestAncestor(DeclType t) const {
-    return getClosestAncestor<DeclType>(t);
-}
-
-Node *Node::getClosestAncestor(ExpType t) const {
-    return getClosestAncestor<ExpType>(t);
-}
-
-Node *Node::getClosestAncestor(OpType t) const {
-    return getClosestAncestor<OpType>(t);
-}
-
-Node *Node::getClosestAncestor(BoolOpType t) const {
-    return getClosestAncestor<BoolOpType>(t);
-}
-
-Node *Node::getClosestAncestor(UnaryOpType t) const {
-    return getClosestAncestor<UnaryOpType>(t);
-}
-
-Node *Node::getClosestAncestor(UnaryAsgnType t) const {
-    return getClosestAncestor<UnaryAsgnType>(t);
-}
-
-Node *Node::getClosestAncestor(BinaryOpType t) const {
-    return getClosestAncestor<BinaryOpType>(t);
-}
-
-Node *Node::getClosestAncestor(AsgnType t) const {
-    return getClosestAncestor<AsgnType>(t);
-}
-
-#pragma endregion
-
-#pragma region Child
-bool Node::hasChild(NodeType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<NodeType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(StmtType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<StmtType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(DeclType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<DeclType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(ExpType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<ExpType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(OpType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<OpType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(BoolOpType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<BoolOpType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(UnaryOpType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<UnaryOpType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(UnaryAsgnType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<UnaryAsgnType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(BinaryOpType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<BinaryOpType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::hasChild(AsgnType t) const {
-    for (const auto &child : children()) {
-        if (child->hasChildInclusive<AsgnType>(t)) {
-            return true;
-        }
-    }
-    return false;
-}
 #pragma endregion
 
 #pragma region Virtual functions

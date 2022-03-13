@@ -15,8 +15,8 @@ class Decl : public TypedNode {
   public:
     Decl();
     /// @param linenum Line number the node appears on
-    Decl(unsigned linenum);
-    Decl(unsigned linenum, DeclType declType);
+    Decl(int linenum);
+    Decl(int linenum, DeclType declType);
 
     const std::string &id() const;
     const DeclType &declType() const;

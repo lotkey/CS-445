@@ -13,11 +13,11 @@ class Var : public Decl {
   public:
     Var();
     /// @param linenum Line number the node appears on
-    Var(unsigned linenum);
+    Var(int linenum);
     /// @param linenum Line number the node appears on
     /// @param id String identifier
     /// @param isArray Whether or not the variable is an array
-    Var(unsigned linenum, const std::string &id, bool isArray);
+    Var(int linenum, const std::string &id, bool isArray);
 
     bool isInitialized() const;
     Exp::Exp *initValue();

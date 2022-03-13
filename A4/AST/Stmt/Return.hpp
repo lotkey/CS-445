@@ -12,9 +12,9 @@ class Return : public Stmt {
   public:
     Return();
     /// @param linenum Line number the node appears on
-    Return(unsigned linenum);
+    Return(int linenum);
     /// @param linenum Line number the node appears on
-    Return(unsigned linenum, Node *exp);
+    Return(int linenum, Node *exp);
     /// @returns Value to return
     Exp::Exp *exp() const;
 };

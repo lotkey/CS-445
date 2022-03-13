@@ -12,11 +12,11 @@ class While : public Stmt {
   public:
     While();
     /// @param linenum Line number the node appears on
-    While(unsigned linenum);
+    While(int linenum);
     /// @param linenum Line number the node appears on
     /// @param exp Expression to evaluate to Boolean
     /// @param stmt Loop body
-    While(unsigned linenum, Node *exp, Node *stmt);
+    While(int linenum, Node *exp, Node *stmt);
     /// @returns Expression/condition to evaluate
     Exp::Exp *exp() const;
     /// @returns Statement to execute every loop

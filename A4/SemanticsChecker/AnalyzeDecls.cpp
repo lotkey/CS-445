@@ -15,13 +15,14 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         if (func->id() == "main") {
             if (!func->hasParms() && func->hasType() &&
                 (func->type() == AST::Type::Void ||
-                 func->type() == AST::Type::Int)) {
+                 func->type() == AST::Type::Int) &&
+                !m_symbolTable["main"].isDeclared()) {
                 m_mainIsDefined = true;
             }
         }
 
         if (func->hasType() && func->type() != AST::Type::Void &&
-            !func->hasChild(AST::StmtType::Return)) {
+            !func->hasDescendantOfType(AST::StmtType::Return)) {
             std::string warning = "Expecting to return type " +
                                   AST::Types::toString(func->type()) +
                                   " but function '" + func->id() +
@@ -45,8 +46,67 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 
                 m_messages[decl->lineNumber()].push_back(
                     {Message::Type::Error, error});
+            } else {
+
+                if (decl->is(AST::DeclType::Var)) {
+                    auto *var = decl->cast<AST::Decl::Var *>();
+                    if (var->isInitialized()) {
+                        auto isSameVar = [var](AST::Node *node) {
+                            return node->is(AST::ExpType::Id) &&
+                                   node->cast<AST::Exp::Id *>()->id() ==
+                                       var->id();
+                        };
+
+                        if (!m_symbolTable[var->id()].isDeclared()) {
+                            if (isSameVar(var->initValue())) {
+                                std::string error = "Symbol '" + var->id() +
+                                                    "' is not declared.";
+                                m_messages[var->initValue()->lineNumber()]
+                                    .push_back({Message::Type::Error, error});
+                            } else if (var->initValue()->hasDescendantWhere(
+                                           isSameVar)) {
+                                auto descendants =
+                                    var->initValue()->getDescendantsWhere(
+                                        isSameVar);
+                                std::string error = "Symbol '" + var->id() +
+                                                    "' is not declared.";
+                                m_messages[descendants.front()->lineNumber()]
+                                    .push_back({Message::Type::Error, error});
+                            }
+                        }
+                    }
+                }
+
+                m_symbolTable.declare(decl->id(), decl);
             }
         } else {
+            if (decl->is(AST::DeclType::Var)) {
+                auto *var = decl->cast<AST::Decl::Var *>();
+                if (var->isInitialized()) {
+                    auto isSameVar = [var](AST::Node *node) {
+                        return node->is(AST::ExpType::Id) &&
+                               node->cast<AST::Exp::Id *>()->id() == var->id();
+                    };
+
+                    if (!m_symbolTable[var->id()].isDeclared()) {
+                        if (isSameVar(var->initValue())) {
+                            std::string error =
+                                "Symbol '" + var->id() + "' is not declared.";
+                            m_messages[var->initValue()->lineNumber()]
+                                .push_back({Message::Type::Error, error});
+                        } else if (var->initValue()->hasDescendantWhere(
+                                       isSameVar)) {
+                            auto descendants =
+                                var->initValue()->getDescendantsWhere(
+                                    isSameVar);
+                            std::string error =
+                                "Symbol '" + var->id() + "' is not declared.";
+                            m_messages[descendants.front()->lineNumber()]
+                                .push_back({Message::Type::Error, error});
+                        }
+                    }
+                }
+            }
             m_symbolTable.declare(decl->id(), decl);
         }
     }
@@ -55,8 +115,7 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
         auto *var = decl->cast<AST::Decl::Var *>();
 
         if (var->isInitialized()) {
-            if (var->initValue() != nullptr &&
-                var->initValue()->is(AST::ExpType::Op)) {
+            if (var->initValue()->is(AST::ExpType::Op)) {
                 var->initValue()->cast<AST::Exp::Op::Op *>()->deduceType();
             }
 

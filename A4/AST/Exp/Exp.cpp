@@ -3,9 +3,9 @@
 namespace AST::Exp {
 Exp::Exp() : TypedNode::TypedNode() { m_nodeType = NodeType::Exp; }
 
-Exp::Exp(unsigned linenum) : TypedNode::TypedNode(linenum, NodeType::Exp) {}
+Exp::Exp(int linenum) : TypedNode::TypedNode(linenum, NodeType::Exp) {}
 
-Exp::Exp(unsigned linenum, ExpType expType)
+Exp::Exp(int linenum, ExpType expType)
     : TypedNode::TypedNode(linenum, NodeType::Exp), m_expType(expType) {}
 
 const ExpType &Exp::expType() const { return m_expType; }

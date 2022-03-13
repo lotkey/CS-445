@@ -11,10 +11,10 @@ class Id : public Exp {
   public:
     Id();
     /// @param linenum Line number the node appears on
-    Id(unsigned linenum);
+    Id(int linenum);
     /// @param linenum Line number the node appears on
     /// @param id String identifier
-    Id(unsigned linenum, const std::string &id);
+    Id(int linenum, const std::string &id);
 
     const std::string &id() const;
     

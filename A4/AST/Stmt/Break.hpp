@@ -11,6 +11,6 @@ class Break : public Stmt {
   public:
     Break();
     /// @param linenum Line number the node appears on
-    Break(unsigned linenum);
+    Break(int linenum);
 };
 } // namespace AST::Stmt

@@ -13,12 +13,12 @@ class For : public Stmt {
   public:
     For();
     /// @param linenum Line number the node appears on
-    For(unsigned linenum);
+    For(int linenum);
     /// @param linenum Line number the node appears on
     /// @param id Iterator variable identifier
     /// @param range Iteration range
     /// @param stmt Loop body
-    For(unsigned linenum, Node *id, Node *range, Node *stmt);
+    For(int linenum, Node *id, Node *range, Node *stmt);
     /// @returns The identifier of the iterator
     Exp::Id *id() const;
     /// @returns The range of the for loop

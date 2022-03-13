@@ -6,11 +6,11 @@ Bool::Bool() : Binary::Binary() {
     setType(Type::Bool);
 }
 
-Bool::Bool(unsigned linenum) : Binary::Binary(linenum, BinaryOpType::Bool) {
+Bool::Bool(int linenum) : Binary::Binary(linenum, BinaryOpType::Bool) {
     setType(Type::Bool);
 }
 
-Bool::Bool(unsigned linenum, BoolOpType boolOpType)
+Bool::Bool(int linenum, BoolOpType boolOpType)
     : Binary::Binary(linenum, BinaryOpType::Bool), m_boolOpType(boolOpType) {
     setType(Type::Bool);
 }

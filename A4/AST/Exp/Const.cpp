@@ -9,11 +9,11 @@
 namespace AST::Exp {
 Const::Const() : Exp::Exp() { setIsConst(true); }
 
-Const::Const(unsigned linenum) : Exp::Exp(linenum, ExpType::Const) {
+Const::Const(int linenum) : Exp::Exp(linenum, ExpType::Const) {
     setIsConst(true);
 }
 
-Const::Const(unsigned linenum, TypeInfo typeInfo, std::string value)
+Const::Const(int linenum, TypeInfo typeInfo, std::string value)
     : Exp::Exp(linenum, ExpType::Const) {
     setTypeInfo(typeInfo);
     setIsConst(true);

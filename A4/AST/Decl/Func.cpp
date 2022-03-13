@@ -14,11 +14,11 @@ Func::Func() : Decl::Decl() {
     setTypeInfo({Type::Void, false, false});
 }
 
-Func::Func(unsigned linenum) : Decl::Decl(linenum, DeclType::Func) {
+Func::Func(int linenum) : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({Type::Void, false, false});
 }
 
-Func::Func(unsigned linenum, const std::string &id, Node *parms,
+Func::Func(int linenum, const std::string &id, Node *parms,
            Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({Type::Void, false, false});
@@ -27,7 +27,7 @@ Func::Func(unsigned linenum, const std::string &id, Node *parms,
     addChild(compoundstmt);
 }
 
-Func::Func(unsigned linenum, Type returnType, const std::string &id,
+Func::Func(int linenum, Type returnType, const std::string &id,
            Node *parms, Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({returnType, false, false});

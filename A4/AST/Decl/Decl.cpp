@@ -8,9 +8,9 @@
 namespace AST::Decl {
 Decl::Decl() : TypedNode::TypedNode() { m_nodeType = NodeType::Decl; }
 
-Decl::Decl(unsigned linenum) : TypedNode::TypedNode(linenum, NodeType::Decl) {}
+Decl::Decl(int linenum) : TypedNode::TypedNode(linenum, NodeType::Decl) {}
 
-Decl::Decl(unsigned linenum, DeclType declType)
+Decl::Decl(int linenum, DeclType declType)
     : TypedNode::TypedNode(linenum, NodeType::Decl) {
     m_declType = declType;
 }

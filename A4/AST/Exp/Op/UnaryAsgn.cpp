@@ -9,10 +9,10 @@
 namespace AST::Exp::Op {
 UnaryAsgn::UnaryAsgn() : Unary::Unary() { m_unaryOpType = UnaryOpType::Asgn; }
 
-UnaryAsgn::UnaryAsgn(unsigned linenum)
+UnaryAsgn::UnaryAsgn(int linenum)
     : Unary::Unary(linenum, UnaryOpType::Asgn) {}
 
-UnaryAsgn::UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp)
+UnaryAsgn::UnaryAsgn(int linenum, UnaryAsgnType opType, Node *exp)
     : Unary::Unary(linenum, UnaryOpType::Asgn), m_unaryAsgnType(opType) {
     if (m_children.size() == 1 && getChild(0) == nullptr) {
         setChild(0, exp);

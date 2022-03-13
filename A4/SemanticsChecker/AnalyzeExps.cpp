@@ -115,6 +115,14 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
         //     }
         // }
 
+        if (id->hasAncestorOfType(AST::DeclType::Var)) {
+            auto *decl = id->getClosestAncestorOfType(AST::DeclType::Var)
+                             ->cast<AST::Decl::Var *>();
+            if (decl->id() == id->id()) {
+                isUsed = false;
+            }
+        }
+
         if (m_symbolTable[id->id()].isDeclared()) {
 
             if (m_symbolTable[id->id()].decl()->declType() ==
@@ -132,19 +140,6 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
             std::string error = "Symbol '" + id->id() + "' is not declared.";
             m_messages[id->lineNumber()].push_back(
                 {Message::Type::Error, error});
-        }
-
-        if (id->hasAncestor(AST::StmtType::Range)) {
-            auto *range = id->getClosestAncestor(AST::StmtType::Range)
-                              ->cast<AST::Stmt::Range *>();
-
-            if (range->parent() != nullptr) {
-                auto *forstmt = range->parent()->cast<AST::Stmt::For *>();
-
-                if (forstmt->id()->id() == id->id()) {
-                    isUsed = false;
-                }
-            }
         }
 
         if (isUsed) {

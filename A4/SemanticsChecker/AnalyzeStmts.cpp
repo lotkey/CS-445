@@ -21,7 +21,7 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
         }
 
         auto *functionParent =
-            returnNode->getClosestAncestor(AST::DeclType::Func)
+            returnNode->getClosestAncestorOfType(AST::DeclType::Func)
                 ->cast<AST::Decl::Func *>();
 
         if (functionParent != nullptr && functionParent->hasType()) {
@@ -100,8 +100,8 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
         break;
     }
     case AST::StmtType::Break: {
-        if (!(stmt->hasAncestor(AST::StmtType::For) ||
-              stmt->hasAncestor(AST::StmtType::While))) {
+        if (!(stmt->hasAncestorOfType(AST::StmtType::For) ||
+              stmt->hasAncestorOfType(AST::StmtType::While))) {
             std::string error =
                 "Cannot have a break statement outside of loop.";
             m_messages[stmt->lineNumber()].push_back(

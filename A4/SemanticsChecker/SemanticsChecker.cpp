@@ -197,7 +197,8 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
         auto *decl = tree->cast<AST::Decl::Decl *>();
         if (decl->is(AST::DeclType::Var) &&
             decl->cast<AST::Decl::Var *>()->isInitialized()) {
-            deduceTypeFromTable(decl->cast<AST::Decl::Var *>()->initValue());
+            auto *var = decl->cast<AST::Decl::Var *>();
+            deduceTypeFromTable(var->initValue());
         }
 
         analyzeNode(tree->cast<AST::Decl::Decl *>());
@@ -272,16 +273,24 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
 
 void SemanticsChecker::analyzeDefinitions(AST::Exp::Op::Asgn *op) {
     if (op->exp1()->is(AST::ExpType::Id)) {
+        auto *id1 = op->exp1()->cast<AST::Exp::Id *>();
 
         bool shouldDefine = true;
 
-        auto *id1 = op->exp1()->cast<AST::Exp::Id *>();
+        auto isSameId = [id1](AST::Node *node) {
+            return node->is(AST::ExpType::Id) &&
+                   node->cast<AST::Exp::Id *>()->id() == id1->id();
+        };
+
+        if (isSameId(op->exp2())) {
+            m_symbolTable[id1->id()].use(op->lineNumber());
+        } else if (op->exp2()->hasDescendantWhere(isSameId)) {
+            m_symbolTable[id1->id()].use(op->lineNumber());
+        }
+
         if (m_symbolTable[id1->id()].isDeclared() &&
             m_symbolTable[id1->id()].decl()->declType() ==
                 AST::DeclType::Func) {
-            shouldDefine = false;
-        } else if (op->exp2()->is(AST::ExpType::Id) &&
-                   op->exp2()->cast<AST::Exp::Id *>()->id() == id1->id()) {
             shouldDefine = false;
         } else if (op->exp2()->cast<AST::Node *>()->is(
                        AST::BinaryOpType::Index)) {

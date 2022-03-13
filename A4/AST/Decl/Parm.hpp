@@ -12,11 +12,11 @@ class Parm : public Decl {
   public:
     Parm();
     /// @param linenum Line number the node appears on
-    Parm(unsigned linenum);
+    Parm(int linenum);
     /// @param linenum Line number the node appears on
     /// @param id Parameter name
     /// @param isArray Whether or not the parameter is an array
-    Parm(unsigned linenum, const std::string &id, bool isArray);
+    Parm(int linenum, const std::string &id, bool isArray);
 
     virtual void setType(Type) override;
     virtual std::string toString(bool debugging = false) const override;

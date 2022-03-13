@@ -9,9 +9,9 @@
 namespace AST::Decl {
 Var::Var() : Decl::Decl() { m_declType = DeclType::Var; }
 
-Var::Var(unsigned linenum) : Decl::Decl(linenum, DeclType::Var) {}
+Var::Var(int linenum) : Decl::Decl(linenum, DeclType::Var) {}
 
-Var::Var(unsigned linenum, const std::string &id, bool isArray)
+Var::Var(int linenum, const std::string &id, bool isArray)
     : Decl::Decl(linenum, DeclType::Var) {
     setIsArray(isArray);
     m_id = id;

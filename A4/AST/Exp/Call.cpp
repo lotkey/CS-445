@@ -8,9 +8,9 @@
 namespace AST::Exp {
 Call::Call() : Exp::Exp() { m_expType = ExpType::Call; }
 
-Call::Call(unsigned linenum) : Exp::Exp(linenum, ExpType::Call) {}
+Call::Call(int linenum) : Exp::Exp(linenum, ExpType::Call) {}
 
-Call::Call(unsigned linenum, const std::string &id, Node *arglist)
+Call::Call(int linenum, const std::string &id, Node *arglist)
     : Exp::Exp(linenum, ExpType::Call), m_id(id) {
     addChild(arglist);
 }

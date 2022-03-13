@@ -11,11 +11,11 @@ class Const : public Exp {
   public:
     Const();
     /// @param linenum Line number the node appears on
-    Const(unsigned linenum);
+    Const(int linenum);
     /// @param linenum Line number the node appears on
     /// @param Type Type of the constant
     /// @param data String value of the data
-    Const(unsigned linenum, TypeInfo typeInfo, std::string data);
+    Const(int linenum, TypeInfo typeInfo, std::string data);
     
     virtual std::string toString(bool debugging = false) const override;
 

@@ -5,9 +5,9 @@
 namespace AST {
 TypedNode::TypedNode() : Node::Node() {}
 
-TypedNode::TypedNode(unsigned linenum) : Node::Node(linenum) {}
+TypedNode::TypedNode(int linenum) : Node::Node(linenum) {}
 
-TypedNode::TypedNode(unsigned linenum, NodeType nodeType)
+TypedNode::TypedNode(int linenum, NodeType nodeType)
     : Node::Node(linenum, nodeType) {}
 
 bool TypedNode::isConst() const { return m_typeInfo.isConst; }

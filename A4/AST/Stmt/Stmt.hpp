@@ -12,8 +12,8 @@ class Stmt : public Node {
   public:
     Stmt();
     /// @param linenum Line number the node appears on
-    Stmt(unsigned linenum);
-    Stmt(unsigned linenum, StmtType stmtType);
+    Stmt(int linenum);
+    Stmt(int linenum, StmtType stmtType);
 
     const StmtType &stmtType() const;
 

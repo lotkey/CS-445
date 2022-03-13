@@ -9,8 +9,8 @@ namespace AST {
 class TypedNode : public Node {
   public:
     TypedNode();
-    TypedNode(unsigned linenum);
-    TypedNode(unsigned linenum, NodeType nodeType);
+    TypedNode(int linenum);
+    TypedNode(int linenum, NodeType nodeType);
 
     bool isConst() const;
     void setIsConst(bool);

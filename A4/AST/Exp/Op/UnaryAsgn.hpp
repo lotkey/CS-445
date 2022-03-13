@@ -16,14 +16,15 @@ class UnaryAsgn : public Unary {
 
     UnaryAsgn();
     /// @param linenum Line number the node appears on
-    UnaryAsgn(unsigned linenum);
+    UnaryAsgn(int linenum);
     /// @param linenum Line number the node appears on
     /// @param opType Assignment type
     /// @param exp The node being assigned
-    UnaryAsgn(unsigned linenum, UnaryAsgnType opType, Node *exp);
+    UnaryAsgn(int linenum, UnaryAsgnType opType, Node *exp);
 
     UnaryAsgnType unaryAsgnType() const;
     Exp *mutableExp() const;
+    
 
     virtual std::string toString(bool debugging = false) const override;
     virtual void deduceType() override;
