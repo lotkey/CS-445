@@ -103,18 +103,6 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
         auto *id = exp->cast<AST::Exp::Id *>();
         bool isUsed = true;
 
-        // // x <- x;
-        // // doesn't use x
-        // if (id->parent()->is(AST::AsgnType::Asgn)) {
-        //     auto *asgn = id->parent()->cast<AST::Exp::Op::Binary *>();
-        //     if (asgn->exp2() == id && asgn->exp1()->is(AST::ExpType::Id)) {
-        //         auto *exp1 = asgn->exp1()->cast<AST::Exp::Id*>();
-        //         if (exp1->id() == id->id()) {
-        //             isUsed = false;
-        //         }
-        //     }
-        // }
-
         if (id->hasAncestorOfType(AST::DeclType::Var)) {
             auto *decl = id->getClosestAncestorOfType(AST::DeclType::Var)
                              ->cast<AST::Decl::Var *>();

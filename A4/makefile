@@ -22,8 +22,14 @@ SRCS = $(BIN).y $(BIN).l $(AST_SRCS) $(OPTIONS_SRCS) $(SYMTBL_SRCS) $(SEMCHCK_SR
 HDRS = $(AST_HDRS) $(OPTIONS_HDRS) $(SYMTBL_HDRS) $(SEMCHCK_HDRS) strutil.hpp scanType.hpp
 OBJS = lex.yy.o $(BIN).tab.o
 
+
 $(BIN) : $(OBJS) $(AST_DIR) $(OPTIONS_DIR) $(SYMTBL_DIR) $(SEMCHCK_DIR)
 	@$(CC) strutil.cpp *.o -o $(BIN)
+	@$(MAKE) clean
+
+cmake : $(OBJS)
+	@cd build; $(MAKE)
+	@$(CC) strutil.cpp *.o build/*.a -o $(BIN)
 	@$(MAKE) clean
 
 lex.yy.c : $(BIN).l $(BIN).tab.h

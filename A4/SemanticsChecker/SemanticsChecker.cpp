@@ -30,14 +30,7 @@ void SemanticsChecker::print() const {
         /// Iterate backwards through bucket
         for (int i = bucket.size() - 1; i >= 0; i--) {
             auto message = bucket[i];
-            std::string tag;
-
-            if (message.type() == Message::Type::Error) {
-                tag = "ERROR(" + std::to_string(lineNumber) + "): ";
-            } else {
-                tag = "WARNING(" + std::to_string(lineNumber) + "): ";
-            }
-            std::cout << tag + message.content() << std::endl;
+            std::cout << message.toString(lineNumber) << std::endl;
         }
     }
 }
