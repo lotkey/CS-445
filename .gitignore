@@ -5,6 +5,7 @@
 **/*.tar
 **/testData
 **/.*
+**/build/
 
 **/c-
 **/lex.yy.c
