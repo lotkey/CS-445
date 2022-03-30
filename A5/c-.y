@@ -62,7 +62,7 @@ program             : declList {
                         tree_root = $$;
                         yyerrok;
                     }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 declList            : declList decl {
@@ -105,12 +105,6 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
                         $$ = var;
                         yyerrok;
 					}
-                    | STATIC error varDeclList SEMI { $$ = nullptr; yyerrok; }
-                    | STATIC typeSpec error SEMI { $$ = nullptr; yyerrok; }
-                    | STATIC error SEMI { $$ = nullptr; yyerrok; }
-                    | error varDeclList SEMI { $$ = nullptr; yyerrok; }
-                    | typeSpec error SEMI { $$ = nullptr; yyerrok; }
-                    | error SEMI { $$ = nullptr; yyerrok; }
                     | error { $$ = nullptr; yyerrok; }
                     ;
 
@@ -119,10 +113,8 @@ varDeclList         : varDeclList COM varDeclInit {
                         $$->addSibling($3);
                         yyerrok;
                     }
-                    | varDeclInit { $$ = $1; yyerrok; }
-                    | error COM varDeclInit { $$ = nullptr; yyerrok; }
-                    | error COM error { $$ = nullptr; yyerrok; }
-                    | varDeclList COM error { $$ = nullptr; yyerrok; }
+                    | varDeclInit { $$ = $1; }
+                    | varDeclList COM error { $$ = nullptr; }
                     | error { $$ = nullptr; yyerrok; }
                     ;
 
@@ -136,9 +128,10 @@ varDeclInit         : varDeclId { $$ = $1; yyerrok; }
                         $$ = nullptr;
                         yyerrok;
                     }
-                    | error { $$ = nullptr; yyerrok; }
                     | error COL simpleExp { $$ = nullptr; yyerrok; }
+                    | varDeclId COL error { $$ = nullptr; yyerrok; }
                     | error COL error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; yyerrok; }
                     ;
                 
 varDeclId           : ID {
@@ -149,14 +142,14 @@ varDeclId           : ID {
                         $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, true);
                         yyerrok;
                     }
-                    | error { $$ = nullptr; yyerrok; }
-                    | error RBRACK { $$ = nullptr; yyerrok; }
+                    | error RBRACK { $$ = nullptr; }
                     | ID LBRACK error { $$ = nullptr; yyerrok; }
                     ;
 
 typeSpec            : BOOL { $$ = AST::Type::Bool; }
                     | CHAR { $$ = AST::Type::Char; }
                     | INT { $$ = AST::Type::Int; }
+                    | error { $$ = AST::Type::Error; yyerrok; }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
@@ -167,16 +160,9 @@ funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
                         $$ = new AST::Decl::Func($1->linenum, $1->tokenstr, $3, $5);
                         yyerrok;
                     }
-                    | error ID LPAREN parms RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | typeSpec error LPAREN parms RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | typeSpec ID error parms RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | typeSpec ID LPAREN error RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | typeSpec ID LPAREN parms error compoundStmt { $$ = nullptr; yyerrok; }
-                    | typeSpec ID LPAREN parms RPAREN error { $$ = nullptr; yyerrok; }
-                    | error LPAREN parms RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | ID error parms RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | ID LPAREN error RPAREN compoundStmt { $$ = nullptr; yyerrok; }
-                    | ID LPAREN parms error compoundStmt { $$ = nullptr; yyerrok; }
+                    | typeSpec error { $$ = nullptr; yyerrok; }
+                    | typeSpec ID error { $$ = nullptr; yyerrok; }
+                    | ID LPAREN error { $$ = nullptr; yyerrok; }
                     | ID LPAREN parms RPAREN error { $$ = nullptr; yyerrok; }
                     | error { $$ = nullptr; yyerrok; }
                     ;
@@ -192,9 +178,7 @@ parmList            : parmList SEMI parmTypeList {
                         yyerrok;
                     }
                     | parmTypeList { $$ = $1; yyerrok; }
-                    | error SEMI parmTypeList { $$ = nullptr; yyerrok; }
                     | parmList SEMI error { $$ = nullptr; yyerrok; }
-                    | error SEMI error { $$ = nullptr; yyerrok; }
                     | error { $$ = nullptr; yyerrok; }
                     ;
 
@@ -215,9 +199,7 @@ parmIdList          : parmIdList COM parmId {
                         yyerrok;
                     }
                     | parmId { $$ = $1; yyerrok; }
-                    | error COM parmId { $$ = nullptr; yyerrok; }
                     | parmIdList COM error { $$ = nullptr; yyerrok; }
-                    | error COM error { $$ = nullptr; yyerrok; }
                     | error { $$ = nullptr; yyerrok; }
                     ;
 
@@ -229,12 +211,6 @@ parmId              : ID {
                         $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, true);
                         yyerrok;
 					}
-                    | error LBRACK RBRACK { $$ = nullptr; yyerrok; }
-                    | ID error RBRACK { $$ = nullptr; yyerrok; }
-                    | ID LBRACK error { $$ = nullptr; yyerrok; }
-                    | error RBRACK { $$ = nullptr; yyerrok; }
-                    | ID error { $$ = nullptr; yyerrok; }
-                    | error ID error { $$ = nullptr; yyerrok; }
                     | error { $$ = nullptr; yyerrok; }
                     ;
 
@@ -338,26 +314,9 @@ selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt {
                         $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
                         yyerrok;
                     }
-                    | error simpleExp THEN closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | error THEN closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | error closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | error ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | error closedStmt { $$ = nullptr; yyerrok; }
-                    | IF error THEN closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN error ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN closedStmt error closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN closedStmt ELSE error { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN closedStmt error { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN error { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error { $$ = nullptr; yyerrok; }
                     | IF error { $$ = nullptr; yyerrok; }
-                    | IF error closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN error closedStmt { $$ = nullptr; yyerrok; }
                     | IF error ELSE closedStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error closedStmt { $$ = nullptr; yyerrok; }
-                    | IF error closedStmt { $$ = nullptr; yyerrok; }
+                    | IF error THEN closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; } 
                     | error { $$ = nullptr; yyerrok; }
                     ;
 
@@ -406,42 +365,17 @@ iterStmtClosed      : WHILE simpleExp DO closedStmt {
                         $$ = new AST::Stmt::While($1->linenum, $2, $4);
                         yyerrok;
                     }
-                    | error simpleExp DO closedStmt { $$ = nullptr; yyerrok; }
-                    | WHILE error DO closedStmt { $$ = nullptr; yyerrok; }
-                    | WHILE simpleExp error closedStmt { $$ = nullptr; yyerrok; }
-                    | WHILE simpleExp DO error { $$ = nullptr; yyerrok; }
-                    | WHILE simpleExp error { $$ = nullptr; yyerrok; }
-                    | WHILE error closedStmt { $$ = nullptr; yyerrok; }
-                    | WHILE error { $$ = nullptr; yyerrok; }
                     | FOR ID ASGN iterRange DO closedStmt {
                         auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
                         iterator->setType(AST::Type::Int);
                         $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                         yyerrok;
                     }
-                    | error ID ASGN iterRange DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR error iterRange DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID error DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN error closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR error DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID error closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR error closedStmt { $$ = nullptr; yyerrok; }
-                    | error ASGN iterRange DO closedStmt { $$ = nullptr; yyerrok; }
-                    | error iterRange DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR error ASGN iterRange DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID error iterRange DO closedStmt { $$ = nullptr; yyerrok; }
+                    | WHILE error DO closedStmt { $$ = nullptr; yyerrok; }
+                    | WHILE error { $$ = nullptr; yyerrok; }
                     | FOR ID ASGN error DO closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN iterRange error closedStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN iterRange DO error { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN iterRange error { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN error { $$ = nullptr; yyerrok; }
-                    | FOR ID error { $$ = nullptr; yyerrok; }
                     | FOR error { $$ = nullptr; yyerrok; }
-
-                    | error DO closedStmt { $$ = nullptr; yyerrok; }
-                    | error closedStmt { $$ = nullptr; yyerrok; }
                     | error { $$ = nullptr; yyerrok; }
-                    ;
                     ;
 
 iterRange           : simpleExp TO simpleExp {
@@ -452,17 +386,9 @@ iterRange           : simpleExp TO simpleExp {
                         $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3, $5);
                         yyerrok;
                     }
-                    | error TO simpleExp { $$ = nullptr; yyerrok; }
-                    | error simpleExp { $$ = nullptr; yyerrok; }
-                    | simpleExp TO simpleExp error simpleExp { $$ = nullptr; yyerrok; }
-                    | simpleExp error simpleExp { $$ = nullptr; yyerrok; }
-                    | simpleExp TO simpleExp BY error { $$ = nullptr; yyerrok; }
-                    | simpleExp TO simpleExp error { $$ = nullptr; yyerrok; }
-                    | simpleExp TO error { $$ = nullptr; yyerrok; }
-                    | simpleExp error { $$ = nullptr; yyerrok; }
-                    | simpleExp error BY simpleExp { $$ = nullptr; yyerrok; }
-                    | simpleExp TO error simpleExp { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | simpleExp TO error { $$ = nullptr; }
+                    | error BY error { $$ = nullptr; yyerrok; }
+                    | simpleExp TO simplexExp BY error { $$ = nullptr; }
                     ;
 
 returnStmt          : RETURN SEMI {

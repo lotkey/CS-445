@@ -4,7 +4,7 @@
 #include <string>
 
 namespace AST {
-enum class Type { Int, Bool, Char, Void };
+enum class Type { Int, Bool, Char, Void, Error };
 enum class NodeType { Decl, Exp, Stmt };
 enum class StmtType { Break, Compound, For, Range, Return, Select, While };
 enum class DeclType { Func, Parm, Var };
