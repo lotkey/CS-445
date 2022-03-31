@@ -1,4 +1,5 @@
 #include "Node.hpp"
+#include "../strutil.hpp"
 
 #include <iostream>
 #include <memory>
@@ -46,6 +47,9 @@ void Node::addChild(Node *node) {
 }
 
 void Node::setChild(int index, Node *node) {
+    if (node == nullptr) {
+        return;
+    }
     if (m_children.size() <= index) {
         throw std::runtime_error("Cannot set child, index out of bounds.");
     } else {
@@ -65,6 +69,9 @@ void Node::setChild(int index, Node *node) {
 }
 
 void Node::addSibling(Node *node) {
+    if (this == nullptr) {
+        return;
+    }
     if (node == nullptr) {
         return;
     }
@@ -111,7 +118,7 @@ void Node::print(bool debugging) const {
                 std::cout << s_indentString;
             }
 
-            std::cout << "Child: " + std::to_string(i) << "  ";
+            std::cout << strutil::format("Child: %d ", i);
             int backup = siblingCount;
             siblingCount = 0;
             child->print(debugging);
@@ -126,7 +133,7 @@ void Node::print(bool debugging) const {
             std::cout << s_indentString;
         }
 
-        std::cout << "Sibling: " + std::to_string(siblingCount) << "  ";
+        std::cout << strutil::format("Sibling: %d ", siblingCount);
         m_sibling->print(debugging);
     }
     siblingCount--;
@@ -144,7 +151,7 @@ const NodeType &Node::nodeType() const { return m_nodeType; }
 
 std::string Node::toString(bool debugging) const { return lineTag(); }
 
-bool Node::is(NodeType t) const { return this != nullptr && nodeType() == t; }
+bool Node::is(NodeType t) const { return this && nodeType() == t; }
 bool Node::is(StmtType t) const { return false; }
 bool Node::is(DeclType t) const { return false; }
 bool Node::is(ExpType t) const { return false; }
@@ -160,7 +167,7 @@ bool Node::is(AsgnType t) const { return false; }
 #pragma region Private functions
 
 std::string Node::lineTag() const {
-    return " [line: " + std::to_string(m_linenum) + "]";
+    return strutil::format(" [line: %d]", m_linenum);
 }
 
 std::string Node::typeTag() const { return ""; }

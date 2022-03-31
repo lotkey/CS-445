@@ -9,8 +9,7 @@
 namespace AST::Exp::Op {
 UnaryAsgn::UnaryAsgn() : Unary::Unary() { m_unaryOpType = UnaryOpType::Asgn; }
 
-UnaryAsgn::UnaryAsgn(int linenum)
-    : Unary::Unary(linenum, UnaryOpType::Asgn) {}
+UnaryAsgn::UnaryAsgn(int linenum) : Unary::Unary(linenum, UnaryOpType::Asgn) {}
 
 UnaryAsgn::UnaryAsgn(int linenum, UnaryAsgnType opType, Node *exp)
     : Unary::Unary(linenum, UnaryOpType::Asgn), m_unaryAsgnType(opType) {
@@ -43,6 +42,6 @@ void UnaryAsgn::deduceType() {
 Exp *UnaryAsgn::mutableExp() const { return getChild(0)->cast<Exp *>(); }
 
 bool UnaryAsgn::is(UnaryAsgnType t) const {
-    return this != nullptr && m_unaryAsgnType == t;
+    return this && m_unaryAsgnType == t;
 }
 } // namespace AST::Exp::Op

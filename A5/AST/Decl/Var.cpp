@@ -1,4 +1,5 @@
 #include "Var.hpp"
+#include "../../strutil.hpp"
 #include "../Exp/Exp.hpp"
 #include "../Node.hpp"
 #include "Decl.hpp"
@@ -26,7 +27,7 @@ void Var::setStatic() {
 }
 
 std::string Var::toString(bool debugging) const {
-    std::string str = "Var: " + m_id;
+    std::string str = strutil::format("Var: %s", m_id.c_str());
     if (isArray()) {
         str += " is array";
     }

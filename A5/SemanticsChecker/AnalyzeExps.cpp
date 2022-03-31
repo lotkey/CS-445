@@ -372,6 +372,9 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
 }
 
 void SemanticsChecker::analyzeNode(AST::Exp::Op::Asgn *op) {
+    if (!op || !(op->exp1() && op->exp2())) {
+        return;
+    }
 
     if (!op->is(AST::AsgnType::Asgn)) {
         if (op->exp1()->hasType() && op->exp1()->type() != AST::Type::Int) {

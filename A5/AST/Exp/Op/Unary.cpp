@@ -1,4 +1,5 @@
 #include "Unary.hpp"
+#include "../../../strutil.hpp"
 #include "../../Node.hpp"
 #include "../Exp.hpp"
 #include "Op.hpp"
@@ -21,6 +22,14 @@ Unary::Unary(int linenum, UnaryOpType opType, Node *exp)
 const UnaryOpType &Unary::unaryOpType() const { return m_unaryOpType; }
 
 void Unary::addExp(Node *exp) {
+    if (this == nullptr) {
+        return;
+    }
+
+    if (exp == nullptr) {
+        return;
+    }
+
     if (m_children.size() > 0) {
         if (getChild(0) == nullptr) {
             setChild(0, exp);
@@ -42,7 +51,8 @@ Exp *Unary::operand() const {
 }
 
 std::string Unary::toString(bool debugging) const {
-    std::string str = "Op: " + Types::toString(m_unaryOpType);
+    std::string str =
+        strutil::format("Op: %s", Types::toString(m_unaryOpType).c_str());
 
     if (debugging) {
         str += typeTag();
@@ -84,7 +94,5 @@ void Unary::deduceType() {
     }
 }
 
-bool Unary::is(UnaryOpType t) const {
-    return this != nullptr && m_unaryOpType == t;
-}
+bool Unary::is(UnaryOpType t) const { return this && m_unaryOpType == t; }
 } // namespace AST::Exp::Op

@@ -223,7 +223,7 @@ void SemanticsChecker::analyzeTree(AST::Node *tree) {
 
     /// Analyze children of the node
     for (auto &child : tree->children()) {
-        if (child != nullptr) {
+        if (child) {
             analyzeTree(child);
         }
     }
@@ -271,7 +271,7 @@ void SemanticsChecker::analyzeDefinitions(AST::Exp::Op::Asgn *op) {
         bool shouldDefine = true;
 
         auto isSameId = [id1](AST::Node *node) {
-            return node->is(AST::ExpType::Id) &&
+            return node && node->is(AST::ExpType::Id) &&
                    node->cast<AST::Exp::Id *>()->id() == id1->id();
         };
 
@@ -281,12 +281,16 @@ void SemanticsChecker::analyzeDefinitions(AST::Exp::Op::Asgn *op) {
             m_symbolTable[id1->id()].use(op->lineNumber());
         }
 
+        bool b1 =
+            m_symbolTable[id1->id()].isDeclared() &&
+            m_symbolTable[id1->id()].decl()->declType() == AST::DeclType::Func;
+
         if (m_symbolTable[id1->id()].isDeclared() &&
             m_symbolTable[id1->id()].decl()->declType() ==
                 AST::DeclType::Func) {
             shouldDefine = false;
-        } else if (op->exp2()->cast<AST::Node *>()->is(
-                       AST::BinaryOpType::Index)) {
+        } else if (op->exp2() && op->exp2()->cast<AST::Node *>()->is(
+                                     AST::BinaryOpType::Index)) {
             auto *indexOp = op->exp2()->cast<AST::Exp::Op::Binary *>();
             if (indexOp->exp1()->is(AST::ExpType::Id) &&
                 indexOp->exp1()->cast<AST::Exp::Id *>()->id() == id1->id()) {

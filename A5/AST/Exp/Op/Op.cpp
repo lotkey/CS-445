@@ -11,5 +11,5 @@ Op::Op(int linenum, OpType opType)
 
 const OpType &Op::opType() const { return m_opType; }
 
-bool Op::is(OpType t) const { return this != nullptr && m_opType == t; }
+bool Op::is(OpType t) const { return this && m_opType == t; }
 } // namespace AST::Exp::Op

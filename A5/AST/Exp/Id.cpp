@@ -1,4 +1,5 @@
 #include "Id.hpp"
+#include "../../strutil.hpp"
 #include "../Node.hpp"
 #include "Exp.hpp"
 
@@ -15,7 +16,7 @@ Id::Id(int linenum, const std::string &id)
 const std::string &Id::id() const { return m_id; }
 
 std::string Id::toString(bool debugging) const {
-    std::string str = "Id: " + m_id;
+    std::string str = strutil::format("Id: %s", m_id.c_str());
 
     if (debugging) {
         str += typeTag();

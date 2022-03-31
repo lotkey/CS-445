@@ -22,5 +22,5 @@ std::string Stmt::toString(bool debugging) const {
     return Types::toString(m_stmtType) + lineTag();
 }
 
-bool Stmt::is(StmtType t) const { return this != nullptr && m_stmtType == t; }
+bool Stmt::is(StmtType t) const { return this && m_stmtType == t; }
 } // namespace AST::Stmt

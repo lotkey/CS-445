@@ -77,3 +77,35 @@ char strutil::make_char(const std::string &str, int linenumber) {
 
     return c;
 }
+
+std::vector<std::string> strutil::split(std::string s) {
+    std::vector<std::string> words;
+    std::vector<std::string> delimiters = {" ", "\r", "\n", "\t", "\v", "\f"};
+
+    size_t pos;
+    while ((pos = find_first_of_any(s, delimiters)) != std::string::npos) {
+        std::string word = s.substr(0, pos);
+        if (!word.empty()) {
+            words.push_back(word);
+        }
+        s.erase(0, pos + 1);
+    }
+    if (!s.empty()) {
+        words.push_back(s);
+    }
+
+    return words;
+}
+
+size_t strutil::find_first_of_any(const std::string &text,
+                                  const std::vector<std::string> &delimiters) {
+    size_t first = std::string::npos;
+    for (const auto &delimiter : delimiters) {
+        size_t index = text.find_first_of(delimiter);
+        if (index < first) {
+            first = index;
+        }
+    }
+
+    return first;
+}

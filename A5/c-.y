@@ -18,9 +18,47 @@ extern int numErrors;    // ERR err count
 extern char *yytext;
 AST::Node* tree_root;
 
+static const std::map<std::string, std::string> token_to_string = {
+    {"ADDASGN", "\"+=\""},              {"AND", "\"and\""},
+    {"ASGN", "\"<-\""},                 {"BGN", "\"begin\""},
+    {"BOOL", "\"bool\""},               {"BOOLCONST", "Boolean constant"},
+    {"BREAK", "\"break\""},             {"BY", "\"by\""},
+    {"CHAR", "\"char\""},               {"CHARCONST", "character constant"},
+    {"DASH", "-"},                      {"DEC", "\"--\""},
+    {"DIVASGN", "\"/=\""},              {"DO", "\"do\""},
+    {"ELSE", "\"else\""},               {"END", "\"end\""},
+    {"FOR", "\"for\""},                 {"GEQ", "\">=\""},
+    {"ID", "identifier"},               {"IF", "\"if\""},
+    {"INC", "\"++\""},                  {"INT", "\"int\""},
+    {"LEQ", "\"<=\""},                  {"MULASGN", "\"*=\""},
+    {"NEQ", "\"!=\""},                  {"NOT", "\"not\""},
+    {"NUMCONST", "numeric constant"},   {"OR", "\"or\""},
+    {"RETURN", "\"return\""},           {"ASTERISK", "\"*\""},
+    {"STATIC", "\"static\""},           {"STRINGCONST", "string constant"},
+    {"SUBASGN", "\"-=\""},              {"THEN", "\"then\""},
+    {"TO", "\"to\""},                   {"WHILE", "\"while\""},
+    {"$end", "end of input"}
+};
+
 #define YYERROR_VERBOSE
 void yyerror(const char *msg)
 {
+    // auto words = strutil::split(msg);
+    
+    // for (int i = 3; i < words.size(); i += 2) {
+    //     if (token_to_string.find(words[i]) != token_to_string.end()) {
+    //         words[i] = token_to_string.at(words[i]);
+    //     }
+    // }
+    
+    // for (const auto& word : words) {
+    //     std::cout << strutil::format("\"%s\"\n", word.c_str());
+    // }
+
+    // auto unexpected = words[3];
+    // std::string error_msg = strutil::format("ERROR(%d): Syntax error, unexpected %s",
+    //             line, unexpected.c_str());
+
     std::cout << "ERROR(" << line << "): " << msg << std::endl;
     numErrors++;
 }
@@ -67,61 +105,61 @@ program             : declList {
 
 declList            : declList decl {
                         $$ = $1;
-                        $$->addSibling($2);
+                        if ($$) { $$->addSibling($2); }
                         yyerrok;
                     }
                     | decl { $$ = $1; yyerrok; }
-                    | declList error { $$ = nullptr; yyerrok; }
-                    | error decl { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 decl                : varDecl { $$ = $1; yyerrok; }
                     | funDecl { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 varDecl             : typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        var->setType($1);
+                        if (var) { var->setType($1); }
                         $$ = var;
                         yyerrok;
 					}
                     | error varDeclList SEMI { $$ = nullptr; yyerrok; }
                     | typeSpec error SEMI { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
                         auto *var = $3->cast<AST::Decl::Var *>();
-                        var->setType($2);
-                        var->setIsStatic(true);
+                        if (var) {
+                            var->setType($2);
+                            var->setIsStatic(true);
+                        }
                         $$ = var;
                         yyerrok;
 					}
                     | typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        var->setType($1);
+                        if (var) { var->setType($1); }
                         $$ = var;
                         yyerrok;
 					}
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 varDeclList         : varDeclList COM varDeclInit {
                         $$ = $1;
-                        $$->addSibling($3);
+                        if ($$) { $$->addSibling($3); }
                         yyerrok;
                     }
                     | varDeclInit { $$ = $1; }
                     | varDeclList COM error { $$ = nullptr; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 varDeclInit         : varDeclId { $$ = $1; yyerrok; }
                     | varDeclId COL simpleExp {
                         $$ = $1;
-                        $$->addChild($3);
+                        if ($$) { $$->addChild($3); }
                         yyerrok;
                     }
                     | varDeclId COL error {
@@ -129,146 +167,140 @@ varDeclInit         : varDeclId { $$ = $1; yyerrok; }
                         yyerrok;
                     }
                     | error COL simpleExp { $$ = nullptr; yyerrok; }
-                    | varDeclId COL error { $$ = nullptr; yyerrok; }
-                    | error COL error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
                     ;
                 
 varDeclId           : ID {
-                        $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, false);
+                        if ($1) {
+                            $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, false);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | ID LBRACK NUMCONST RBRACK {
-                        $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, true);
+                        if ($1) {
+                            $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, true);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | error RBRACK { $$ = nullptr; }
-                    | ID LBRACK error { $$ = nullptr; yyerrok; }
+                    | ID LBRACK error { $$ = nullptr; }
                     ;
 
 typeSpec            : BOOL { $$ = AST::Type::Bool; }
                     | CHAR { $$ = AST::Type::Char; }
                     | INT { $$ = AST::Type::Int; }
-                    | error { $$ = AST::Type::Error; yyerrok; }
+                    | error { $$ = AST::Type::Error; }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
-                        $$ = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
+                        if ($2) {
+                            $$ = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | ID LPAREN parms RPAREN compoundStmt {
-                        $$ = new AST::Decl::Func($1->linenum, $1->tokenstr, $3, $5);
+                        if ($1) {
+                            $$ = new AST::Decl::Func($1->linenum, $1->tokenstr, $3, $5);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | typeSpec error { $$ = nullptr; yyerrok; }
-                    | typeSpec ID error { $$ = nullptr; yyerrok; }
-                    | ID LPAREN error { $$ = nullptr; yyerrok; }
-                    | ID LPAREN parms RPAREN error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | typeSpec error { $$ = nullptr; }
+                    | typeSpec ID error { $$ = nullptr; }
+                    | ID LPAREN error { $$ = nullptr; }
+                    | ID LPAREN parms RPAREN error { $$ = nullptr; }
                     ;
 
 parms               : { $$ = nullptr; yyerrok; }
                     | parmList { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 parmList            : parmList SEMI parmTypeList {
                         $$ = $1;
-                        $$->addSibling($3);
+                        if ($$) { $$->addSibling($3); }
                         yyerrok;
                     }
                     | parmTypeList { $$ = $1; yyerrok; }
-                    | parmList SEMI error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | parmList SEMI error { $$ = nullptr; }
+                    | error { $$ = nullptr; }
                     ;
 
 parmTypeList        : typeSpec parmIdList {
                         auto *parms = $2->cast<AST::Decl::Parm *>();
-                        parms->setType($1);
+                        if (parms) { parms->setType($1); }
                         $$ = parms;
                         yyerrok;
 					}
-                    | error parmIdList { $$ = nullptr; yyerrok; }
-                    | typeSpec error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | typeSpec error { $$ = nullptr; }
                     ;
 
 parmIdList          : parmIdList COM parmId {
                         $$ = $1;
-                        $$->addSibling($3);
+                        if ($$) { $$->addSibling($3); }
                         yyerrok;
                     }
                     | parmId { $$ = $1; yyerrok; }
-                    | parmIdList COM error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | parmIdList COM error { $$ = nullptr; }
+                    | error { $$ = nullptr; }
                     ;
 
 parmId              : ID {
-                        $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, false);
+                        if ($1) {
+                            $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, false);
+                        } else { $$ = nullptr; }
                         yyerrok;
 					}
                     | ID LBRACK RBRACK {
-                        $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, true);
+                        if ($1) {
+                            $$ = new AST::Decl::Parm($1->linenum, $1->tokenstr, true);
+                        } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 stmt                : closedStmt { $$ = $1; yyerrok; }
                     | openStmt { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 expStmt             : exp SEMI { $$ = $1; yyerrok; }
                     | SEMI { $$ = nullptr; yyerrok; }
                     | error SEMI { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
                     ;
 
 compoundStmt        : BGN localDecls stmtList END {
-                        $$ = new AST::Stmt::Compound($1->linenum, $2, $3);
+                        if ($1) {
+                            $$ = new AST::Stmt::Compound($1->linenum, $2, $3);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error localDecls stmtList END { $$ = nullptr; yyerrok; }
-                    | BGN error stmtList END { $$ = nullptr; yyerrok; }
-                    | BGN localDecls error END { $$ = nullptr; yyerrok; }
-                    | BGN localDecls stmtList error { $$ = nullptr; yyerrok; }
-                    | BGN localDecls error { $$ = nullptr; yyerrok; }
-                    | BGN error END { $$ = nullptr; yyerrok; }
-                    | BGN error { $$ = nullptr; yyerrok; }
-                    | error stmtList END { $$ = nullptr; yyerrok; }
-                    | error END { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 localDecls          : { $$ = nullptr; yyerrok; }
                     | localDecls scopedVarDecl {
-                        if ($1 == nullptr) {
-                            $$ = $2;
-                        } else {
+                        if ($1) {
                             $$ = $1;
                             $$->addSibling($2);
+                        } else {
+                            $$ = $2;
                         }
                         yyerrok;
                     }
-                    | error scopedVarDecl { $$ = nullptr; yyerrok; }
-                    | localDecls error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 stmtList            : { $$ = nullptr; yyerrok; }
                     | stmtList stmt {
-                        if ($1 == nullptr) {
-                            $$ = $2;
-                        } else {
+                        if ($1) {
                             $$ = $1;
                             $$->addSibling($2);
+                        } else {
+                            $$ = $2;
                         }
                         yyerrok;
                     }
-                    | error stmt { $$ = nullptr; yyerrok; }
-                    | stmtList error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 closedStmt          : selectStmtClosed { $$ = $1; yyerrok; }
@@ -277,351 +309,433 @@ closedStmt          : selectStmtClosed { $$ = $1; yyerrok; }
                     | compoundStmt { $$ = $1; yyerrok; }
                     | returnStmt  { $$ = $1; yyerrok; }
                     | breakStmt { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 openStmt            : selectStmtOpen { $$ = $1; yyerrok; }
                     | iterStmtOpen { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 selectStmtOpen      : IF simpleExp THEN stmt {
-                        $$ = new AST::Stmt::Select($1->linenum, $2, $4);
+                        if ($1) {
+                            $$ = new AST::Stmt::Select($1->linenum, $2, $4);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | IF simpleExp THEN closedStmt ELSE openStmt {
-                        $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
+                        if ($1) {
+                            $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error simpleExp THEN stmt { $$ = nullptr; yyerrok; }
-                    | IF error THEN stmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error stmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN closedStmt ELSE error { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN closedStmt error { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN error { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error { $$ = nullptr; yyerrok; }
-                    | IF error stmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp THEN error openStmt { $$ = nullptr; yyerrok; }
-                    | IF error ELSE openStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error ELSE openStmt { $$ = nullptr; yyerrok; }
-                    | IF error ELSE openStmt { $$ = nullptr; yyerrok; }
-                    | IF simpleExp error openStmt { $$ = nullptr; yyerrok; }
-                    | IF error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | IF error THEN stmt { $$ = nullptr; yyerrok; } 
+                    | IF error THEN closedStmt ELSE openStmt { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt {
-                        $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
+                        if ($1) {
+                            $$ = new AST::Stmt::Select($1->linenum, $2, $4, $6);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | IF error { $$ = nullptr; yyerrok; }
+                    | IF error { $$ = nullptr; }
                     | IF error ELSE closedStmt { $$ = nullptr; yyerrok; }
                     | IF error THEN closedStmt ELSE closedStmt { $$ = nullptr; yyerrok; } 
-                    | error { $$ = nullptr; yyerrok; }
                     ;
 
 iterStmtOpen        : WHILE simpleExp DO openStmt {
-                        $$ = new AST::Stmt::While($1->linenum, $2, $4);
+                        if ($1) {
+                            $$ = new AST::Stmt::While($1->linenum, $2, $4);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error simpleExp DO openStmt { $$ = nullptr; yyerrok; }
-                    | WHILE error DO openStmt { $$ = nullptr; yyerrok; }
-                    | WHILE simpleExp error openStmt { $$ = nullptr; yyerrok; }
-                    | WHILE simpleExp DO error { $$ = nullptr; yyerrok; }
-                    | WHILE simpleExp error { $$ = nullptr; yyerrok; }
-                    | WHILE error openStmt { $$ = nullptr; yyerrok; }
-                    | WHILE error { $$ = nullptr; yyerrok; }
                     | FOR ID ASGN iterRange DO openStmt {
-                        auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
-                        iterator->setType(AST::Type::Int);
-                        $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
+                        if ($1 && $2) {
+                            auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                            iterator->setType(AST::Type::Int);
+                            $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error ID ASGN iterRange DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR error iterRange DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID error DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN error openStmt { $$ = nullptr; yyerrok; }
-                    | FOR error DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID error openStmt { $$ = nullptr; yyerrok; }
-                    | FOR error openStmt { $$ = nullptr; yyerrok; }
-                    | error ASGN iterRange DO openStmt { $$ = nullptr; yyerrok; }
-                    | error iterRange DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR error ASGN iterRange DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID error iterRange DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN error DO openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN iterRange error openStmt { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN iterRange DO error { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN iterRange error { $$ = nullptr; yyerrok; }
-                    | FOR ID ASGN error { $$ = nullptr; yyerrok; }
-                    | FOR ID error { $$ = nullptr; yyerrok; }
-                    | FOR error { $$ = nullptr; yyerrok; }
-
-                    | error DO openStmt { $$ = nullptr; yyerrok; }
-                    | error openStmt { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
+                    | FOR ID ASGN error DO closedStmt { $$ = nullptr; yyerrok; }
+                    | FOR error { $$ = nullptr; }
+                    | WHILE error DO closedStmt { $$ = nullptr; yyerrok; }
+                    | WHILE error { $$ = nullptr; }
                     ;
 
 iterStmtClosed      : WHILE simpleExp DO closedStmt {
-                        $$ = new AST::Stmt::While($1->linenum, $2, $4);
+                        if ($1) {
+                            $$ = new AST::Stmt::While($1->linenum, $2, $4);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | FOR ID ASGN iterRange DO closedStmt {
-                        auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
-                        iterator->setType(AST::Type::Int);
-                        $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
+                        if ($1 && $2) {
+                            auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                            iterator->setType(AST::Type::Int);
+                            $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | WHILE error DO closedStmt { $$ = nullptr; yyerrok; }
                     | WHILE error { $$ = nullptr; yyerrok; }
                     | FOR ID ASGN error DO closedStmt { $$ = nullptr; yyerrok; }
                     | FOR error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
                     ;
 
 iterRange           : simpleExp TO simpleExp {
-                        $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3);
+                        if ($1) {
+                            $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | simpleExp TO simpleExp BY simpleExp {
-                        $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3, $5);
+                        if ($1) {
+                            $$ = new AST::Stmt::Range($1->lineNumber(), $1, $3, $5);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | simpleExp TO error { $$ = nullptr; }
                     | error BY error { $$ = nullptr; yyerrok; }
-                    | simpleExp TO simplexExp BY error { $$ = nullptr; }
+                    | simpleExp TO simpleExp BY error { $$ = nullptr; }
                     ;
 
 returnStmt          : RETURN SEMI {
-                        $$ = new AST::Stmt::Return($1->linenum, nullptr);
+                        if ($1) {
+                            $$ = new AST::Stmt::Return($1->linenum, nullptr);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
                     | RETURN exp SEMI {
-                        $$ = new AST::Stmt::Return($1->linenum, $2);
+                        if ($1) {
+                            $$ = new AST::Stmt::Return($1->linenum, $2);
+                        } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error SEMI { $$ = nullptr; yyerrok; }
                     | RETURN error SEMI { $$ = nullptr; yyerrok; }
-                    | RETURN exp error { $$ = nullptr; yyerrok; }
-                    | RETURN error { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; yyerrok; }
                     ;
 
 breakStmt           : BREAK SEMI {
-                        $$ = new AST::Stmt::Break($1->linenum);
+                        if ($1) {
+                            $$ = new AST::Stmt::Break($1->linenum);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
+                    | error { $$ = nullptr; }
                     ;
 
 exp                 : mutable assignop exp {
                         auto *op = $2->cast<AST::Exp::Op::Asgn *>();
-                        op->addChildren($1, $3);
+                        if (op) { op->addChildren($1, $3); }
                         $$ = op;
+                        yyerrok;
                     }
                     | mutable INC {
-                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::UnaryAsgnType::Inc, $1);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::UnaryAsgnType::Inc, $1);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
                     | mutable DEC {
-                        $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::UnaryAsgnType::Dec, $1);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::UnaryAsgn($1->lineNumber(), AST::UnaryAsgnType::Dec, $1);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
                     | simpleExp {
                         $$ = $1;
+                        yyerrok;
 					}
+                    | error assignop exp { $$ = nullptr; yyerrok; }
+                    | mutable assignop error { $$ = nullptr; }
+                    | error INC { $$ = nullptr; yyerrok; }
+                    | error DEC { $$ = nullptr; yyerrok; }
                     ;
 
 assignop            : ASGN {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::Asgn);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::Asgn);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | ADDASGN {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::AddAsgn);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::AddAsgn);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | SUBASGN {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::SubAsgn);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::SubAsgn);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | DIVASGN {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::DivAsgn);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::DivAsgn);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | MULASGN {
-                        $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::MulAsgn);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Asgn($1->linenum, AST::AsgnType::MulAsgn);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 simpleExp           : simpleExp OR andExp {
-                        auto *boolop = new AST::Exp::Op::Bool($1->lineNumber(), AST::BoolOpType::Or);
-                        boolop->addChildren($1, $3);
-                        $$ = boolop;
+                        if ($1) {
+                            auto *boolop = new AST::Exp::Op::Bool($1->lineNumber(), AST::BoolOpType::Or);
+                            boolop->addChildren($1, $3);
+                            $$ = boolop;
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
-                    | andExp {
-                        $$ = $1;
-					}
+                    | andExp { $$ = $1; yyerrok; }
+                    | simpleExp OR error { $$ = nullptr; }
                     ;
 
 andExp              : andExp AND unaryRelExp {
-                        auto *boolop = new AST::Exp::Op::Bool($1->lineNumber(), AST::BoolOpType::And);
-                        boolop->addChildren($1, $3);
-                        $$ = boolop;
+                        if ($1) {
+                            auto *boolop = new AST::Exp::Op::Bool($1->lineNumber(), AST::BoolOpType::And);
+                            boolop->addChildren($1, $3);
+                            $$ = boolop;
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
-                    | unaryRelExp {
-                        $$ = $1;
-					}
+                    | unaryRelExp { $$ = $1; yyerrok; }
+                    | andExp AND error { $$ = nullptr; }
                     ;
 
 unaryRelExp         : NOT unaryRelExp {
                         $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Not, $2);
+                        yyerrok;
                     }
-                    | relExp {
-                        $$ = $1;
-					}
+                    | relExp { $$ = $1; yyerrok; }
+                    | NOT error { $$ = nullptr; }
                     ;
 
 relExp              : sumExp relop sumExp {
                         auto *op = $2->cast<AST::Exp::Op::Binary *>();
-                        op->addChildren($1, $3);
+                        if (op) { op->addChildren($1, $3); }
                         $$ = op;
+                        yyerrok;
                     }
-                    | sumExp {
-                        $$ = $1;
-					}
+                    | sumExp { $$ = $1; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 relop               : LT {
-                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::LT);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::LT);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | LEQ {
-                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::LEQ);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::LEQ);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | GT {
-                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::GT);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::GT);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | GEQ {
-                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::GEQ);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::GEQ);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | EQ {
-                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::EQ);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::EQ);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | NEQ {
-                        $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::NEQ);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Bool($1->linenum, AST::BoolOpType::NEQ);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 sumExp              : sumExp sumop mulExp {
                         auto *op = $2->cast<AST::Exp::Op::Binary *>();
-                        op->addChildren($1, $3);
+                        if (op) { op->addChildren($1, $3); }
                         $$ = op;
+                        yyerrok;
 					}
-                    | mulExp {
-                        $$ = $1;
-					}
+                    | mulExp { $$ = $1; yyerrok; }
+                    | sumExp sumop error { $$ = nullptr; }
                     ;
 
 sumop               : ADD {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Add);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Add);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | DASH {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Subtract);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Subtract);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 mulExp              : mulExp mulop unaryExp {
                         auto *op = $2->cast<AST::Exp::Op::Binary *>();
-                        op->addChildren($1, $3);
+                        if (op) { op->addChildren($1, $3); }
                         $$ = op;
+                        yyerrok;
 					}
-                    | unaryExp {
-                        $$ = $1;
-					}
+                    | unaryExp { $$ = $1; yyerrok; }
+                    | mulExp mulop error { $$ = nullptr; }
                     ;
 
 mulop               : ASTERISK {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Mul);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Mul);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | DIV {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Div);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Div);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | MOD {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Mod);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Mod);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 unaryExp            : unaryop unaryExp {
                         auto *op = $1->cast<AST::Exp::Op::Unary *>();
-                        op->addExp($2);
+                        if (op) { op->addExp($2); }
                         $$ = op;
+                        yyerrok;
 					}
-                    | factor {
-                        $$ = $1;
-					}
+                    | factor { $$ = $1; yyerrok; }
+                    | unaryop error { $$ = nullptr; }
                     ;
 
 unaryop             : DASH {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Chsign);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Chsign);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | ASTERISK {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Sizeof);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Sizeof);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | RAND {
-                        $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Random);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Unary($1->linenum, AST::UnaryOpType::Random);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
-factor              : mutable {
-                        $$ = $1;
-					}
-                    | immutable {
-                        $$ = $1;
-					}
+factor              : mutable { $$ = $1; yyerrok; }
+                    | immutable { $$ = $1; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 mutable             : ID {
-                        $$ = new AST::Exp::Id($1->linenum, $1->tokenstr);
+                        if ($1) {
+                            $$ = new AST::Exp::Id($1->linenum, $1->tokenstr);
+                        } else { $$ = nullptr; }
+                        yyerrok;
 					}
                     | ID LBRACK exp RBRACK {
-                        $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
+                        if ($1) {
+                            $$ = new AST::Exp::Op::Binary($1->linenum, AST::BinaryOpType::Index, new AST::Exp::Id($1->linenum, $1->tokenstr), $3);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
+                    | error { $$ = nullptr; }
                     ;
 
-immutable           : LPAREN exp RPAREN {
-                        $$ = $2;
-                    }
-                    | call {
-                        $$ = $1;
-                    }
-                    | constant {
-                        $$ = $1;
-                    }
+immutable           : LPAREN exp RPAREN { $$ = $2; yyerrok; }
+                    | call { $$ = $1; yyerrok; }
+                    | constant { $$ = $1; yyerrok; }
+                    | LPAREN error { $$ = nullptr; }
                     ;
 
 call                : ID LPAREN argList RPAREN {
-                        $$ = new AST::Exp::Call($1->linenum, $1->tokenstr, $3);
+                        if ($1) {
+                            $$ = new AST::Exp::Call($1->linenum, $1->tokenstr, $3);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
                     | ID LPAREN RPAREN {
-                        $$ = new AST::Exp::Call($1->linenum, $1->tokenstr);
+                        if ($1) {
+                            $$ = new AST::Exp::Call($1->linenum, $1->tokenstr);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
+                    | error LPAREN { $$ = nullptr; }
                     ;
 
 argList             : argList COM exp {
-                        $$ = $1;
+                        if ($1) {
+                            $$ = $1;
+                        } else { $$ = nullptr; }
                         $$->addSibling($3);
+                        yyerrok;
                     }
-                    | exp {
-                        $$ = $1;
-                    }
+                    | exp { $$ = $1; yyerrok; }
+                    | argList COM error { $$ = nullptr; }
                     ;
 
 constant            : NUMCONST {
                         AST::TypeInfo type = {AST::Type::Int, false, false};
-                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        if ($1) {
+                            $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
                     | CHARCONST {
                         AST::TypeInfo type = {AST::Type::Char, false, false};
-                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        if ($1) {
+                            $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
                     | STRINGCONST {
                         AST::TypeInfo type = {AST::Type::Char, true, false};
-                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        if ($1) {
+                            $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
                     | BOOLCONST {
                         AST::TypeInfo type = {AST::Type::Bool, false, false};
-                        $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        if ($1) {
+                            $$ = new AST::Exp::Const($1->linenum, type, $1->tokenstr);
+                        } else { $$ = nullptr; }
+                        yyerrok;
                     }
+                    | error { $$ = nullptr; }
                     ;
 
 %%
@@ -659,7 +773,7 @@ int main(int argc, char *argv[])
             
 
             // Free memory
-            if (tree_root != nullptr) {
+            if (tree_root ) {
                 delete tree_root;
             }
             tokens.clear();

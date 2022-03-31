@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
-project(assignment4)
+project(cm)
 
-add_library(assignment4
+add_library(cm
     ### AST
     ${PROJECT_SOURCE_DIR}/AST/AST.cpp
     ${PROJECT_SOURCE_DIR}/AST/Node.cpp
@@ -48,8 +48,11 @@ add_library(assignment4
     ${PROJECT_SOURCE_DIR}/SymbolTable/Scope.cpp
     ${PROJECT_SOURCE_DIR}/SymbolTable/Symbol.cpp
     ${PROJECT_SOURCE_DIR}/SymbolTable/SymbolTable.cpp
+
+    ### strutil
+    ${PROJECT_SOURCE_DIR}/strutil.cpp
 )
 
-set_target_properties(assignment4 PROPERTIES
+set_target_properties(cm PROPERTIES
     CXX_STANDARD 17
 )

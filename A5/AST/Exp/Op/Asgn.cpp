@@ -1,4 +1,5 @@
 #include "Asgn.hpp"
+#include "../../../strutil.hpp"
 #include "../../Node.hpp"
 #include "../Exp.hpp"
 #include "../Id.hpp"
@@ -21,7 +22,8 @@ Asgn::Asgn(int linenum, AsgnType asgnType, Node *exp1, Node *exp2)
 const AsgnType &Asgn::asgnType() const { return m_asgnType; }
 
 std::string Asgn::toString(bool debugging) const {
-    std::string str = "Assign: " + Types::toString(m_asgnType);
+    std::string str =
+        strutil::format("Assign: %s", Types::toString(m_asgnType).c_str());
 
     if (debugging) {
         str += typeTag();
@@ -41,5 +43,5 @@ Exp *Asgn::mutableExp() const { return getChild(0)->cast<Exp *>(); }
 
 Exp *Asgn::exp() const { return getChild(1)->cast<Exp *>(); }
 
-bool Asgn::is(AsgnType t) const { return this != nullptr && m_asgnType == t; }
+bool Asgn::is(AsgnType t) const { return this && m_asgnType == t; }
 } // namespace AST::Exp::Op

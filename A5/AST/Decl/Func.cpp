@@ -1,4 +1,5 @@
 #include "Func.hpp"
+#include "../../strutil.hpp"
 #include "../Node.hpp"
 #include "../Stmt/Compound.hpp"
 #include "Decl.hpp"
@@ -18,8 +19,7 @@ Func::Func(int linenum) : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({Type::Void, false, false});
 }
 
-Func::Func(int linenum, const std::string &id, Node *parms,
-           Node *compoundstmt)
+Func::Func(int linenum, const std::string &id, Node *parms, Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({Type::Void, false, false});
     m_id = id;
@@ -27,8 +27,8 @@ Func::Func(int linenum, const std::string &id, Node *parms,
     addChild(compoundstmt);
 }
 
-Func::Func(int linenum, Type returnType, const std::string &id,
-           Node *parms, Node *compoundstmt)
+Func::Func(int linenum, Type returnType, const std::string &id, Node *parms,
+           Node *compoundstmt)
     : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({returnType, false, false});
     m_id = id;
@@ -37,8 +37,9 @@ Func::Func(int linenum, Type returnType, const std::string &id,
 }
 
 std::string Func::toString(bool debugging) const {
-    return "Func: " + m_id + " returns type " +
-           Types::toString(typeOptional()) + lineTag();
+    return strutil::format("Func: %s returns type %s%s", m_id,
+                           Types::toString(typeOptional()).c_str(),
+                           lineTag().c_str());
 }
 
 bool Func::hasParms() const { return parms() != nullptr; }

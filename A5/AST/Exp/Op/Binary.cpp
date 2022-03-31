@@ -1,4 +1,5 @@
 #include "Binary.hpp"
+#include "../../../strutil.hpp"
 #include "../../Node.hpp"
 #include "../Exp.hpp"
 
@@ -44,7 +45,8 @@ void Binary::addChildren(Node *exp1, Node *exp2) {
 const BinaryOpType &Binary::binaryOpType() const { return m_binaryOpType; }
 
 std::string Binary::toString(bool debugging) const {
-    std::string str = "Op: " + Types::toString(m_binaryOpType);
+    std::string str =
+        strutil::format("Op: %s", Types::toString(m_binaryOpType).c_str());
 
     if (debugging) {
         str += typeTag();
@@ -100,7 +102,5 @@ Exp *Binary::exp1() const { return getChild(0)->cast<Exp *>(); }
 
 Exp *Binary::exp2() const { return getChild(1)->cast<Exp *>(); }
 
-bool Binary::is(BinaryOpType t) const {
-    return this != nullptr && m_binaryOpType == t;
-}
+bool Binary::is(BinaryOpType t) const { return this && m_binaryOpType == t; }
 } // namespace AST::Exp::Op

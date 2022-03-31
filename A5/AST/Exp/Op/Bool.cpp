@@ -1,4 +1,5 @@
 #include "Bool.hpp"
+#include "../../../strutil.hpp"
 
 namespace AST::Exp::Op {
 Bool::Bool() : Binary::Binary() {
@@ -16,7 +17,8 @@ Bool::Bool(int linenum, BoolOpType boolOpType)
 }
 
 std::string Bool::toString(bool debugging) const {
-    std::string str = "Op: " + Types::toString(m_boolOpType);
+    std::string str =
+        strutil::format("Op: %s", Types::toString(m_boolOpType).c_str());
 
     if (debugging) {
         str += typeTag();
@@ -29,6 +31,6 @@ std::string Bool::toString(bool debugging) const {
 const BoolOpType &Bool::boolOpType() const { return m_boolOpType; }
 
 bool Bool::is(BoolOpType t) const {
-    return this != nullptr && m_boolOpType == t;
+    return this && m_boolOpType == t;
 }
 } // namespace AST::Exp::Op

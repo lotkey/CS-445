@@ -29,7 +29,7 @@ $(BIN) : $(OBJS) $(AST_DIR) $(OPTIONS_DIR) $(SYMTBL_DIR) $(SEMCHCK_DIR)
 
 cmake : $(OBJS)
 	@cd build; $(MAKE)
-	@$(CC) strutil.cpp *.o build/*.a -o $(BIN)
+	@$(CC) *.o build/*.a -o $(BIN)
 	@$(MAKE) clean
 
 lex.yy.c : $(BIN).l $(BIN).tab.h

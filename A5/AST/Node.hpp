@@ -130,15 +130,18 @@ class Node {
 
     bool
     hasDescendantWhere(const std::function<bool(Node *)> &predicate) const {
+        if (!this) {
+            return false;
+        }
         for (const auto &child : children()) {
-            if (child != nullptr) {
+            if (child) {
                 if (predicate(child)) {
                     return true;
                 } else if (child->hasDescendantWhere(predicate)) {
                     return true;
                 } else {
                     for (const auto &sibling : child->siblings()) {
-                        if (predicate(sibling)) {
+                        if (sibling && predicate(sibling)) {
                             return true;
                         }
 

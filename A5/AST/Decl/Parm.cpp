@@ -1,4 +1,5 @@
 #include "Parm.hpp"
+#include "../../strutil.hpp"
 #include "../Node.hpp"
 
 #include <map>
@@ -16,7 +17,7 @@ Parm::Parm(int linenum, const std::string &id, bool isArray)
 }
 
 std::string Parm::toString(bool debugging) const {
-    std::string str = "Parm: " + m_id;
+    std::string str = strutil::format("Parm: %s", m_id.c_str());
     if (isArray()) {
         str += " is array";
     }
