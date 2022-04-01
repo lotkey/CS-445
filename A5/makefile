@@ -69,7 +69,7 @@ $(SEMCHCK_DIR):
 clean :
 	@echo ${GREEN}"Cleaning..."${NC}
 	@rm -f *.o
-	@rm -f lex.yy.c lex.yy.o $(BIN).tab.c $(BIN).tab.o $(BIN).tab.h $(BIN).output
+	@rm -f lex.yy.c lex.yy.o $(BIN).tab.c $(BIN).tab.o $(BIN).tab.h
 	@rm -rf $(AST_DIR) $(OPTIONS_DIR) $(SYMTBL_DIR) $(SEMCHCK_DIR)
 	@echo ${GREEN}"Finished cleaning."${NC}
 

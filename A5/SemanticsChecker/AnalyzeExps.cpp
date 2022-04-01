@@ -148,11 +148,20 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
 }
 
 void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
+
+    if (op == nullptr) {
+        return;
+    }
+
     op->deduceType();
 
     switch (op->opType()) {
     case AST::OpType::Binary: {
         auto *binary = op->cast<AST::Exp::Op::Binary *>();
+
+        if (!(binary->exp1() && binary->exp2())) {
+            return;
+        }
 
         if (binary->is(AST::BinaryOpType::Add) ||
             binary->is(AST::BinaryOpType::Div) ||
@@ -221,7 +230,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                 }
 
                 auto *index = binary->exp2();
-                if (index->expType() == AST::ExpType::Id) {
+                if (index && index->expType() == AST::ExpType::Id) {
                     auto *indexId = index->cast<AST::Exp::Id *>();
 
                     if (m_symbolTable[indexId->id()].isDeclared() &&
@@ -237,7 +246,7 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
                 op->setTypeInfo(id->getTypeInfo());
                 op->setIsArray(false);
 
-                if (binary->exp2()->hasType() &&
+                if (binary->exp2() && binary->exp2()->hasType() &&
                     binary->exp2()->type() != AST::Type::Int) {
                     std::string error =
                         "Array '" + id->id() +
@@ -275,6 +284,10 @@ void SemanticsChecker::analyzeNode(AST::Exp::Op::Op *op) {
 }
 
 void SemanticsChecker::analyzeNode(AST::Exp::Op::Unary *op) {
+    if (!(op && op->operand())) {
+        return;
+    }
+
     switch (op->unaryOpType()) {
     case AST::UnaryOpType::Asgn: {
         auto *unaryasgn = op->cast<AST::Exp::Op::UnaryAsgn *>();

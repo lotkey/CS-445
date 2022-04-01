@@ -5,6 +5,10 @@
 #include <iostream>
 
 void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
+    if (!stmt) {
+        return;
+    }
+
     switch (stmt->stmtType()) {
     case AST::StmtType::Compound: {
         break;
@@ -14,7 +18,7 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     }
     case AST::StmtType::Return: {
         auto *returnNode = stmt->cast<AST::Stmt::Return *>();
-        if (returnNode->exp() != nullptr && returnNode->exp()->isArray()) {
+        if (returnNode->exp() && returnNode->exp()->isArray()) {
             std::string error = "Cannot return an array.";
             m_messages[returnNode->lineNumber()].push_back(
                 {Message::Type::Error, error});
@@ -24,7 +28,7 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
             returnNode->getClosestAncestorOfType(AST::DeclType::Func)
                 ->cast<AST::Decl::Func *>();
 
-        if (functionParent != nullptr && functionParent->hasType()) {
+        if (functionParent && functionParent->hasType()) {
             if (functionParent->type() == AST::Type::Void &&
                 returnNode->exp() != nullptr) {
 
@@ -50,8 +54,7 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                 m_messages[returnNode->lineNumber()].push_back(
                     {Message::Type::Error, error});
 
-            } else if (returnNode->exp() != nullptr &&
-                       returnNode->exp()->hasType() &&
+            } else if (returnNode->exp() && returnNode->exp()->hasType() &&
                        functionParent->type() != returnNode->exp()->type()) {
 
                 std::string error =
@@ -75,7 +78,7 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
                                                       range->to(), range->by()};
 
         for (int i = 0; i < rangeChildren.size(); i++) {
-            if (rangeChildren[i] != nullptr) {
+            if (rangeChildren[i]) {
                 if (rangeChildren[i]->isArray()) {
                     std::string error = "Cannot use array in position " +
                                         std::to_string(i + 1) +
@@ -112,14 +115,14 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     case AST::StmtType::While: {
         auto *whilestmt = stmt->cast<AST::Stmt::While *>();
 
-        if (whilestmt->exp()->isArray()) {
+        if (whilestmt->exp() && whilestmt->exp()->isArray()) {
             std::string error =
                 "Cannot use array as test condition in while statement.";
             m_messages[whilestmt->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (whilestmt->exp()->hasType() &&
+        if (whilestmt->exp() && whilestmt->exp()->hasType() &&
             whilestmt->exp()->type() != AST::Type::Bool) {
             std::string error =
                 "Expecting Boolean test condition in while statement but got "
@@ -134,14 +137,14 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     case AST::StmtType::Select: {
         auto *ifstmt = stmt->cast<AST::Stmt::Select *>();
 
-        if (ifstmt->exp()->isArray()) {
+        if (ifstmt->exp() && ifstmt->exp()->isArray()) {
             std::string error =
                 "Cannot use array as test condition in if statement.";
             m_messages[ifstmt->lineNumber()].push_back(
                 {Message::Type::Error, error});
         }
 
-        if (ifstmt->exp()->hasType() &&
+        if (ifstmt->exp() && ifstmt->exp()->hasType() &&
             ifstmt->exp()->type() != AST::Type::Bool) {
             std::string error =
                 "Expecting Boolean test condition in if statement but got "

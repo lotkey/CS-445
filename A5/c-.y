@@ -33,33 +33,49 @@ static const std::map<std::string, std::string> token_to_string = {
     {"LEQ", "\"<=\""},                  {"MULASGN", "\"*=\""},
     {"NEQ", "\"!=\""},                  {"NOT", "\"not\""},
     {"NUMCONST", "numeric constant"},   {"OR", "\"or\""},
-    {"RETURN", "\"return\""},           {"ASTERISK", "\"*\""},
     {"STATIC", "\"static\""},           {"STRINGCONST", "string constant"},
     {"SUBASGN", "\"-=\""},              {"THEN", "\"then\""},
     {"TO", "\"to\""},                   {"WHILE", "\"while\""},
-    {"$end", "end of input"}
+    {"RETURN", "\"return\""},           {"$end", "end of input"},
+
+    {"LPAREN", "'('"},                  {"RPAREN", "')'"}, 
+    {"LBRACK", "'['"},                  {"RBRACK", "']'"}, 
+    {"RAND", "'?'"},                    {"ASTERISK", "'*'"}, 
+    {"DIV", "'/'"},                     {"MOD", "'%'"}, 
+    {"ADD", "'+'"},                     {"DASH", "'-'"}, 
+    {"SEMI", "';'"},                    {"LT", "'<'"}, 
+    {"GT", "'>'"},                      {"EQ", "'='"}, 
+    {"COL", "':'"},                     {"COM", "','"}
 };
 
 #define YYERROR_VERBOSE
 void yyerror(const char *msg)
 {
-    // auto words = strutil::split(msg);
+    auto words = strutil::split(msg);
     
-    // for (int i = 3; i < words.size(); i += 2) {
-    //     if (token_to_string.find(words[i]) != token_to_string.end()) {
-    //         words[i] = token_to_string.at(words[i]);
-    //     }
-    // }
+    for (int i = 3; i < words.size(); i += 2) {
+        if (!words[i].empty() && words[i][words[i].length() - 1] == ',') {
+            words[i] = words[i].substr(0, words[i].length() - 1);
+        }
+
+        if (token_to_string.find(words[i]) != token_to_string.end()) {
+            words[i] = token_to_string.at(words[i]);
+        }
+    }
     
-    // for (const auto& word : words) {
-    //     std::cout << strutil::format("\"%s\"\n", word.c_str());
-    // }
+    auto unexpected = words[3];
+    std::string error_msg = strutil::format("ERROR(%d): Syntax error, unexpected %s",
+                line, unexpected.c_str());
 
-    // auto unexpected = words[3];
-    // std::string error_msg = strutil::format("ERROR(%d): Syntax error, unexpected %s",
-    //             line, unexpected.c_str());
+    if (words.size() > 5) {
+        error_msg += ",";
+        for (int i = 4; i < words.size(); i++) {
+            error_msg += strutil::format(" %s", words[i].c_str());
+        }
+    }
+    error_msg += ".";
 
-    std::cout << "ERROR(" << line << "): " << msg << std::endl;
+    std::cout << error_msg << std::endl;
     numErrors++;
 }
 
@@ -100,7 +116,6 @@ program             : declList {
                         tree_root = $$;
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 declList            : declList decl {
@@ -109,7 +124,6 @@ declList            : declList decl {
                         yyerrok;
                     }
                     | decl { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 decl                : varDecl { $$ = $1; yyerrok; }
@@ -125,7 +139,6 @@ varDecl             : typeSpec varDeclList SEMI {
 					}
                     | error varDeclList SEMI { $$ = nullptr; yyerrok; }
                     | typeSpec error SEMI { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
@@ -143,7 +156,6 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
                         $$ = var;
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 varDeclList         : varDeclList COM varDeclInit {
@@ -185,10 +197,9 @@ varDeclId           : ID {
                     | ID LBRACK error { $$ = nullptr; }
                     ;
 
-typeSpec            : BOOL { $$ = AST::Type::Bool; }
-                    | CHAR { $$ = AST::Type::Char; }
-                    | INT { $$ = AST::Type::Int; }
-                    | error { $$ = AST::Type::Error; }
+typeSpec            : BOOL { $$ = AST::Type::Bool; yyerrok; }
+                    | CHAR { $$ = AST::Type::Char; yyerrok; }
+                    | INT { $$ = AST::Type::Int; yyerrok; }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
@@ -204,14 +215,13 @@ funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
                         yyerrok;
                     }
                     | typeSpec error { $$ = nullptr; }
-                    | typeSpec ID error { $$ = nullptr; }
+                    | typeSpec ID LPAREN error { $$ = nullptr; }
                     | ID LPAREN error { $$ = nullptr; }
                     | ID LPAREN parms RPAREN error { $$ = nullptr; }
                     ;
 
 parms               : { $$ = nullptr; yyerrok; }
                     | parmList { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 parmList            : parmList SEMI parmTypeList {
@@ -240,7 +250,6 @@ parmIdList          : parmIdList COM parmId {
                     }
                     | parmId { $$ = $1; yyerrok; }
                     | parmIdList COM error { $$ = nullptr; }
-                    | error { $$ = nullptr; }
                     ;
 
 parmId              : ID {
@@ -255,12 +264,10 @@ parmId              : ID {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 stmt                : closedStmt { $$ = $1; yyerrok; }
                     | openStmt { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 expStmt             : exp SEMI { $$ = $1; yyerrok; }
@@ -274,7 +281,6 @@ compoundStmt        : BGN localDecls stmtList END {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 localDecls          : { $$ = nullptr; yyerrok; }
@@ -287,7 +293,6 @@ localDecls          : { $$ = nullptr; yyerrok; }
                         }
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 stmtList            : { $$ = nullptr; yyerrok; }
@@ -300,7 +305,6 @@ stmtList            : { $$ = nullptr; yyerrok; }
                         }
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 closedStmt          : selectStmtClosed { $$ = $1; yyerrok; }
@@ -309,12 +313,10 @@ closedStmt          : selectStmtClosed { $$ = $1; yyerrok; }
                     | compoundStmt { $$ = $1; yyerrok; }
                     | returnStmt  { $$ = $1; yyerrok; }
                     | breakStmt { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 openStmt            : selectStmtOpen { $$ = $1; yyerrok; }
                     | iterStmtOpen { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 selectStmtOpen      : IF simpleExp THEN stmt {
@@ -331,7 +333,6 @@ selectStmtOpen      : IF simpleExp THEN stmt {
                     }
                     | IF error THEN stmt { $$ = nullptr; yyerrok; } 
                     | IF error THEN closedStmt ELSE openStmt { $$ = nullptr; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 selectStmtClosed    : IF simpleExp THEN closedStmt ELSE closedStmt {
@@ -423,7 +424,6 @@ breakStmt           : BREAK SEMI {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 exp                 : mutable assignop exp {
@@ -484,7 +484,6 @@ assignop            : ASGN {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 simpleExp           : simpleExp OR andExp {
@@ -526,7 +525,6 @@ relExp              : sumExp relop sumExp {
                         yyerrok;
                     }
                     | sumExp { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 relop               : LT {
@@ -565,7 +563,6 @@ relop               : LT {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 sumExp              : sumExp sumop mulExp {
@@ -590,7 +587,6 @@ sumop               : ADD {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 mulExp              : mulExp mulop unaryExp {
@@ -621,7 +617,6 @@ mulop               : ASTERISK {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 unaryExp            : unaryop unaryExp {
@@ -652,12 +647,10 @@ unaryop             : DASH {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
-                    | error { $$ = nullptr; }
                     ;
 
 factor              : mutable { $$ = $1; yyerrok; }
                     | immutable { $$ = $1; yyerrok; }
-                    | error { $$ = nullptr; }
                     ;
 
 mutable             : ID {
@@ -672,7 +665,6 @@ mutable             : ID {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 immutable           : LPAREN exp RPAREN { $$ = $2; yyerrok; }
@@ -735,7 +727,6 @@ constant            : NUMCONST {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
-                    | error { $$ = nullptr; }
                     ;
 
 %%
