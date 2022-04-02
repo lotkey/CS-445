@@ -84,7 +84,7 @@ void yyerror(const char *msg)
 // this is included in the tab.h file
 // so scanType.hpp must be included before the tab.h file!!!!
 %union {
-    AST::Type type;
+    AST::Type *type;
     AST::Node *node;
     TokenData *tokenData;
     double value;
@@ -116,6 +116,7 @@ program             : declList {
                         tree_root = $$;
                         yyerrok;
                     }
+                    | error { $$ = nullptr; }
                     ;
 
 declList            : declList decl {
@@ -124,6 +125,7 @@ declList            : declList decl {
                         yyerrok;
                     }
                     | decl { $$ = $1; yyerrok; }
+                    | declList error { $$ = nullptr; }
                     ;
 
 decl                : varDecl { $$ = $1; yyerrok; }
@@ -133,7 +135,7 @@ decl                : varDecl { $$ = $1; yyerrok; }
 
 varDecl             : typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        if (var) { var->setType($1); }
+                        if (var && $1) { var->setType(*$1); }
                         $$ = var;
                         yyerrok;
 					}
@@ -143,8 +145,8 @@ varDecl             : typeSpec varDeclList SEMI {
 
 scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
                         auto *var = $3->cast<AST::Decl::Var *>();
-                        if (var) {
-                            var->setType($2);
+                        if (var && $2) {
+                            var->setType(*$2);
                             var->setIsStatic(true);
                         }
                         $$ = var;
@@ -152,7 +154,7 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
 					}
                     | typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        if (var) { var->setType($1); }
+                        if (var && $1) { var->setType(*$1); }
                         $$ = var;
                         yyerrok;
 					}
@@ -197,14 +199,15 @@ varDeclId           : ID {
                     | ID LBRACK error { $$ = nullptr; }
                     ;
 
-typeSpec            : BOOL { $$ = AST::Type::Bool; yyerrok; }
-                    | CHAR { $$ = AST::Type::Char; yyerrok; }
-                    | INT { $$ = AST::Type::Int; yyerrok; }
+typeSpec            : BOOL { $$ = new AST::Type(AST::Type::Bool); yyerrok; }
+                    | CHAR { $$ = new AST::Type(AST::Type::Char); yyerrok; }
+                    | INT { $$ = new AST::Type(AST::Type::Int); yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
-                        if ($2) {
-                            $$ = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
+                        if ($2 && $1) {
+                            $$ = new AST::Decl::Func($2->linenum, *$1, $2->tokenstr, $4, $6);
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
@@ -222,6 +225,7 @@ funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
 
 parms               : { $$ = nullptr; yyerrok; }
                     | parmList { $$ = $1; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 parmList            : parmList SEMI parmTypeList {
@@ -236,7 +240,7 @@ parmList            : parmList SEMI parmTypeList {
 
 parmTypeList        : typeSpec parmIdList {
                         auto *parms = $2->cast<AST::Decl::Parm *>();
-                        if (parms) { parms->setType($1); }
+                        if (parms && $1) { parms->setType(*$1); }
                         $$ = parms;
                         yyerrok;
 					}
@@ -264,10 +268,13 @@ parmId              : ID {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
+                    | error LBRACK { $$ = nullptr; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 stmt                : closedStmt { $$ = $1; yyerrok; }
                     | openStmt { $$ = $1; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 expStmt             : exp SEMI { $$ = $1; yyerrok; }
@@ -281,6 +288,8 @@ compoundStmt        : BGN localDecls stmtList END {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
+                    | error END { $$ = nullptr; yyerrok; }
+                    | BGN error { $$ = nullptr; }
                     ;
 
 localDecls          : { $$ = nullptr; yyerrok; }
@@ -293,6 +302,7 @@ localDecls          : { $$ = nullptr; yyerrok; }
                         }
                         yyerrok;
                     }
+                    | localDecls error { $$ = nullptr; }
                     ;
 
 stmtList            : { $$ = nullptr; yyerrok; }
@@ -305,6 +315,7 @@ stmtList            : { $$ = nullptr; yyerrok; }
                         }
                         yyerrok;
                     }
+                    | error stmt { $$ = nullptr; yyerrok; }
                     ;
 
 closedStmt          : selectStmtClosed { $$ = $1; yyerrok; }
@@ -313,6 +324,7 @@ closedStmt          : selectStmtClosed { $$ = $1; yyerrok; }
                     | compoundStmt { $$ = $1; yyerrok; }
                     | returnStmt  { $$ = $1; yyerrok; }
                     | breakStmt { $$ = $1; yyerrok; }
+                    | error { $$ = nullptr; }
                     ;
 
 openStmt            : selectStmtOpen { $$ = $1; yyerrok; }
@@ -424,6 +436,7 @@ breakStmt           : BREAK SEMI {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
+                    | BREAK error { $$ = nullptr; }
                     ;
 
 exp                 : mutable assignop exp {
@@ -484,6 +497,7 @@ assignop            : ASGN {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 simpleExp           : simpleExp OR andExp {
@@ -525,6 +539,7 @@ relExp              : sumExp relop sumExp {
                         yyerrok;
                     }
                     | sumExp { $$ = $1; yyerrok; }
+                    | sumExp relop error { $$ = nullptr; }
                     ;
 
 relop               : LT {
@@ -563,6 +578,7 @@ relop               : LT {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 sumExp              : sumExp sumop mulExp {
@@ -587,6 +603,7 @@ sumop               : ADD {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 mulExp              : mulExp mulop unaryExp {
@@ -617,6 +634,7 @@ mulop               : ASTERISK {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 unaryExp            : unaryop unaryExp {
@@ -647,6 +665,7 @@ unaryop             : DASH {
                         } else { $$ = nullptr; }
                         yyerrok;
 					}
+                    | error { $$ = nullptr; }
                     ;
 
 factor              : mutable { $$ = $1; yyerrok; }
@@ -665,6 +684,7 @@ mutable             : ID {
                         } else { $$ = nullptr; }
                         yyerrok;
                     }
+                    | error LBRACK { $$ = nullptr; yyerrok; }
                     ;
 
 immutable           : LPAREN exp RPAREN { $$ = $2; yyerrok; }
