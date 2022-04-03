@@ -19,9 +19,8 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     case AST::StmtType::Return: {
         auto *returnNode = stmt->cast<AST::Stmt::Return *>();
         if (returnNode->exp() && returnNode->exp()->isArray()) {
-            std::string error = "Cannot return an array.";
-            m_messages[returnNode->lineNumber()].push_back(
-                {Message::Type::Error, error});
+            Message::add(returnNode->lineNumber(), Message::Type::Error,
+                         "Cannot return an array.");
         }
 
         auto *functionParent =
@@ -32,41 +31,32 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
             if (functionParent->type() == AST::Type::Void &&
                 returnNode->exp() != nullptr) {
 
-                std::string error =
-                    "Function '" + functionParent->id() + "' at line " +
-                    std::to_string(functionParent->lineNumber()) +
-                    " is expecting no return value, but return has a "
-                    "value.";
-
-                m_messages[returnNode->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+                Message::add(returnNode->lineNumber(), Message::Type::Error,
+                             "Function '%s' at line %d is expecting no return "
+                             "value, but return has a value.",
+                             functionParent->id().c_str(),
+                             functionParent->lineNumber());
 
             } else if (functionParent->type() != AST::Type::Void &&
                        returnNode->exp() == nullptr) {
 
-                std::string error =
-                    "Function '" + functionParent->id() + "' at line " +
-                    std::to_string(functionParent->lineNumber()) +
-                    " is expecting to return type " +
-                    AST::Types::toString(functionParent->type()) +
-                    " but return has no value.";
-
-                m_messages[returnNode->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+                Message::add(
+                    returnNode->lineNumber(), Message::Type::Error,
+                    "Function '%s' at line %d is expecting to return "
+                    "type %s but return has no type.",
+                    functionParent->id().c_str(), functionParent->lineNumber(),
+                    AST::Types::toString(functionParent->type()).c_str());
 
             } else if (returnNode->exp() && returnNode->exp()->hasType() &&
                        functionParent->type() != returnNode->exp()->type()) {
 
-                std::string error =
-                    "Function '" + functionParent->id() + "' at line " +
-                    std::to_string(functionParent->lineNumber()) +
-                    " is expecting to return type " +
-                    AST::Types::toString(functionParent->type()) +
-                    " but returns type " +
-                    AST::Types::toString(returnNode->exp()->type()) + ".";
-
-                m_messages[returnNode->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+                Message::add(
+                    returnNode->lineNumber(), Message::Type::Error,
+                    "Function '%s' at line %d is expecting to return "
+                    "type %s but returns type %s.",
+                    functionParent->id().c_str(), functionParent->lineNumber(),
+                    AST::Types::toString(functionParent->type()).c_str(),
+                    AST::Types::toString(returnNode->exp()->type()).c_str());
             }
         }
 
@@ -80,22 +70,22 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
         for (int i = 0; i < rangeChildren.size(); i++) {
             if (rangeChildren[i]) {
                 if (rangeChildren[i]->isArray()) {
-                    std::string error = "Cannot use array in position " +
-                                        std::to_string(i + 1) +
-                                        " in range of for statement.";
-                    m_messages[range->lineNumber()].push_back(
-                        {Message::Type::Error, error});
+
+                    Message::add(range->lineNumber(), Message::Type::Error,
+                                 "Cannot use array in position %d in range of "
+                                 "for statement.",
+                                 i + 1);
                 }
 
                 if (rangeChildren[i]->hasType() &&
                     rangeChildren[i]->type() != AST::Type::Int) {
-                    std::string error =
-                        "Expecting type int in position " +
-                        std::to_string(i + 1) +
-                        " in range of for statement but got type " +
-                        AST::Types::toString(rangeChildren[i]->type()) + ".";
-                    m_messages[range->lineNumber()].push_back(
-                        {Message::Type::Error, error});
+
+                    Message::add(
+                        range->lineNumber(), Message::Type::Error,
+                        "Expecting type int in position %d in range of for "
+                        "statement but got type %s.",
+                        i + 1,
+                        AST::Types::toString(rangeChildren[i]->type()).c_str());
                 }
             }
         }
@@ -105,10 +95,9 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
     case AST::StmtType::Break: {
         if (!(stmt->hasAncestorOfType(AST::StmtType::For) ||
               stmt->hasAncestorOfType(AST::StmtType::While))) {
-            std::string error =
-                "Cannot have a break statement outside of loop.";
-            m_messages[stmt->lineNumber()].push_back(
-                {Message::Type::Error, error});
+
+            Message::add(stmt->lineNumber(), Message::Type::Error,
+                         "Cannot have a break statement outside of loop.");
         }
         break;
     }
@@ -116,21 +105,20 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
         auto *whilestmt = stmt->cast<AST::Stmt::While *>();
 
         if (whilestmt->exp() && whilestmt->exp()->isArray()) {
-            std::string error =
-                "Cannot use array as test condition in while statement.";
-            m_messages[whilestmt->lineNumber()].push_back(
-                {Message::Type::Error, error});
+
+            Message::add(
+                whilestmt->lineNumber(), Message::Type::Error,
+                "Cannot use array as test condition in while statement.");
         }
 
         if (whilestmt->exp() && whilestmt->exp()->hasType() &&
             whilestmt->exp()->type() != AST::Type::Bool) {
-            std::string error =
-                "Expecting Boolean test condition in while statement but got "
-                "type " +
-                AST::Types::toString(whilestmt->exp()->type()) + ".";
 
-            m_messages[whilestmt->lineNumber()].push_back(
-                {Message::Type::Error, error});
+            Message::add(
+                whilestmt->lineNumber(), Message::Type::Error,
+                "Expecting Boolean test condition in while statement "
+                "but got type %s.",
+                AST::Types::toString(whilestmt->exp()->type()).c_str());
         }
         break;
     }
@@ -138,21 +126,18 @@ void SemanticsChecker::analyzeNode(AST::Stmt::Stmt *stmt) {
         auto *ifstmt = stmt->cast<AST::Stmt::Select *>();
 
         if (ifstmt->exp() && ifstmt->exp()->isArray()) {
-            std::string error =
-                "Cannot use array as test condition in if statement.";
-            m_messages[ifstmt->lineNumber()].push_back(
-                {Message::Type::Error, error});
+
+            Message::add(ifstmt->lineNumber(), Message::Type::Error,
+                         "Cannot use array as test condition in if statement.");
         }
 
         if (ifstmt->exp() && ifstmt->exp()->hasType() &&
             ifstmt->exp()->type() != AST::Type::Bool) {
-            std::string error =
-                "Expecting Boolean test condition in if statement but got "
-                "type " +
-                AST::Types::toString(ifstmt->exp()->type()) + ".";
 
-            m_messages[ifstmt->lineNumber()].push_back(
-                {Message::Type::Error, error});
+            Message::add(ifstmt->lineNumber(), Message::Type::Error,
+                         "Expecting Boolean test condition in if statement but "
+                         "got type %s.",
+                         AST::Types::toString(ifstmt->exp()->type()).c_str());
         }
         break;
     }

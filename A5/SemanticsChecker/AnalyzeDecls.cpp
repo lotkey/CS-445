@@ -23,13 +23,12 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 
         if (func->hasType() && func->type() != AST::Type::Void &&
             !func->hasDescendantOfType(AST::StmtType::Return)) {
-            std::string warning = "Expecting to return type " +
-                                  AST::Types::toString(func->type()) +
-                                  " but function '" + func->id() +
-                                  "' has no return statement.";
 
-            m_messages[func->lineNumber()].push_back(
-                {Message::Type::Warning, warning});
+            Message::add(func->lineNumber(), Message::Type::Warning,
+                         "Expecting to return type %s but function '%s' has no "
+                         "return statement.",
+                         AST::Types::toString(func->type()).c_str(),
+                         func->id().c_str());
         }
     }
 
@@ -40,12 +39,10 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
             if (m_symbolTable[decl->id()].isDeclared()) {
 
                 auto *originalSymbol = m_symbolTable[decl->id()].decl();
-                std::string error =
-                    "Symbol '" + decl->id() + "' is already declared at line " +
-                    std::to_string(originalSymbol->lineNumber()) + ".";
 
-                m_messages[decl->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+                Message::add(decl->lineNumber(), Message::Type::Error,
+                             "Symbol '%s' is already declared at line %d.",
+                             decl->id().c_str(), originalSymbol->lineNumber());
             } else {
 
                 if (decl->is(AST::DeclType::Var)) {
@@ -59,19 +56,21 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 
                         if (!m_symbolTable[var->id()].isDeclared()) {
                             if (isSameVar(var->initValue())) {
-                                std::string error = "Symbol '" + var->id() +
-                                                    "' is not declared.";
-                                m_messages[var->initValue()->lineNumber()]
-                                    .push_back({Message::Type::Error, error});
+
+                                Message::add(var->initValue()->lineNumber(),
+                                             Message::Type::Error,
+                                             "Symbol '%s' is not declared.",
+                                             var->id().c_str());
                             } else if (var->initValue()->hasDescendantWhere(
                                            isSameVar)) {
                                 auto descendants =
                                     var->initValue()->getDescendantsWhere(
                                         isSameVar);
-                                std::string error = "Symbol '" + var->id() +
-                                                    "' is not declared.";
-                                m_messages[descendants.front()->lineNumber()]
-                                    .push_back({Message::Type::Error, error});
+
+                                Message::add(descendants.front()->lineNumber(),
+                                             Message::Type::Error,
+                                             "Symbol '%s' is not declared.",
+                                             var->id().c_str());
                             }
                         }
                     }
@@ -90,19 +89,22 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
 
                     if (!m_symbolTable[var->id()].isDeclared()) {
                         if (isSameVar(var->initValue())) {
-                            std::string error =
-                                "Symbol '" + var->id() + "' is not declared.";
-                            m_messages[var->initValue()->lineNumber()]
-                                .push_back({Message::Type::Error, error});
+
+                            Message::add(var->initValue()->lineNumber(),
+                                         Message::Type::Error,
+                                         "Symbol '%s' is not declared.",
+                                         var->id().c_str());
                         } else if (var->initValue()->hasDescendantWhere(
                                        isSameVar)) {
+
                             auto descendants =
                                 var->initValue()->getDescendantsWhere(
                                     isSameVar);
-                            std::string error =
-                                "Symbol '" + var->id() + "' is not declared.";
-                            m_messages[descendants.front()->lineNumber()]
-                                .push_back({Message::Type::Error, error});
+
+                            Message::add(descendants.front()->lineNumber(),
+                                         Message::Type::Error,
+                                         "Symbol '%s' is not declared.",
+                                         var->id().c_str());
                         }
                     }
                 }
@@ -120,38 +122,39 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
             }
 
             if (!var->initValue()->isConst()) {
-                std::string error = "Initializer for variable '" + var->id() +
-                                    "' is not a constant expression.";
-                m_messages[var->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+
+                Message::add(var->lineNumber(), Message::Type::Error,
+                             "Initializer for variable '%s' is not a constant "
+                             "expression.",
+                             var->id().c_str());
             }
 
             if (var->initValue()->hasType() && var->hasType() &&
                 var->initValue()->type() != var->type()) {
-                std::string error =
-                    "Initializer for variable '" + var->id() + "' of type " +
-                    AST::Types::toString(var->type()) + " is of type " +
-                    AST::Types::toString(var->initValue()->type());
-                m_messages[var->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+
+                Message::add(
+                    var->lineNumber(), Message::Type::Error,
+                    "Initializer for variable '%s' of type %s is of type %s.",
+                    var->id().c_str(),
+                    AST::Types::toString(var->type()).c_str(),
+                    AST::Types::toString(var->initValue()->type()).c_str());
             }
 
             if (var->initValue()->isArray() != var->isArray()) {
                 auto isArrayToString = [](bool b) {
                     if (b) {
-                        return std::string(" is an array");
+                        return std::string("is an array");
                     } else {
-                        return std::string(" is not an array");
+                        return std::string("is not an array");
                     }
                 };
 
-                std::string error =
-                    "Initializer for variable '" + var->id() +
-                    "' requires both operands be arrays or not but variable" +
-                    isArrayToString(var->isArray()) + " and rhs" +
-                    isArrayToString(var->initValue()->isArray()) + ".";
-                m_messages[var->lineNumber()].push_back(
-                    {Message::Type::Error, error});
+                Message::add(
+                    var->lineNumber(), Message::Type::Error,
+                    "Initializer for variable '%s' requires both operands be "
+                    "arrays or not but variable %s and rhs %s.",
+                    var->id().c_str(), isArrayToString(var->isArray()).c_str(),
+                    isArrayToString(var->initValue()->isArray()).c_str());
             }
 
             m_symbolTable[decl->id()].define(var->initValue()->lineNumber());
@@ -159,9 +162,12 @@ void SemanticsChecker::analyzeNode(AST::Decl::Decl *decl) {
                    decl->parent()->is(AST::StmtType::For)) {
 
             auto *forParent = var->parent()->cast<AST::Stmt::For *>();
-            m_symbolTable[decl->id()].define(
-                forParent->range()->from()->lineNumber());
-            m_symbolTable[decl->id()].setIterator(true);
+            auto *range = forParent->range();
+            if (range) {
+                m_symbolTable[decl->id()].define(
+                    forParent->range()->from()->lineNumber());
+                m_symbolTable[decl->id()].setIterator(true);
+            }
         }
     }
 }

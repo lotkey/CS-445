@@ -1,6 +1,7 @@
 #include "SemanticsChecker.hpp"
 #include "../AST/AST.hpp"
 #include "../SymbolTable/SymbolTable.hpp"
+#include "Message.hpp"
 
 #include <iostream>
 
@@ -14,25 +15,13 @@ const SymbolTable &SemanticsChecker::symbolTable() const {
 }
 
 int SemanticsChecker::numErrors() const {
-    return Message::numErrors() + (!m_mainIsDefined - !m_analyzed);
+    return 0;
+    // return Message::numErrors() + (!m_mainIsDefined - !m_analyzed);
 }
 
-int SemanticsChecker::numWarnings() const { return Message::numWarnings(); }
-
-void SemanticsChecker::print() const {
-    if (!m_mainIsDefined) {
-        std::cout << "ERROR(LINKER): A function named 'main' with no "
-                     "parameters must be defined."
-                  << std::endl;
-    }
-
-    for (const auto &[lineNumber, bucket] : m_messages) {
-        /// Iterate backwards through bucket
-        for (int i = bucket.size() - 1; i >= 0; i--) {
-            auto message = bucket[i];
-            std::cout << message.toString(lineNumber) << std::endl;
-        }
-    }
+int SemanticsChecker::numWarnings() const {
+    // return Message::numWarnings();
+    return 0;
 }
 
 void SemanticsChecker::enterScope() {
@@ -61,12 +50,10 @@ void SemanticsChecker::enterScope(const std::optional<std::string> &name) {
         if (m_symbolTable.containsImmediately(parm->id()) &&
             m_symbolTable[parm->id()].isDeclared()) {
             auto *originalSymbol = m_symbolTable[parm->id()].decl();
-            std::string error =
-                "Symbol '" + parm->id() + "' is already declared at line " +
-                std::to_string(originalSymbol->lineNumber()) + ".";
 
-            m_messages[parm->lineNumber()].push_back(
-                {Message::Type::Error, error});
+            Message::add(parm->lineNumber(), Message::Type::Error,
+                         "Symbol '%s' is already declared at line %d.",
+                         parm->id().c_str(), originalSymbol->lineNumber());
 
         } else {
             m_symbolTable.declare(parm->id(), parm);
@@ -103,10 +90,8 @@ void SemanticsChecker::checkTopScope() {
             }
 
             warning += "'" + id + "' seems not to be used.";
-
-            m_messages[symbol.decl()->lineNumber()].insert(
-                m_messages[symbol.decl()->lineNumber()].begin(),
-                {Message::Type::Warning, warning});
+            Message::add(symbol.decl()->lineNumber(), Message::Type::Warning,
+                         warning);
         }
 
         if (symbol.decl()->declType() == AST::DeclType::Var &&
@@ -116,13 +101,10 @@ void SemanticsChecker::checkTopScope() {
 
                 auto linenumber = symbol.linesUsedBeforeDefined().front();
                 if (!symbol.isDefined() || linenumber <= symbol.lineDefined()) {
-                    std::string warning =
-                        "Variable '" + id +
-                        "' may be uninitialized when used here.";
-
-                    m_messages[linenumber].insert(
-                        m_messages[linenumber].begin(),
-                        {Message::Type::Warning, warning});
+                    Message::add(
+                        linenumber, Message::Type::Warning,
+                        "Variable '%s' may be uninitialized when used here.",
+                        id.c_str());
                 }
             }
         }
@@ -168,12 +150,15 @@ void SemanticsChecker::analyze(AST::Node *tree) {
 
     auto *ioLibrary = AST::ioLibraryTree();
     analyzeTree(ioLibrary);
-    m_messages.clear();
-    Message::reset();
 
     analyzeTree(tree);
     // Check global scope
     checkTopScope();
+    if (!m_mainIsDefined) {
+        Message::addStringMessageBefore(
+            "LINKER", Message::Type::Error,
+            "A function named 'main' with no parameters must be defined.");
+    }
     delete ioLibrary;
 }
 

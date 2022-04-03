@@ -65,19 +65,6 @@ char strutil::make_char(const std::string &str) {
     return get_char(str, index);
 }
 
-char strutil::make_char(const std::string &str, int linenumber) {
-    char c = make_char(str);
-    int strlen = str_len(str);
-    if (strlen > 1) {
-        std::cout << "WARNING(" + std::to_string(linenumber) +
-                         "): character is " + std::to_string(strlen) +
-                         " characters long and not a single character: ''" +
-                         str + "''. The first char will be used.";
-    }
-
-    return c;
-}
-
 std::vector<std::string> strutil::split(std::string s) {
     std::vector<std::string> words;
     std::vector<std::string> delimiters = {" ", "\r", "\n", "\t", "\v", "\f"};

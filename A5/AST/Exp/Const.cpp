@@ -1,4 +1,5 @@
 #include "Const.hpp"
+#include "../../SemanticsChecker/Message.hpp"
 #include "../../strutil.hpp"
 #include "../Node.hpp"
 #include "Exp.hpp"
@@ -14,7 +15,7 @@ Const::Const(int linenum) : Exp::Exp(linenum, ExpType::Const) {
 }
 
 Const::Const(int linenum, TypeInfo typeInfo, std::string value)
-    : Exp::Exp(linenum, ExpType::Const) {
+    : Exp::Exp(linenum, ExpType::Const), m_string(value) {
     setTypeInfo(typeInfo);
     setIsConst(true);
     switch (type()) {
@@ -27,8 +28,23 @@ Const::Const(int linenum, TypeInfo typeInfo, std::string value)
             m_value = strutil::remove_quotes(value);
             break;
         } else {
-            m_value =
-                strutil::make_char(strutil::remove_quotes(value), m_linenum);
+            int strlen = strutil::str_len(strutil::remove_quotes(value));
+            if (strlen == 0) {
+                Message::addSyntaxMessage(
+                    m_linenum, Message::Type::Warning,
+                    "Empty character ''. Characters ignored.");
+                m_value = strutil::make_char(strutil::remove_quotes(value));
+            } else if (strlen > 1) {
+                Message::addSyntaxMessage(
+                    m_linenum, Message::Type::Warning,
+                    "character is %d characters long and not a single "
+                    "character: '%s'. The first char will be used.",
+                    strutil::str_len(strutil::remove_quotes(value)),
+                    value.c_str());
+                m_value = ' ';
+            } else {
+                m_value = strutil::make_char(strutil::remove_quotes(value));
+            }
             break;
         }
     };
@@ -38,6 +54,8 @@ Const::Const(int linenum, TypeInfo typeInfo, std::string value)
     }
     };
 }
+
+std::string Const::inputString() const { return m_string; }
 
 std::string Const::toString(bool debugging) const {
     std::string str = "Const ";

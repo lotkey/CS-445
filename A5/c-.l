@@ -9,9 +9,9 @@
 #include "scanType.hpp"  // TokenData Type
 #include "c-.tab.h"  // token definitions from the bison
 #include "strutil.hpp"
+#include "SemanticsChecker/Message.hpp"
 
 int line = 1;
-int numErrors;    // ERR err count
 std::vector<std::unique_ptr<TokenData>> tokens;
 
 static int setValue(int linenum, int tokenClass, char *svalue)
@@ -92,5 +92,8 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 [a-zA-Z][a-zA-Z0-9]*        { return setValue(line, ID, yytext); }
 [0-9]+                      { return setValue(line, NUMCONST, yytext); }
 [ \t]                       ;
-.                           { printf("ERROR(%d): Invalid or misplaced input character: \'%c\'. Character Ignored.\n", line, yytext[0]); numErrors++; }
+.                           {
+                                Message::addSyntaxMessage(line, Message::Type::Error,
+                                        "Invalid or misplaced input character: '%c'. Character Ignored.", yytext[0]);
+                            }
 %%

@@ -18,8 +18,10 @@ class Const : public Exp {
     Const(int linenum, TypeInfo typeInfo, std::string data);
     
     virtual std::string toString(bool debugging = false) const override;
+    std::string inputString() const;
 
   protected:
     std::variant<int, bool, char, std::string> m_value;
+    std::string m_string;
 };
 } // namespace AST::Exp

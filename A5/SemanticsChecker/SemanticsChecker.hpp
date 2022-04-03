@@ -20,8 +20,6 @@ class SemanticsChecker {
     /// Analyzes an AST for semantic errors
     /// @param tree AST to analyze
     void analyze(AST::Node *tree);
-    /// Print the errors and warnings from analyzing the last tee
-    void print() const;
     /// @returns The number of errors in the last analyzed AST
     int numErrors() const;
     /// @returns The number of warnings in the last analyzed AST
@@ -29,9 +27,6 @@ class SemanticsChecker {
 
   private:
     SymbolTable m_symbolTable;
-    /// Mapping for errors and warning messages
-    /// Maps from line number to bucket of messages
-    std::map<unsigned, std::vector<Message>> m_messages;
     /// Optional scope name
     /// Functions have named scopes, for loops have scopes named "for", compound
     /// statements have the name "compound"

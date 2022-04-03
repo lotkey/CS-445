@@ -9,12 +9,12 @@ class strutil {
     static std::string remove_quotes(std::string);
     static std::string make_str(const std::string &);
     static char make_char(const std::string &);
-    static char make_char(const std::string &, int linenumber);
     static int str_len(const std::string &);
     template <typename... Args>
     static std::string format(const std::string &fmt, Args... args);
     static std::vector<std::string> split(std::string);
-    static size_t find_first_of_any(const std::string&, const std::vector<std::string>&);
+    static size_t find_first_of_any(const std::string &,
+                                    const std::vector<std::string> &);
 
   private:
     static char get_char(const std::string &, int &);
