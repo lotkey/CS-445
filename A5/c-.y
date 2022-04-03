@@ -77,7 +77,7 @@ void yyerror(const char *msg)
             int strlen = strutil::str_len(strutil::remove_quotes(yytext));
             if (strlen == 0) {
                 Message::addSyntaxMessage(
-                    line, Message::Type::Warning,
+                    line, Message::Type::Error,
                     "Empty character ''. Characters ignored.");
             } else if (strlen > 1) {
                 Message::addSyntaxMessage(
@@ -112,7 +112,7 @@ void yyerror(const char *msg)
 // this is included in the tab.h file
 // so scanType.hpp must be included before the tab.h file!!!!
 %union {
-    AST::Type *type;
+    AST::Type type;
     AST::Node *node;
     TokenData *tokenData;
     double value;
@@ -152,14 +152,14 @@ declList            : declList decl {
                     | decl { $$ = $1; }
                     ;
 
-decl                : varDecl { $$ = $1; yyerrok; }
-                    | funDecl { $$ = $1; yyerrok; }
+decl                : varDecl { $$ = $1; }
+                    | funDecl { $$ = $1; }
                     | error { $$ = nullptr; }
                     ;
 
 varDecl             : typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        if (var && $1) { var->setType(*$1); }
+                        if (var) { var->setType($1); }
                         $$ = var;
                         yyerrok;
 					}
@@ -169,8 +169,8 @@ varDecl             : typeSpec varDeclList SEMI {
 
 scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
                         auto *var = $3->cast<AST::Decl::Var *>();
-                        if (var && $2) {
-                            var->setType(*$2);
+                        if (var) {
+                            var->setType($2);
                             var->setIsStatic(true);
                         }
                         $$ = var;
@@ -178,7 +178,7 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
 					}
                     | typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        if (var && $1) { var->setType(*$1); }
+                        if (var) { var->setType($1); }
                         $$ = var;
                         yyerrok;
 					}
@@ -187,7 +187,6 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
 varDeclList         : varDeclList COM varDeclInit {
                         $$ = $1;
                         if ($$) { $$->addSibling($3); }
-                        yyerrok;
                     }
                     | varDeclInit { $$ = $1; }
                     | varDeclList COM error { $$ = nullptr; }
@@ -198,10 +197,6 @@ varDeclInit         : varDeclId { $$ = $1; }
                     | varDeclId COL simpleExp {
                         $$ = $1;
                         if ($$) { $$->addChild($3); }
-                    }
-                    | varDeclId COL error {
-                        $$ = nullptr;
-                        yyerrok;
                     }
                     | error COL simpleExp { $$ = nullptr; yyerrok; }
                     ;
@@ -217,17 +212,17 @@ varDeclId           : ID {
                         } else { $$ = nullptr; }
                     }
                     | ID LBRACK error { $$ = nullptr; }
-                    | error RBRACK { $$ = nullptr; }
+                    | error RBRACK { $$ = nullptr; yyerrok; }
                     ;
 
-typeSpec            : BOOL { $$ = new AST::Type(AST::Type::Bool); }
-                    | CHAR { $$ = new AST::Type(AST::Type::Char); }
-                    | INT { $$ = new AST::Type(AST::Type::Int); }
+typeSpec            : BOOL { $$ = AST::Type(AST::Type::Bool); yyerrok; }
+                    | CHAR { $$ = AST::Type(AST::Type::Char); yyerrok; }
+                    | INT { $$ = AST::Type(AST::Type::Int); yyerrok; }
                     ;
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
-                        if ($2 && $1) {
-                            $$ = new AST::Decl::Func($2->linenum, *$1, $2->tokenstr, $4, $6);
+                        if ($2) {
+                            $$ = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
                         } else { $$ = nullptr; }
                     }
                     | ID LPAREN parms RPAREN compoundStmt {
@@ -256,9 +251,8 @@ parmList            : parmList SEMI parmTypeList {
 
 parmTypeList        : typeSpec parmIdList {
                         auto *parms = $2->cast<AST::Decl::Parm *>();
-                        if (parms && $1) { parms->setType(*$1); }
+                        if (parms) { parms->setType($1); }
                         $$ = parms;
-                        yyerrok;
 					}
                     | typeSpec error { $$ = nullptr; }
                     ;
@@ -668,7 +662,6 @@ argList             : argList COM exp {
                             $$ = $1;
                         } else { $$ = nullptr; }
                         $$->addSibling($3);
-                        yyerrok;
                     }
                     | exp { $$ = $1; }
                     | argList COM error { $$ = nullptr; }

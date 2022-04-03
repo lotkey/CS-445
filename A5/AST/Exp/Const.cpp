@@ -31,7 +31,7 @@ Const::Const(int linenum, TypeInfo typeInfo, std::string value)
             int strlen = strutil::str_len(strutil::remove_quotes(value));
             if (strlen == 0) {
                 Message::addSyntaxMessage(
-                    m_linenum, Message::Type::Warning,
+                    m_linenum, Message::Type::Error,
                     "Empty character ''. Characters ignored.");
                 m_value = strutil::make_char(strutil::remove_quotes(value));
             } else if (strlen > 1) {
