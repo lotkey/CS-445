@@ -16,8 +16,8 @@ class Const : public Exp {
     /// @param Type Type of the constant
     /// @param data String value of the data
     Const(int linenum, TypeInfo typeInfo, std::string data);
-    
-    virtual std::string toString(bool debugging = false) const override;
+
+    virtual std::string toString() const override;
     std::string inputString() const;
 
   protected:

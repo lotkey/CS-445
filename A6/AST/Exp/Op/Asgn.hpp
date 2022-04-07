@@ -30,7 +30,7 @@ class Asgn : public Binary {
     Exp *mutableExp() const;
     Exp *exp() const;
 
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
     virtual void deduceType() override;
     virtual bool is(AsgnType) const override;
 

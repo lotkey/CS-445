@@ -26,7 +26,7 @@ class UnaryAsgn : public Unary {
     Exp *mutableExp() const;
     
 
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
     virtual void deduceType() override;
     virtual bool is(UnaryAsgnType) const override;
 

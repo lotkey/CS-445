@@ -44,15 +44,8 @@ void Binary::addChildren(Node *exp1, Node *exp2) {
 
 const BinaryOpType &Binary::binaryOpType() const { return m_binaryOpType; }
 
-std::string Binary::toString(bool debugging) const {
-    if (debugging) {
-        return strutil::format("Op: %s %s",
-                               Types::toString(m_binaryOpType).c_str(),
-                               typeTag().c_str());
-    } else {
-        return strutil::format("Op: %s",
-                               Types::toString(m_binaryOpType).c_str());
-    }
+std::string Binary::toString() const {
+    return strutil::format("Op: %s", Types::toString(m_binaryOpType).c_str());
 }
 
 void Binary::deduceType() {

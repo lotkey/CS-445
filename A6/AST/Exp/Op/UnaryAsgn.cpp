@@ -1,6 +1,6 @@
 #include "UnaryAsgn.hpp"
-#include "../../Node.hpp"
 #include "../../../strutil.hpp"
+#include "../../Node.hpp"
 #include "../Id.hpp"
 #include "Unary.hpp"
 
@@ -23,15 +23,9 @@ UnaryAsgn::UnaryAsgn(int linenum, UnaryAsgnType opType, Node *exp)
 
 UnaryAsgnType UnaryAsgn::unaryAsgnType() const { return m_unaryAsgnType; }
 
-std::string UnaryAsgn::toString(bool debugging) const {
-    if (debugging) {
-        return strutil::format("Assign: %s %s",
-                               Types::toString(m_unaryAsgnType).c_str(),
-                               typeTag().c_str());
-    } else {
-        return strutil::format("Assign: %s",
-                               Types::toString(m_unaryAsgnType).c_str());
-    }
+std::string UnaryAsgn::toString() const {
+    return strutil::format("Assign: %s",
+                           Types::toString(m_unaryAsgnType).c_str());
 }
 
 void UnaryAsgn::deduceType() {

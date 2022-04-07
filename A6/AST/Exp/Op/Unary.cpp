@@ -50,15 +50,8 @@ Exp *Unary::operand() const {
     return getChild(0)->cast<Exp *>();
 }
 
-std::string Unary::toString(bool debugging) const {
-    if (debugging) {
-        return strutil::format("Op: %s %s",
-                               Types::toString(m_unaryOpType).c_str(),
-                               typeTag().c_str());
-    } else {
-        return strutil::format("Op: %s",
-                               Types::toString(m_unaryOpType).c_str());
-    }
+std::string Unary::toString() const {
+    return strutil::format("Op: %s", Types::toString(m_unaryOpType).c_str());
 }
 
 void Unary::deduceType() {

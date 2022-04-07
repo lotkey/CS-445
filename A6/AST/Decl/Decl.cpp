@@ -21,4 +21,6 @@ const DeclType &Decl::declType() const { return m_declType; }
 const std::string &Decl::id() const { return m_id; }
 
 bool Decl::is(DeclType t) const { return this && m_declType == t; }
+
+bool Decl::alreadyIncludesTypeTag() const { return true; }
 } // namespace AST::Decl

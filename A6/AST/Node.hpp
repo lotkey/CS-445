@@ -50,7 +50,7 @@ class Node {
 
 #pragma region Info
     /// Recursively prints the tree
-    void print(bool debugging = false) const;
+    void print(bool debugging = false, bool printSymbolInfo = false) const;
     /// @returns True if the node has a sibling
     bool hasSibling() const;
     /// Gets reference to the line number member
@@ -60,8 +60,9 @@ class Node {
 #pragma endregion
 
 #pragma region Virtual functions
+    virtual bool isTyped() const;
     /// Get a string representation of the node
-    virtual std::string toString(bool debugging = false) const = 0;
+    virtual std::string toString() const = 0;
 
     /// Functions to determine node type from base Node pointer
     virtual bool is(NodeType) const;
@@ -179,9 +180,13 @@ class Node {
     Node *m_sibling = nullptr;
     Node *m_parent = nullptr;
     int m_linenum;
+    std::optional<ReferenceType> m_referenceType;
+    int m_size = 0;
+    int m_loc = 0;
 
     /// @param index Returns the child at the specified index, nullptr if none
     /// exists
     Node *getChild(int index) const;
+    std::string lineTag() const;
 };
 } // namespace AST

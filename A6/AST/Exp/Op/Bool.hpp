@@ -12,7 +12,7 @@ class Bool : public Binary {
 
     const BoolOpType &boolOpType() const;
     
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
     virtual bool is(BoolOpType) const override;
 
   protected:

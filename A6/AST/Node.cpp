@@ -1,5 +1,6 @@
 #include "Node.hpp"
 #include "../strutil.hpp"
+#include "TypedNode.hpp"
 
 #include <iostream>
 #include <memory>
@@ -104,12 +105,23 @@ const std::vector<Node *> &Node::children() const { return m_children; }
 
 #pragma region Info
 
-void Node::print(bool debugging) const {
+void Node::print(bool debugging, bool printSymbolInfo) const {
     static int siblingCount = 0;
     static int numIndents = 0;
 
-    std::cout << strutil::format("%s [line: %d]", toString(debugging).c_str(),
-                                 m_linenum) << std::endl;
+    std::string printstr = toString().c_str();
+    if ((debugging || printSymbolInfo) && isTyped()) {
+        auto *typed = this->cast<TypedNode *>();
+        if (!typed->alreadyIncludesTypeTag()) {
+            printstr += " " + typed->typeTag();
+        }
+    }
+    if (printSymbolInfo) {
+        // add symbol info;
+    }
+    printstr += " " + lineTag();
+
+    std::cout << printstr << std::endl;
     numIndents++;
 
     for (int i = 0; i < m_children.size(); i++) {
@@ -122,7 +134,7 @@ void Node::print(bool debugging) const {
             std::cout << strutil::format("Child: %d  ", i);
             int backup = siblingCount;
             siblingCount = 0;
-            child->print(debugging);
+            child->print(debugging, printSymbolInfo);
             siblingCount = backup;
         }
     }
@@ -135,7 +147,7 @@ void Node::print(bool debugging) const {
         }
 
         std::cout << strutil::format("Sibling: %d  ", siblingCount);
-        m_sibling->print(debugging);
+        m_sibling->print(debugging, printSymbolInfo);
     }
     siblingCount--;
 }
@@ -149,6 +161,7 @@ const NodeType &Node::nodeType() const { return m_nodeType; }
 #pragma endregion
 
 #pragma region Virtual functions
+bool Node::isTyped() const { return false; }
 
 bool Node::is(NodeType t) const { return this && nodeType() == t; }
 bool Node::is(StmtType t) const { return false; }
@@ -171,6 +184,10 @@ Node *Node::getChild(int index) const {
     } else {
         return m_children[index];
     }
+}
+
+std::string Node::lineTag() const {
+    return strutil::format("[line: %d]", m_linenum);
 }
 
 #pragma endregion

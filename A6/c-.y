@@ -710,13 +710,11 @@ int main(int argc, char *argv[])
 
             semantics.analyze(tree_root);
 
-            Message::print(options.printTypeInfo());
+            Message::print(options.print() || options.printTypeInfo() || options.printSymbolInfo());
 
             if (tree_root && Message::numberOf(Message::Type::Error) == 0) {
-                if (options.printTypeInfo()) {
-                    tree_root->print(options.printTypeInfo());
-                } else if (options.print()) {
-                    tree_root->print(false);
+                if (options.print() || options.printTypeInfo() || options.printSymbolInfo()) {
+                    tree_root->print(options.printTypeInfo(), options.printSymbolInfo());
                 }
             }
             Message::printCounts();

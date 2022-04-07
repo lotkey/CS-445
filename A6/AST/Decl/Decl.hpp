@@ -21,6 +21,7 @@ class Decl : public TypedNode {
     const std::string &id() const;
     const DeclType &declType() const;
 
+    virtual bool alreadyIncludesTypeTag() const override;
     bool is(DeclType) const override;
 
   protected:

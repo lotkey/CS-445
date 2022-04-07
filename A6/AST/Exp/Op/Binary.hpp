@@ -33,7 +33,7 @@ class Binary : public Op {
     /// @param exp1 First argument
     /// @param exp2 Second argument
     virtual void addChildren(Node *exp1, Node *exp2);
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
     virtual void deduceType() override;
     virtual bool is(BinaryOpType) const override;
 

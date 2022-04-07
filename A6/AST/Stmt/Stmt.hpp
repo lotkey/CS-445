@@ -17,7 +17,7 @@ class Stmt : public Node {
 
     const StmtType &stmtType() const;
 
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
     virtual bool is(StmtType) const override;
 
   protected:

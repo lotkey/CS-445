@@ -21,6 +21,7 @@ class Options {
     bool debugSymbolTable() const;
     /// @returns True if the user said to print type information in the AST
     bool printTypeInfo() const;
+    bool printSymbolInfo() const;
     /// @returns The filename of the file the user provided, if any
     const std::optional<std::string> &file() const;
 
@@ -30,4 +31,5 @@ class Options {
     bool m_debug = false;
     bool m_debugSymTbl = false;
     bool m_printTypeInfo = false;
+    bool m_printSymbolInfo = false;
 };

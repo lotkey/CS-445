@@ -17,7 +17,7 @@ Options::Options(int argc, char **argv) {
     extern int optind;
 
     while (true) {
-        while ((c = ourGetopt(argc, argv, (char *)"hpdPD")) != EOF) {
+        while ((c = ourGetopt(argc, argv, (char *)"hpdPDM")) != EOF) {
             switch (c) {
             case 'p':
                 m_print = true;
@@ -34,6 +34,9 @@ Options::Options(int argc, char **argv) {
             case 'P':
                 m_printTypeInfo = true;
                 break;
+            case 'M':
+                m_printSymbolInfo = true;
+                break;
             default:
                 errflag = true;
                 break;
@@ -49,6 +52,9 @@ Options::Options(int argc, char **argv) {
             std::cout << "-p - print the abstract syntax tree" << std::endl;
             std::cout
                 << "-P - print the abstract syntax tree plus type information"
+                << std::endl;
+            std::cout
+                << "-M - print the scope, size, and location of each symbol"
                 << std::endl;
 
             exit(!errflag);
@@ -68,5 +74,7 @@ bool Options::debug() const { return m_debug; }
 bool Options::debugSymbolTable() const { return m_debugSymTbl; }
 
 bool Options::printTypeInfo() const { return m_printTypeInfo; }
+
+bool Options::printSymbolInfo() const { return m_printSymbolInfo; }
 
 const std::optional<std::string> &Options::file() const { return m_file; }

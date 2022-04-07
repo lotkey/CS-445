@@ -21,15 +21,8 @@ Asgn::Asgn(int linenum, AsgnType asgnType, Node *exp1, Node *exp2)
 
 const AsgnType &Asgn::asgnType() const { return m_asgnType; }
 
-std::string Asgn::toString(bool debugging) const {
-    if (debugging) {
-        return strutil::format("Assign: %s %s",
-                               Types::toString(m_asgnType).c_str(),
-                               typeTag().c_str());
-    } else {
-        return strutil::format("Assign: %s",
-                               Types::toString(m_asgnType).c_str());
-    }
+std::string Asgn::toString() const {
+    return strutil::format("Assign: %s", Types::toString(m_asgnType).c_str());
 }
 
 void Asgn::deduceType() {

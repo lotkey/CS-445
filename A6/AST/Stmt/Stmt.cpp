@@ -18,7 +18,7 @@ Stmt::Stmt(int linenum, StmtType stmtType)
 
 const StmtType &Stmt::stmtType() const { return m_stmtType; }
 
-std::string Stmt::toString(bool debugging) const {
+std::string Stmt::toString() const {
     return Types::toString(m_stmtType);
 }
 

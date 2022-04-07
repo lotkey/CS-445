@@ -29,7 +29,7 @@ class Unary : public Op {
     void addExp(Node *exp);
     Exp *operand() const;
 
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
     virtual void deduceType() override;
     virtual bool is(UnaryOpType) const override;
 

@@ -18,7 +18,7 @@ class Id : public Exp {
 
     const std::string &id() const;
     
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
 
   protected:
     std::string m_id;

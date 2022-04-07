@@ -20,8 +20,7 @@ class Func : public Decl {
     /// @param id Function identifier
     /// @param parms Function parameters
     /// @param compoundstmt Function body
-    Func(int linenum, const std::string &id, Node *parms,
-         Node *compoundstmt);
+    Func(int linenum, const std::string &id, Node *parms, Node *compoundstmt);
     /// @param linenum Line number the node appears on
     /// @param type Function return type
     /// @param id Function identifier
@@ -35,6 +34,6 @@ class Func : public Decl {
     int numParms() const;
     std::vector<Parm *> parmsVector() const;
 
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
 };
 } // namespace AST::Decl

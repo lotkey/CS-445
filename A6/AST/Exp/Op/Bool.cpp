@@ -16,14 +16,8 @@ Bool::Bool(int linenum, BoolOpType boolOpType)
     setType(Type::Bool);
 }
 
-std::string Bool::toString(bool debugging) const {
-    if (debugging) {
-        return strutil::format("Op: %s %s",
-                               Types::toString(m_boolOpType).c_str(),
-                               typeTag().c_str());
-    } else {
-        return strutil::format("Op: %s", Types::toString(m_boolOpType).c_str());
-    }
+std::string Bool::toString() const {
+    return strutil::format("Op: %s", Types::toString(m_boolOpType).c_str());
 }
 
 const BoolOpType &Bool::boolOpType() const { return m_boolOpType; }

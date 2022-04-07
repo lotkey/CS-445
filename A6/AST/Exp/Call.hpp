@@ -23,7 +23,7 @@ class Call : public Exp {
     int numArgs() const;
     std::vector<Exp*> argsVector() const;
 
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
 
   protected:
     std::string m_id;

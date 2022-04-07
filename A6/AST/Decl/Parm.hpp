@@ -19,6 +19,6 @@ class Parm : public Decl {
     Parm(int linenum, const std::string &id, bool isArray);
 
     virtual void setType(Type) override;
-    virtual std::string toString(bool debugging = false) const override;
+    virtual std::string toString() const override;
 };
 } // namespace AST::Decl

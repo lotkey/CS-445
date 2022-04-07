@@ -26,7 +26,7 @@ void Var::setStatic() {
     setIsStatic(true);
 }
 
-std::string Var::toString(bool debugging) const {
+std::string Var::toString() const {
     return strutil::format("Var: %s %s", m_id.c_str(), typeTag().c_str());
 }
 

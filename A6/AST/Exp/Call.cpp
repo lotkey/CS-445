@@ -18,12 +18,8 @@ Call::Call(int linenum, const std::string &id, Node *arglist)
 
 const std::string &Call::id() const { return m_id; }
 
-std::string Call::toString(bool debugging) const {
-    if (debugging) {
-        return strutil::format("Call: %s %s", m_id.c_str(), typeTag().c_str());
-    } else {
-        return strutil::format("Call: %s", m_id.c_str());
-    }
+std::string Call::toString() const {
+    return strutil::format("Call: %s", m_id.c_str());
 }
 
 Exp *Call::arglist() const { return getChild(0)->cast<Exp *>(); }

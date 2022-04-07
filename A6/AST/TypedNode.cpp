@@ -26,6 +26,10 @@ bool TypedNode::hasType() const { return m_typeInfo.type.has_value(); }
 
 Type TypedNode::type() const { return m_typeInfo.type.value(); }
 
+bool TypedNode::isTyped() const { return true; }
+
+bool TypedNode::alreadyIncludesTypeTag() const { return false; }
+
 std::optional<Type> TypedNode::typeOptional() const { return m_typeInfo.type; }
 
 void TypedNode::setType(Type t) { m_typeInfo.type = t; }
@@ -35,7 +39,7 @@ TypeInfo TypedNode::getTypeInfo() const { return m_typeInfo; }
 void TypedNode::setTypeInfo(TypeInfo ti) { m_typeInfo = ti; }
 
 std::string TypedNode::typeTag() const {
-    return Types::toString(getTypeInfo(), false, true);
+    return Types::toString(getTypeInfo(), true, true);
 }
 
 } // namespace AST

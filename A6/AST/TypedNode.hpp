@@ -19,6 +19,8 @@ class TypedNode : public Node {
     bool isStatic() const;
     void setIsStatic(bool);
     bool hasType() const;
+    virtual bool isTyped() const override;
+    virtual bool alreadyIncludesTypeTag() const;
     Type type() const;
     std::optional<Type> typeOptional() const;
     virtual void setType(Type);

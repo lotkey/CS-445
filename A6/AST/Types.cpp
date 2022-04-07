@@ -32,7 +32,7 @@ std::string toString(TypeInfo t, bool addStatic, bool addArray) {
     std::string str;
 
     if (t.isArray && addArray) {
-        str += "is array ";
+        str += "of array ";
     }
 
     str += "of ";
@@ -149,6 +149,29 @@ std::string toString(AsgnType t) {
         return "-=";
     default:
         return "asgn";
+    }
+}
+
+std::string toString(ReferenceType ref) {
+    switch (ref) {
+    case ReferenceType::Global:
+        return "Global";
+    case ReferenceType::Local:
+        return "Local";
+    case ReferenceType::Parameter:
+        return "Parameter";
+    case ReferenceType::Static:
+        return "LocalStatic";
+    default:
+        return "toString(ReferenceType) is incomplete";
+    }
+}
+
+std::string toString(const std::optional<ReferenceType> &ref) {
+    if (ref.has_value()) {
+        return toString(ref.value());
+    } else {
+        return "None";
     }
 }
 } // namespace AST::Types

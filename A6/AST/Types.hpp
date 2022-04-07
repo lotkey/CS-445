@@ -16,6 +16,8 @@ enum class UnaryAsgnType { Inc, Dec };
 enum class BinaryOpType { Mul, Div, Mod, Add, Subtract, Bool, Index, Asgn };
 enum class AsgnType { Asgn, AddAsgn, SubAsgn, DivAsgn, MulAsgn };
 
+enum class ReferenceType { Local, Global, Static, Parameter };
+
 struct TypeInfo {
     std::optional<Type> type;
     bool isArray = false;
@@ -33,5 +35,8 @@ std::string toString(UnaryOpType);
 std::string toString(UnaryAsgnType);
 std::string toString(BinaryOpType);
 std::string toString(AsgnType);
+
+std::string toString(ReferenceType);
+std::string toString(const std::optional<ReferenceType> &);
 } // namespace Types
 } // namespace AST

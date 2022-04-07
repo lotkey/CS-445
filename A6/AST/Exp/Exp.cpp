@@ -11,7 +11,7 @@ Exp::Exp(int linenum, ExpType expType)
 const ExpType &Exp::expType() const { return m_expType; }
 
 std::string Exp::typeTag() const {
-    return Types::toString(getTypeInfo(), false, false);
+    return Types::toString(getTypeInfo(), true, true);
 }
 
 bool Exp::is(ExpType t) const { return this && m_expType == t; }

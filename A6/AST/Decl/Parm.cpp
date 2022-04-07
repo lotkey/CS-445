@@ -6,17 +6,23 @@
 #include <string>
 
 namespace AST::Decl {
-Parm::Parm() : Decl::Decl() { m_declType = DeclType::Parm; }
+Parm::Parm() : Decl::Decl() {
+    m_declType = DeclType::Parm;
+    m_referenceType = ReferenceType::Parameter;
+}
 
-Parm::Parm(int linenum) : Decl::Decl(linenum, DeclType::Parm) {}
+Parm::Parm(int linenum) : Decl::Decl(linenum, DeclType::Parm) {
+    m_referenceType = ReferenceType::Parameter;
+}
 
 Parm::Parm(int linenum, const std::string &id, bool isArray)
     : Decl::Decl(linenum, DeclType::Parm) {
     setIsArray(isArray);
     m_id = id;
+    m_referenceType = ReferenceType::Parameter;
 }
 
-std::string Parm::toString(bool debugging) const {
+std::string Parm::toString() const {
     return strutil::format("Parm: %s %s", m_id.c_str(),
                            Types::toString(getTypeInfo(), false, true).c_str());
 }

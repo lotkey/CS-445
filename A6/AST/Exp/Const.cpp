@@ -57,7 +57,7 @@ Const::Const(int linenum, TypeInfo typeInfo, std::string value)
 
 std::string Const::inputString() const { return m_string; }
 
-std::string Const::toString(bool debugging) const {
+std::string Const::toString() const {
     std::string str = "Const ";
 
     switch (type()) {
@@ -75,8 +75,7 @@ std::string Const::toString(bool debugging) const {
     }
     case Type::Char: {
         if (isArray()) {
-            str += "is array \"" + std::get<std::string>(m_value) +
-                   "\" of type char";
+            str += "\"" + std::get<std::string>(m_value) + "\"";
             break;
         } else {
             str += strutil::format("'%c'", std::get<char>(m_value));
@@ -88,10 +87,6 @@ std::string Const::toString(bool debugging) const {
         break;
     }
     };
-
-    if (debugging && !(type() == Type::Char && isArray())) {
-        str += " " + typeTag();
-    }
 
     return str;
 }

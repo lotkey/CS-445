@@ -36,7 +36,7 @@ Func::Func(int linenum, Type returnType, const std::string &id, Node *parms,
     addChild(compoundstmt);
 }
 
-std::string Func::toString(bool debugging) const {
+std::string Func::toString() const {
     return strutil::format("Func: %s returns type %s", m_id.c_str(),
                            Types::toString(typeOptional()).c_str());
 }
