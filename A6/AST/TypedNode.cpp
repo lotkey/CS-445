@@ -28,8 +28,6 @@ Type TypedNode::type() const { return m_typeInfo.type.value(); }
 
 bool TypedNode::isTyped() const { return true; }
 
-bool TypedNode::alreadyIncludesTypeTag() const { return false; }
-
 std::optional<Type> TypedNode::typeOptional() const { return m_typeInfo.type; }
 
 void TypedNode::setType(Type t) { m_typeInfo.type = t; }

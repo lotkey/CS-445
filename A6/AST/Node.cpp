@@ -111,8 +111,8 @@ void Node::print(bool debugging, bool printSymbolInfo) const {
 
     std::string printstr = toString().c_str();
     if ((debugging || printSymbolInfo) && isTyped()) {
-        auto *typed = this->cast<TypedNode *>();
-        if (!typed->alreadyIncludesTypeTag()) {
+        auto *typed = cast<AST::TypedNode *>();
+        if (!is(AST::NodeType::Decl)) {
             printstr += " " + typed->typeTag();
         }
     }
