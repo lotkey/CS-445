@@ -190,5 +190,7 @@ std::string Node::lineTag() const {
     return strutil::format("[line: %d]", m_linenum);
 }
 
+bool Node::hasMemoryInfo() const { return false; }
+
 #pragma endregion
 } // namespace AST

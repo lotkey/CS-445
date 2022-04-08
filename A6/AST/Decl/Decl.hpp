@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../MemoryNode.hpp"
 #include "../Node.hpp"
 #include "../TypedNode.hpp"
 
@@ -11,7 +12,7 @@
 namespace AST::Decl {
 
 /// Base declaration node
-class Decl : public TypedNode {
+class Decl : public TypedNode, public MemoryNode {
   public:
     Decl();
     /// @param linenum Line number the node appears on

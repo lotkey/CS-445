@@ -6,7 +6,7 @@
 #include <optional>
 
 namespace AST {
-class TypedNode : public Node {
+class TypedNode : public virtual Node {
   public:
     TypedNode();
     TypedNode(int linenum);

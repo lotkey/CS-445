@@ -203,12 +203,12 @@ varDeclInit         : varDeclId { $$ = $1; }
                 
 varDeclId           : ID {
                         if ($1) {
-                            $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, false);
+                            $$ = new AST::Decl::Var($1->linenum, $1->tokenstr);
                         } else { $$ = nullptr; }
                     }
                     | ID LBRACK NUMCONST RBRACK {
                         if ($1) {
-                            $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, true);
+                            $$ = new AST::Decl::Var($1->linenum, $1->tokenstr, std::atoi($3->tokenstr.c_str()));
                         } else { $$ = nullptr; }
                     }
                     | ID LBRACK error { $$ = nullptr; }

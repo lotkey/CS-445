@@ -28,7 +28,7 @@ std::string Parm::toString() const {
 }
 
 void Parm::setType(Type t) {
-    TypedNode::setType(t);
+    setType(t);
     if (hasSibling() && sibling()->is(DeclType::Parm)) {
         sibling()->cast<Parm *>()->setType(t);
     }

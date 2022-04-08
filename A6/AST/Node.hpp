@@ -80,7 +80,15 @@ class Node {
 #pragma region Templated functions
     /// Casts the address of the Node to some type
     /// @returns The casted address
-    template <typename T> T cast() const { return (T)this; }
+    // template <typename T> T cast() { return dynamic_cast<T>(this); }
+    template <typename T> T &cast() { return dynamic_cast<T>(*this); }
+    template <typename T> const T &cast() {
+        return dynamic_cast<const T>(*this);
+    }
+
+    // template <typename T> const T cast() const {
+    //     return dynamic_cast<const T>(this);
+    // }
 
     bool hasAncestorWhere(const std::function<bool(Node *)> &predicate) const {
 
@@ -188,5 +196,6 @@ class Node {
     /// exists
     Node *getChild(int index) const;
     std::string lineTag() const;
+    virtual bool hasMemoryInfo() const;
 };
 } // namespace AST
