@@ -7,15 +7,21 @@
 #include <string>
 
 namespace AST::Stmt {
-For::For() : Stmt::Stmt() { m_stmtType = StmtType::For; }
+For::For() : Stmt::Stmt() {
+    m_stmtType = StmtType::For;
+    m_meminfo.setReferenceType({});
+}
 
-For::For(int linenum) : Stmt::Stmt(linenum, StmtType::For) {}
+For::For(int linenum) : Stmt::Stmt(linenum, StmtType::For) {
+    m_meminfo.setReferenceType({});
+}
 
 For::For(int linenum, Node *id, Node *range, Node *stmt)
     : Stmt::Stmt(linenum, StmtType::For) {
     addChild(id);
     addChild(range);
     addChild(stmt);
+    m_meminfo.setReferenceType({});
 }
 
 Exp::Id *For::id() const { return getChild(0)->cast<Exp::Id *>(); }

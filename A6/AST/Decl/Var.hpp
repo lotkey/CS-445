@@ -25,7 +25,7 @@ class Var : public Decl {
     bool isInitialized() const;
     Exp::Exp *initValue();
     /// Set the variable and its siblings to static
-    void setStatic();
+    void setIsStatic(bool) override;
 
     virtual void setType(Type) override;
     virtual std::string toString() const override;

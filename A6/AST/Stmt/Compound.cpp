@@ -6,15 +6,23 @@
 #include <string>
 
 namespace AST::Stmt {
-Compound::Compound() : Stmt::Stmt() { m_stmtType = StmtType::Compound; }
+Compound::Compound() : Stmt::Stmt() {
+    m_stmtType = StmtType::Compound;
+    m_meminfo.setReferenceType({});
+    m_meminfo.setLocation(0);
+}
 
-Compound::Compound(int linenum)
-    : Stmt::Stmt(linenum, StmtType::Compound) {}
+Compound::Compound(int linenum) : Stmt::Stmt(linenum, StmtType::Compound) {
+    m_meminfo.setReferenceType({});
+    m_meminfo.setLocation(0);
+}
 
 Compound::Compound(int linenum, Node *localdecls, Node *stmtlist)
     : Stmt::Stmt(linenum, StmtType::Compound) {
     addChild(localdecls);
     addChild(stmtlist);
+    m_meminfo.setReferenceType({});
+    m_meminfo.setLocation(0);
 }
 
 Decl::Decl *Compound::localdecls() const {

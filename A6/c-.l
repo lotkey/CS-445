@@ -41,10 +41,7 @@ static int setValue(int linenum, int tokenClass, char *svalue)
 %%
 \#\#.*\n                    { line++; }
 \"((\\\")|([^\n\"]))*\"     { return setValue(line, STRINGCONST, yytext); }
-\'((\\\')|([^\n\']))*\'     {
-                                std::cout << "Char: '" << yytext << "'" << std::endl;
-                                return setValue(line, CHARCONST, yytext);
-                            }
+\'((\\\')|([^\n\']))*\'     { return setValue(line, CHARCONST, yytext); }
 \n                          { line++; }
 "while"                     { return setValue(line, WHILE, yytext); }
 "if"                        { return setValue(line, IF, yytext); }

@@ -1,31 +1,29 @@
 #pragma once
 
 #include "../strutil.hpp"
-#include "Node.hpp"
 #include "Types.hpp"
 
 #include <optional>
 
 namespace AST {
-class MemoryNode : public virtual Node {
+class MemoryInfo {
   public:
-    void setMemoryInfo(int loc, int size);
-    void setMemoryInfo(ReferenceType refType, int loc, int size);
-    void setReferenceType(ReferenceType refType);
+    MemoryInfo();
+
+    void setReferenceType(const std::optional<ReferenceType> &refType);
     void setLocation(int location);
     void setSize(int size);
     std::optional<ReferenceType> getReferenceType() const;
     int getLocation() const;
     int getSize() const;
-    std::string memoryTag() const;
-
-  protected:
-    virtual bool hasMemoryInfo() const override;
+    std::string tag() const;
+    bool isSet() const;
 
   private:
     std::optional<ReferenceType> m_refType;
-    int m_loc;
-    int m_size;
+    int m_loc = 0;
+    int m_size = 0;
+    bool m_set = false;
 };
 
 } // namespace AST

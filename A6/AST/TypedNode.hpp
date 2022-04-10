@@ -6,19 +6,19 @@
 #include <optional>
 
 namespace AST {
-class TypedNode : public virtual Node {
+class TypedNode : public Node {
   public:
     TypedNode();
     TypedNode(int linenum);
     TypedNode(int linenum, NodeType nodeType);
 
-    bool isConst() const;
-    void setIsConst(bool);
-    bool isArray() const;
-    void setIsArray(bool);
-    bool isStatic() const;
-    void setIsStatic(bool);
-    bool hasType() const;
+    virtual bool isConst() const;
+    virtual void setIsConst(bool);
+    virtual bool isArray() const;
+    virtual void setIsArray(bool);
+    virtual bool isStatic() const;
+    virtual void setIsStatic(bool);
+    virtual bool hasType() const;
     virtual bool isTyped() const override;
     Type type() const;
     std::optional<Type> typeOptional() const;
@@ -26,7 +26,7 @@ class TypedNode : public virtual Node {
     TypeInfo getTypeInfo() const;
     void setTypeInfo(TypeInfo);
     /// @returns The type tag to print for type debugging
-    virtual std::string typeTag() const;
+    virtual std::string typeTag() const override;
 
   private:
     TypeInfo m_typeInfo;

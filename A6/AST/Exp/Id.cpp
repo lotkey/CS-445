@@ -18,4 +18,10 @@ const std::string &Id::id() const { return m_id; }
 std::string Id::toString() const {
     return strutil::format("Id: %s", m_id.c_str());
 }
+
+void Id::setIdOf(const Decl::Decl *decl) {
+    setTypeInfo(decl->getTypeInfo());
+    m_meminfo.setReferenceType(decl->memInfo().getReferenceType());
+    m_meminfo.setSize(decl->memInfo().getSize());
+}
 } // namespace AST::Exp

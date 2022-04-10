@@ -13,10 +13,14 @@ namespace AST::Decl {
 Func::Func() : Decl::Decl() {
     m_declType = DeclType::Func;
     setTypeInfo({Type::Void, false, false});
+    m_meminfo.setReferenceType(ReferenceType::Global);
+    m_meminfo.setLocation(0);
 }
 
 Func::Func(int linenum) : Decl::Decl(linenum, DeclType::Func) {
     setTypeInfo({Type::Void, false, false});
+    m_meminfo.setReferenceType(ReferenceType::Global);
+    m_meminfo.setLocation(0);
 }
 
 Func::Func(int linenum, const std::string &id, Node *parms, Node *compoundstmt)
@@ -25,6 +29,8 @@ Func::Func(int linenum, const std::string &id, Node *parms, Node *compoundstmt)
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);
+    m_meminfo.setReferenceType(ReferenceType::Global);
+    m_meminfo.setLocation(0);
 }
 
 Func::Func(int linenum, Type returnType, const std::string &id, Node *parms,
@@ -34,6 +40,8 @@ Func::Func(int linenum, Type returnType, const std::string &id, Node *parms,
     m_id = id;
     addChild(parms);
     addChild(compoundstmt);
+    m_meminfo.setReferenceType(ReferenceType::Global);
+    m_meminfo.setLocation(0);
 }
 
 std::string Func::toString() const {

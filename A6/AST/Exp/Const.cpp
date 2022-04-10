@@ -26,6 +26,9 @@ Const::Const(int linenum, TypeInfo typeInfo, std::string value)
     case Type::Char: {
         if (isArray()) {
             m_value = strutil::remove_quotes(value);
+            m_value = strutil::make_str(std::get<std::string>(m_value));
+            m_meminfo.setReferenceType(ReferenceType::Global);
+            m_meminfo.setSize(std::get<std::string>(m_value).size() + 1);
             break;
         } else {
             int strlen = strutil::str_len(strutil::remove_quotes(value));

@@ -104,7 +104,8 @@ void SemanticsChecker::analyzeNode(AST::Exp::Exp *exp) {
                              "Cannot use function '%s' as a variable.",
                              id->id().c_str());
             } else {
-                id->setTypeInfo(m_symbolTable[id->id()].decl()->getTypeInfo());
+                id->setIdOf(m_symbolTable[id->id()].decl());
+                // id->setTypeInfo(m_symbolTable[id->id()].decl()->getTypeInfo());
             }
 
         } else {

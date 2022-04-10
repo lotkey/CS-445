@@ -110,15 +110,17 @@ void Node::print(bool debugging, bool printSymbolInfo) const {
     static int numIndents = 0;
 
     std::string printstr = toString().c_str();
+
     if ((debugging || printSymbolInfo) && isTyped()) {
-        auto *typed = cast<AST::TypedNode *>();
         if (!is(AST::NodeType::Decl)) {
-            printstr += " " + typed->typeTag();
+            printstr += " " + typeTag();
         }
     }
-    if (printSymbolInfo) {
-        // add symbol info;
+
+    if (printSymbolInfo && m_meminfo.isSet()) {
+        printstr += " " + m_meminfo.tag();
     }
+
     printstr += " " + lineTag();
 
     std::cout << printstr << std::endl;
@@ -158,10 +160,13 @@ int &Node::lineNumber() { return m_linenum; }
 
 const NodeType &Node::nodeType() const { return m_nodeType; }
 
+const MemoryInfo &Node::memInfo() const { return m_meminfo; }
+
 #pragma endregion
 
 #pragma region Virtual functions
 bool Node::isTyped() const { return false; }
+std::string Node::typeTag() const { return ""; }
 
 bool Node::is(NodeType t) const { return this && nodeType() == t; }
 bool Node::is(StmtType t) const { return false; }

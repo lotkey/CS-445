@@ -10,36 +10,42 @@
 namespace AST::Decl {
 Var::Var() : Decl::Decl() {
     m_declType = DeclType::Var;
-    setMemoryInfo(ReferenceType::Local, 0, 0);
+    m_meminfo.setReferenceType(ReferenceType::Local);
+    m_meminfo.setSize(1);
 }
 
 Var::Var(int linenum) : Decl::Decl(linenum, DeclType::Var) {
-    setMemoryInfo(ReferenceType::Local, 0, 0);
+    m_meminfo.setReferenceType(ReferenceType::Local);
+    m_meminfo.setSize(1);
     setIsArray(false);
 }
 
 Var::Var(int linenum, const std::string &id)
     : Decl::Decl(linenum, DeclType::Var) {
-    setIsArray(true);
+    setIsArray(false);
     m_id = id;
-    setMemoryInfo(ReferenceType::Local, 0, 1);
+    m_meminfo.setReferenceType(ReferenceType::Local);
+    m_meminfo.setSize(1);
 }
 
 Var::Var(int linenum, const std::string &id, int arraySize)
     : Decl::Decl(linenum, DeclType::Var) {
     setIsArray(true);
     m_id = id;
-    setMemoryInfo(ReferenceType::Local, 0, arraySize + 1);
+    m_meminfo.setReferenceType(ReferenceType::Local);
+    m_meminfo.setSize(arraySize + 1);
 }
 
-void Var::setStatic() {
-    if (sibling() && sibling()->is(AST::DeclType::Var)) {
-        auto *var = sibling()->cast<AST::Decl::Var *>();
-        var->setStatic();
+void Var::setIsStatic(bool b) {
+    if (b) {
+        m_meminfo.setReferenceType(ReferenceType::Static);
     }
 
-    setIsStatic(true);
-    setReferenceType(ReferenceType::Static);
+    TypedNode::setIsStatic(b);
+    if (sibling() && sibling()->is(AST::DeclType::Var)) {
+        auto *var = sibling()->cast<AST::Decl::Var *>();
+        var->setIsStatic(b);
+    }
 }
 
 std::string Var::toString() const {
@@ -49,7 +55,7 @@ std::string Var::toString() const {
 bool Var::isInitialized() const { return getChild(0); }
 
 void Var::setType(Type t) {
-    setType(t);
+    TypedNode::setType(t);
     if (sibling() != nullptr && sibling()->is(DeclType::Var)) {
         sibling()->cast<Var *>()->setType(t);
     }

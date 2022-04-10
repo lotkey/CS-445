@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Decl/Decl.hpp"
 #include "../Node.hpp"
 #include "Exp.hpp"
 
@@ -17,7 +18,8 @@ class Id : public Exp {
     Id(int linenum, const std::string &id);
 
     const std::string &id() const;
-    
+    void setIdOf(const Decl::Decl *);
+
     virtual std::string toString() const override;
 
   protected:

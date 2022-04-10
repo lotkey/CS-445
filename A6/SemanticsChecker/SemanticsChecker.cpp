@@ -125,7 +125,8 @@ void SemanticsChecker::deduceTypeFromTable(AST::Node *node) {
         auto *id = node->cast<AST::Exp::Id *>();
         if (m_symbolTable[id->id()].isDeclared() &&
             m_symbolTable[id->id()].decl()->declType() != AST::DeclType::Func) {
-            id->setTypeInfo(m_symbolTable[id->id()].decl()->getTypeInfo());
+            id->setIdOf(m_symbolTable[id->id()].decl());
+            // id->setTypeInfo(m_symbolTable[id->id()].decl()->getTypeInfo());
         }
 
     } else if (node->is(AST::ExpType::Call)) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MemoryInfo.hpp"
 #include "Types.hpp"
 
 #include <functional>
@@ -57,10 +58,12 @@ class Node {
     int &lineNumber();
     /// @returns Type of node
     const NodeType &nodeType() const;
+    const MemoryInfo& memInfo() const;
 #pragma endregion
 
 #pragma region Virtual functions
     virtual bool isTyped() const;
+    virtual std::string typeTag() const;
     /// Get a string representation of the node
     virtual std::string toString() const = 0;
 
@@ -80,15 +83,9 @@ class Node {
 #pragma region Templated functions
     /// Casts the address of the Node to some type
     /// @returns The casted address
-    // template <typename T> T cast() { return dynamic_cast<T>(this); }
-    template <typename T> T &cast() { return dynamic_cast<T>(*this); }
-    template <typename T> const T &cast() {
-        return dynamic_cast<const T>(*this);
-    }
+    template <typename T> T cast() { return (T)this; }
 
-    // template <typename T> const T cast() const {
-    //     return dynamic_cast<const T>(this);
-    // }
+    template <typename T> const T cast() const { return (const T)this; }
 
     bool hasAncestorWhere(const std::function<bool(Node *)> &predicate) const {
 
@@ -188,9 +185,7 @@ class Node {
     Node *m_sibling = nullptr;
     Node *m_parent = nullptr;
     int m_linenum;
-    std::optional<ReferenceType> m_referenceType;
-    int m_size = 0;
-    int m_loc = 0;
+    MemoryInfo m_meminfo;
 
     /// @param index Returns the child at the specified index, nullptr if none
     /// exists

@@ -4,7 +4,7 @@ project(cm)
 add_library(cm
     ### AST
     ${PROJECT_SOURCE_DIR}/AST/AST.cpp
-    ${PROJECT_SOURCE_DIR}/AST/MemoryNode.cpp
+    ${PROJECT_SOURCE_DIR}/AST/MemoryInfo.cpp
     ${PROJECT_SOURCE_DIR}/AST/Node.cpp
     ${PROJECT_SOURCE_DIR}/AST/TypedNode.cpp
     ${PROJECT_SOURCE_DIR}/AST/Types.cpp

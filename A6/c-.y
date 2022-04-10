@@ -360,7 +360,7 @@ iterStmtOpen        : WHILE simpleExp DO openStmt {
                     }
                     | FOR ID ASGN iterRange DO openStmt {
                         if ($1 && $2) {
-                            auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                            auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr);
                             iterator->setType(AST::Type::Int);
                             $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                         } else { $$ = nullptr; }
@@ -378,7 +378,7 @@ iterStmtClosed      : WHILE simpleExp DO closedStmt {
                     }
                     | FOR ID ASGN iterRange DO closedStmt {
                         if ($1 && $2) {
-                            auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr, false);
+                            auto *iterator = new AST::Decl::Var($1->linenum, $2->tokenstr);
                             iterator->setType(AST::Type::Int);
                             $$ = new AST::Stmt::For($1->linenum, iterator, $4, $6);
                         } else { $$ = nullptr; }

@@ -32,16 +32,16 @@ std::string toString(TypeInfo t, bool addStatic, bool addArray) {
     std::string str;
 
     if (t.isArray && addArray) {
-        str += "of array ";
+        str += "of ";
     }
-
-    str += "of ";
-
     if (t.isStatic && addStatic) {
         str += "static ";
     }
+    if (t.isArray && addArray) {
+        str += "array ";
+    }
 
-    str += "type " + toString(t.type);
+    str += "of type " + toString(t.type);
 
     return str;
 }
