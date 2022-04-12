@@ -48,6 +48,13 @@ void Var::setIsStatic(bool b) {
     }
 }
 
+void Var::setGlobal(bool b) {
+    m_meminfo.setReferenceType(ReferenceType::Global);
+    if (sibling()) {
+        sibling()->cast<Var *>()->setGlobal(b);
+    }
+}
+
 std::string Var::toString() const {
     return strutil::format("Var: %s %s", m_id.c_str(), typeTag().c_str());
 }

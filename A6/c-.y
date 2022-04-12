@@ -159,7 +159,10 @@ decl                : varDecl { $$ = $1; }
 
 varDecl             : typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        if (var) { var->setType($1); }
+                        if (var) {
+                            var->setType($1);
+                            var->setGlobal(true);                        
+                        }
                         $$ = var;
                         yyerrok;
 					}
