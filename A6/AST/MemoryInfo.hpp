@@ -12,6 +12,7 @@ class MemoryInfo {
 
     void setReferenceType(const std::optional<ReferenceType> &refType);
     void setLocation(int location);
+    void calculateLocation();
     void setSize(int size);
     std::optional<ReferenceType> getReferenceType() const;
     int getLocation() const;
@@ -24,6 +25,8 @@ class MemoryInfo {
     int m_loc = 0;
     int m_size = 0;
     bool m_set = false;
+
+    static int s_globalLoc;
 };
 
 } // namespace AST

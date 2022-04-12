@@ -50,6 +50,7 @@ void Var::setIsStatic(bool b) {
 
 void Var::setGlobal(bool b) {
     m_meminfo.setReferenceType(ReferenceType::Global);
+    m_meminfo.calculateLocation();
     if (sibling()) {
         sibling()->cast<Var *>()->setGlobal(b);
     }

@@ -1,6 +1,8 @@
 #include "MemoryInfo.hpp"
 
 namespace AST {
+int MemoryInfo::s_globalLoc = -1;
+
 MemoryInfo::MemoryInfo() {}
 
 void MemoryInfo::setReferenceType(const std::optional<ReferenceType> &refType) {
@@ -16,6 +18,12 @@ void MemoryInfo::setLocation(int location) {
 void MemoryInfo::setSize(int size) {
     m_set = true;
     m_size = size;
+}
+
+void MemoryInfo::calculateLocation() {
+    m_set = true;
+    m_loc = s_globalLoc;
+    s_globalLoc -= m_size;
 }
 
 std::optional<ReferenceType> MemoryInfo::getReferenceType() const {
