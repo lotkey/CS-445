@@ -21,7 +21,6 @@ std::string Id::toString() const {
 
 void Id::setIdOf(const Decl::Decl *decl) {
     setTypeInfo(decl->getTypeInfo());
-    m_meminfo.setReferenceType(decl->memInfo().getReferenceType());
-    m_meminfo.setSize(decl->memInfo().getSize());
+    m_meminfo = decl->memInfo();
 }
 } // namespace AST::Exp

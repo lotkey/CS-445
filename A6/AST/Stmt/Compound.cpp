@@ -30,4 +30,9 @@ Decl::Decl *Compound::localdecls() const {
 }
 
 Stmt *Compound::stmtlist() const { return getChild(1)->cast<Stmt *>(); }
+
+void Compound::calculateMemory() {
+    Node::calculateMemory();
+    m_meminfo.setSize(MemoryInfo::frameOffset());
+}
 } // namespace AST::Stmt

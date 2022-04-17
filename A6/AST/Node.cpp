@@ -197,5 +197,16 @@ std::string Node::lineTag() const {
 
 bool Node::hasMemoryInfo() const { return false; }
 
+void Node::calculateMemory() {
+    for (auto *sib = sibling(); sib != nullptr; sib = sib->sibling()) {
+        sib->calculateMemory();
+    }
+
+    for (auto *child : children()) {
+        if (child != nullptr) {
+            child->calculateMemory();
+        }
+    }
+}
 #pragma endregion
 } // namespace AST

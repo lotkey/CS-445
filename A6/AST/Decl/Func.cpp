@@ -4,6 +4,7 @@
 #include "../Stmt/Compound.hpp"
 #include "Decl.hpp"
 #include "Parm.hpp"
+#include "Var.hpp"
 
 #include <map>
 #include <string>
@@ -49,9 +50,31 @@ std::string Func::toString() const {
                            Types::toString(typeOptional()).c_str());
 }
 
+void Func::calculateMemory() {
+    m_meminfo.setLocation(0);
+    m_meminfo.setSize((numParms() + 2) * -1);
+    MemoryInfo::enterScope();
+    MemoryInfo::addReturnTicket();
+
+    for (auto *parm = parms(); parm != nullptr;
+         parm = parm->sibling()->cast<Parm *>()) {
+        parm->calculateMemory();
+    }
+
+    auto *stmt = compoundStmt();
+    if (stmt) {
+        stmt->calculateMemory();
+    }
+    MemoryInfo::exitScope();
+}
+
 bool Func::hasParms() const { return parms() != nullptr; }
 
 Parm *Func::parms() const { return getChild(0)->cast<Parm *>(); }
+
+Stmt::Compound *Func::compoundStmt() const {
+    return getChild(1)->cast<Stmt::Compound *>();
+}
 
 int Func::numParms() const {
     auto *parm = parms();

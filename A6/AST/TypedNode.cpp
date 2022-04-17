@@ -39,5 +39,4 @@ void TypedNode::setTypeInfo(TypeInfo ti) { m_typeInfo = ti; }
 std::string TypedNode::typeTag() const {
     return Types::toString(getTypeInfo(), true, true);
 }
-
 } // namespace AST

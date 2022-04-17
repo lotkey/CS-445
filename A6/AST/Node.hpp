@@ -58,7 +58,7 @@ class Node {
     int &lineNumber();
     /// @returns Type of node
     const NodeType &nodeType() const;
-    const MemoryInfo& memInfo() const;
+    const MemoryInfo &memInfo() const;
 #pragma endregion
 
 #pragma region Virtual functions
@@ -177,6 +177,8 @@ class Node {
         return v;
     }
 #pragma endregion
+
+    virtual void calculateMemory();
 
   private:
   protected:

@@ -4,10 +4,17 @@
 #include "Types.hpp"
 
 #include <optional>
+#include <vector>
 
 namespace AST {
 class MemoryInfo {
   public:
+    static void enterScope();
+    static void exitScope();
+    static void addReturnTicket();
+    static int globalOffset();
+    static int frameOffset();
+
     MemoryInfo();
 
     void setReferenceType(const std::optional<ReferenceType> &refType);
@@ -19,14 +26,17 @@ class MemoryInfo {
     int getSize() const;
     std::string tag() const;
     bool isSet() const;
+    bool locationSet() const;
+    bool sizeSet() const;
+    bool reftypeSet() const;
 
   private:
-    std::optional<ReferenceType> m_refType;
-    int m_loc = 0;
-    int m_size = 0;
-    bool m_set = false;
+    static int s_globalOffset;
+    static std::vector<int> s_frameOffsets;
 
-    static int s_globalLoc;
+    std::optional<ReferenceType> m_refType;
+    std::optional<int> m_loc;
+    std::optional<int> m_size;
 };
 
 } // namespace AST

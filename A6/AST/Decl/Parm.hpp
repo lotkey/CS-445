@@ -18,6 +18,8 @@ class Parm : public Decl {
     /// @param isArray Whether or not the parameter is an array
     Parm(int linenum, const std::string &id, bool isArray);
 
+    virtual void calculateMemory() override;
+
     virtual void setType(Type) override;
     virtual std::string toString() const override;
 };

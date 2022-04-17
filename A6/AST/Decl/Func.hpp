@@ -31,8 +31,10 @@ class Func : public Decl {
 
     bool hasParms() const;
     Parm *parms() const;
+    Stmt::Compound *compoundStmt() const;
     int numParms() const;
     std::vector<Parm *> parmsVector() const;
+    virtual void calculateMemory() override;
 
     virtual std::string toString() const override;
 };

@@ -161,7 +161,8 @@ varDecl             : typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
                         if (var) {
                             var->setType($1);
-                            var->setGlobal(true);                        
+                            var->setGlobal(true);     
+                            var->calculateMemory();                   
                         }
                         $$ = var;
                         yyerrok;
@@ -175,13 +176,17 @@ scopedVarDecl       : STATIC typeSpec varDeclList SEMI {
                         if (var) {
                             var->setType($2);
                             var->setIsStatic(true);
+                            var->calculateMemory();                   
                         }
                         $$ = var;
                         yyerrok;
 					}
                     | typeSpec varDeclList SEMI {
                         auto *var = $2->cast<AST::Decl::Var *>();
-                        if (var) { var->setType($1); }
+                        if (var) { 
+                            var->setType($1);
+                            // var->calculateLocation();
+                        }
                         $$ = var;
                         yyerrok;
 					}
@@ -225,12 +230,16 @@ typeSpec            : BOOL { $$ = AST::Type::Bool; }
 
 funDecl             : typeSpec ID LPAREN parms RPAREN compoundStmt {
                         if ($2) {
-                            $$ = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
+                            auto *func = new AST::Decl::Func($2->linenum, $1, $2->tokenstr, $4, $6);
+                            func->calculateMemory();
+                            $$ = func;
                         } else { $$ = nullptr; }
                     }
                     | ID LPAREN parms RPAREN compoundStmt {
                         if ($1) {
-                            $$ = new AST::Decl::Func($1->linenum, $1->tokenstr, $3, $5);
+                            auto *func = new AST::Decl::Func($1->linenum, $1->tokenstr, $3, $5);
+                            func->calculateMemory();
+                            $$ = func;
                         } else { $$ = nullptr; }
                     }
                     | typeSpec error { $$ = nullptr; }
@@ -719,6 +728,10 @@ int main(int argc, char *argv[])
                 if (options.print() || options.printTypeInfo() || options.printSymbolInfo()) {
                     tree_root->print(options.printTypeInfo(), options.printSymbolInfo());
                 }
+            }
+            if (options.printSymbolInfo()) {
+                std::cout << "Offset for end of global space: " 
+                          << AST::MemoryInfo::globalOffset() << std::endl;
             }
             Message::printCounts();
 

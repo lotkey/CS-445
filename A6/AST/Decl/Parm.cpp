@@ -30,6 +30,11 @@ std::string Parm::toString() const {
                            Types::toString(getTypeInfo(), false, true).c_str());
 }
 
+void Parm::calculateMemory() {
+    m_meminfo.calculateLocation();
+    Node::calculateMemory();
+}
+
 void Parm::setType(Type t) {
     TypedNode::setType(t);
     if (hasSibling() && sibling()->is(DeclType::Parm)) {

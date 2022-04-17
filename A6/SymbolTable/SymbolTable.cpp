@@ -24,7 +24,6 @@ void SymbolTable::enter(const std::string &id) {
 }
 
 void SymbolTable::leave() {
-
     if (m_debug) {
         std::cout << "DEBUG(SymbolTable): leave scope \"" << scopeString()
                   << "\"." << std::endl;

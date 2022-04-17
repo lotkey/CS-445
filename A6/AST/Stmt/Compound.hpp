@@ -20,5 +20,6 @@ class Compound : public Stmt {
     Decl::Decl *localdecls() const;
     /// @returns The statement list
     Stmt *stmtlist() const;
+    virtual void calculateMemory() override;
 };
 } // namespace AST::Stmt
