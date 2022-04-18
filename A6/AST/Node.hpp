@@ -58,6 +58,7 @@ class Node {
     int &lineNumber();
     /// @returns Type of node
     const NodeType &nodeType() const;
+    MemoryInfo &memInfo();
     const MemoryInfo &memInfo() const;
 #pragma endregion
 

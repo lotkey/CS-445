@@ -37,6 +37,8 @@ class Binary : public Op {
     virtual void deduceType() override;
     virtual bool is(BinaryOpType) const override;
 
+    virtual std::string typeTag() const override;
+
   protected:
     BinaryOpType m_binaryOpType;
 };

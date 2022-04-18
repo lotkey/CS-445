@@ -7,7 +7,13 @@ namespace AST {
 int MemoryInfo::s_globalOffset = 0;
 std::vector<int> MemoryInfo::s_frameOffsets = {};
 
-void MemoryInfo::enterScope() { s_frameOffsets.push_back(0); }
+void MemoryInfo::enterScope() {
+    if (s_frameOffsets.empty()) {
+        s_frameOffsets.push_back(0);
+    } else {
+        s_frameOffsets.push_back(s_frameOffsets.back());
+    }
+}
 
 void MemoryInfo::exitScope() { s_frameOffsets.pop_back(); }
 

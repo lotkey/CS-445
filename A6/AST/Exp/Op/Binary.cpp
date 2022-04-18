@@ -95,4 +95,8 @@ Exp *Binary::exp1() const { return getChild(0)->cast<Exp *>(); }
 Exp *Binary::exp2() const { return getChild(1)->cast<Exp *>(); }
 
 bool Binary::is(BinaryOpType t) const { return this && m_binaryOpType == t; }
+
+std::string Binary::typeTag() const {
+    return Types::toString(getTypeInfo(), false, true);
+}
 } // namespace AST::Exp::Op

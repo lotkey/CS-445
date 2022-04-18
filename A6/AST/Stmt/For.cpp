@@ -1,6 +1,7 @@
 #include "For.hpp"
 #include "../Exp/Id.hpp"
 #include "../Node.hpp"
+#include "Compound.hpp"
 #include "Range.hpp"
 #include "Stmt.hpp"
 
@@ -33,13 +34,35 @@ Range *For::range() const { return getChild(1)->cast<Range *>(); }
 Stmt *For::stmt() const { return getChild(2)->cast<Stmt *>(); }
 
 void For::calculateMemory() {
+    MemoryInfo::enterScope();
     m_meminfo.setLocation(0);
-    Node::calculateMemory();
+
+    if (stmt() && stmt()->is(AST::StmtType::Compound)) {
+        if (id()) {
+            id()->calculateMemory();
+        }
+        if (range()) {
+            range()->calculateMemory();
+        }
+
+        auto *compoundStmt = stmt()->cast<Compound *>();
+        if (compoundStmt->localdecls()) {
+            compoundStmt->localdecls()->calculateMemory();
+        }
+        if (compoundStmt->stmtlist()) {
+            compoundStmt->stmtlist()->calculateMemory();
+        }
+        compoundStmt->memInfo().setSize(MemoryInfo::frameOffset());
+    } else {
+        Node::calculateMemory();
+    }
+
     auto *iterator = id();
     if (!iterator || !iterator->memInfo().locationSet()) {
         return;
     }
-    iterator->calculateMemory();
     m_meminfo.setSize(iterator->memInfo().getLocation() - 1);
+
+    MemoryInfo::exitScope();
 }
 } // namespace AST::Stmt

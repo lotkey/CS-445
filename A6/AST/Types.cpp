@@ -31,7 +31,7 @@ std::string toString(TypeInfo t, bool addStatic, bool addArray) {
 
     std::string str;
 
-    if (t.isArray && addArray) {
+    if ((t.isArray && addArray) || (t.isStatic && addStatic)) {
         str += "of ";
     }
     if (t.isStatic && addStatic) {
@@ -41,7 +41,11 @@ std::string toString(TypeInfo t, bool addStatic, bool addArray) {
         str += "array ";
     }
 
-    str += "of type " + toString(t.type);
+    if ((t.isStatic && addStatic) && !(t.isArray && addArray)) {
+        str += "type " + toString(t.type);
+    } else {
+        str += "of type " + toString(t.type);
+    }
 
     return str;
 }

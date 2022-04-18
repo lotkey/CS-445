@@ -56,14 +56,18 @@ void Func::calculateMemory() {
     MemoryInfo::enterScope();
     MemoryInfo::addReturnTicket();
 
-    for (auto *parm = parms(); parm != nullptr;
-         parm = parm->sibling()->cast<Parm *>()) {
-        parm->calculateMemory();
+    if (parms()) {
+        parms()->calculateMemory();
     }
 
-    auto *stmt = compoundStmt();
-    if (stmt) {
-        stmt->calculateMemory();
+    if (compoundStmt()) {
+        if (compoundStmt()->localdecls()) {
+            compoundStmt()->localdecls()->calculateMemory();
+        }
+        if (compoundStmt()->stmtlist()) {
+            compoundStmt()->stmtlist()->calculateMemory();
+        }
+        compoundStmt()->memInfo().setSize(MemoryInfo::frameOffset());
     }
     MemoryInfo::exitScope();
 }

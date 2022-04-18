@@ -160,6 +160,8 @@ int &Node::lineNumber() { return m_linenum; }
 
 const NodeType &Node::nodeType() const { return m_nodeType; }
 
+MemoryInfo &Node::memInfo() { return m_meminfo; }
+
 const MemoryInfo &Node::memInfo() const { return m_meminfo; }
 
 #pragma endregion
@@ -198,8 +200,8 @@ std::string Node::lineTag() const {
 bool Node::hasMemoryInfo() const { return false; }
 
 void Node::calculateMemory() {
-    for (auto *sib = sibling(); sib != nullptr; sib = sib->sibling()) {
-        sib->calculateMemory();
+    if (sibling()) {
+        sibling()->calculateMemory();
     }
 
     for (auto *child : children()) {

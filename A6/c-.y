@@ -729,7 +729,7 @@ int main(int argc, char *argv[])
                     tree_root->print(options.printTypeInfo(), options.printSymbolInfo());
                 }
             }
-            if (options.printSymbolInfo()) {
+            if (options.printSymbolInfo() && Message::numberOf(Message::Type::Error) == 0) {
                 std::cout << "Offset for end of global space: " 
                           << AST::MemoryInfo::globalOffset() << std::endl;
             }
