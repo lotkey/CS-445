@@ -19,6 +19,7 @@ class Const : public Exp {
 
     virtual std::string toString() const override;
     std::string inputString() const;
+    std::string getTmString() const;
 
   protected:
     std::variant<int, bool, char, std::string> m_value;

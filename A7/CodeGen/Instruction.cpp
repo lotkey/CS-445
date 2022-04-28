@@ -38,17 +38,27 @@ Instruction::Instruction(int emitLoc, std::string opcode, const std::string &r0,
 
 Instruction::Instruction(int emitLoc, std::string opcode, std::string arg,
                          const std::string &comment) {
-    // pad opcode
-    while (opcode.length() < 6) {
-        opcode = " " + opcode;
+    std::string emit = std::to_string(emitLoc) + ":";
+    while (emit.length() + opcode.length() < 10) {
+        emit += " ";
     }
 
     while (arg.length() < 10) {
         arg += " ";
     }
-    m_str = strutil::format("%d: %s  %s %s", emitLoc, opcode.c_str(),
+    m_str = strutil::format("%s%s  %s %s", emit.c_str(), opcode.c_str(),
                             arg.c_str(), comment.c_str());
 }
+
+int Instruction::whereAmI() { return s_emitLoc; }
+
+int Instruction::skip(int howMany) {
+    int i = s_emitLoc;
+    s_emitLoc += howMany;
+    return i;
+}
+
+void Instruction::newLoc(int loc) { s_emitLoc = loc; }
 
 void Instruction::setString(const std::string &str) { m_str = str; }
 

@@ -17,19 +17,37 @@
 
 class CodeGen {
   public:
-    static std::string make(const std::string &label);
+    static std::string make(const std::string& label);
     static std::vector<Instruction> ioTmCode();
 
     CodeGen();
-    CodeGen(AST::Node *ast);
-    void generate(const std::string &filename);
+    CodeGen(AST::Node* ast);
+    void generate(const std::string& filename);
 
   private:
     static const std::string s_ioTmCodePath;
     static std::map<std::string, int> s_labelCounts;
 
+    std::vector<AST::Node*> m_fundecls;
+    std::vector<AST::Node*> m_globaldecls;
+    AST::Node* m_main;
     std::vector<Instruction> m_instructions;
-    AST::Node *m_ast;
+    AST::Node* m_ast;
 
     void generateCode();
+    void generateCode(AST::Node*);
+
+    void generateCode(AST::Decl::Decl*);
+    void generateCode(AST::Decl::Func*);
+    void generateCode(AST::Decl::Var*);
+
+    void generateCode(AST::Stmt::Stmt*);
+    void generateCode(AST::Stmt::Compound*);
+
+    void generateCode(AST::Exp::Exp*);
+    void generateCode(AST::Exp::Const*);
+    void generateCode(AST::Exp::Call*);
+
+    void generateStandardFunctionClosing();
+    void linearalize();
 };

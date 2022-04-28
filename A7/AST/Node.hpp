@@ -177,6 +177,49 @@ class Node {
         }
         return v;
     }
+
+    std::vector<Node *>
+    getAllWhere(const std::function<bool(Node *)> &predicate) {
+        std::vector<Node *> nodes;
+
+        if (predicate(this)) {
+            nodes.push_back(this);
+        }
+
+        for (auto child : children()) {
+            if (child) {
+                auto child_nodes = child->getAllWhere(predicate);
+                nodes.insert(nodes.begin(), child_nodes.begin(),
+                             child_nodes.end());
+            }
+        }
+
+        if (sibling()) {
+            auto sibling_nodes = sibling()->getAllWhere(predicate);
+            nodes.insert(nodes.begin(), sibling_nodes.begin(),
+                         sibling_nodes.end());
+        }
+        return nodes;
+    }
+
+    Node *getFirstWhere(const std::function<bool(Node *)> &predicate) {
+        if (predicate(this)) {
+            return this;
+        }
+
+        for (auto child : children()) {
+            if (child && predicate(child)) {
+                return child;
+            }
+        }
+
+        if (sibling()) {
+            return sibling()->getFirstWhere(predicate);
+        }
+        return nullptr;
+    }
+
+    virtual bool hasMemoryInfo() const;
 #pragma endregion
 
     virtual void calculateMemory();
@@ -194,6 +237,5 @@ class Node {
     /// exists
     Node *getChild(int index) const;
     std::string lineTag() const;
-    virtual bool hasMemoryInfo() const;
 };
 } // namespace AST

@@ -30,6 +30,8 @@ class strutil {
     /// if none.
     static size_t find_first_of_any(const std::string &,
                                     const std::vector<std::string> &);
+    static std::string unescape(const std::string &str);
+    static std::string unescape(char c);
 
   private:
     /// Makes a char starting from the provided index. This could be a normal

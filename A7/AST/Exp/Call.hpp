@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Decl/Func.hpp"
 #include "../Node.hpp"
 #include "Exp.hpp"
 
@@ -16,9 +17,11 @@ class Call : public Exp {
     /// @param linenum Line number the node appears on
     /// @param id String identifier of the function
     /// @param arglist Optional, argument list for function call
-    Call(int linenum, const std::string &id, Node *arglist = nullptr);
+    Call(int linenum, const std::string& id, Node* arglist = nullptr);
 
-    const std::string &id() const;
+    void setFunc(AST::Decl::Func*);
+    AST::Decl::Func* getFunc();
+    const std::string& id() const;
     Exp* arglist() const;
     int numArgs() const;
     std::vector<Exp*> argsVector() const;
@@ -27,5 +30,6 @@ class Call : public Exp {
 
   protected:
     std::string m_id;
+    AST::Decl::Func* m_func;
 };
 } // namespace AST::Exp

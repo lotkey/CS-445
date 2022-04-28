@@ -1,10 +1,12 @@
 * ** ** ** ** ** ** ** ** ** ** ** **
+* START IO library functions
+* ** ** ** ** ** ** ** ** ** ** ** **
 * FUNCTION input
 1:      ST  3,-1(1)    Store return address
 2:      IN  3,0,0      Grab int input
 3:      LD  3,-1(1)    Load return address
 4:      LD  1,0(1)     Adjust fp
-5:     JMP  7,7(3)     Return
+5:     JMP  7,0(3)     Return
 * END FUNCTION input
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
@@ -13,7 +15,7 @@
 7:     INB  3,0,0      Grab bool input
 8:      LD  3,-1(1)    Load return address
 9:      LD  1,0(1)     Adjust fp
-10:    JMP  7,7(3)     Return
+10:    JMP  7,0(3)     Return
 * END FUNCTION inputb
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
@@ -22,7 +24,7 @@
 12:    INC  3,0,0      Grab char input
 13:     LD  3,-1(1)    Load return address
 14:     LD  1,0(1)     Adjust fp
-15:    JMP  7,7(3)     Return
+15:    JMP  7,0(3)     Return
 * END FUNCTION inputc
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
@@ -32,7 +34,7 @@
 18:    OUT  3,0,0      Output integer
 19:     LD  3,-1(1)    Load return address
 20:     LD  1,0(1)     Adjust fp
-21:    JMP  7,7(3)     Return
+21:    JMP  7,0(3)     Return
 * END FUNCTION output
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
@@ -42,7 +44,7 @@
 24:   OUTB  3,0,0      Output bool
 25:     LD  3,-1(1)    Load return address
 26:     LD  1,0(1)     Adjust fp
-27:    JMP  7,7(3)     Return
+27:    JMP  7,0(3)     Return
 * END FUNCTION outputb
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
@@ -52,7 +54,7 @@
 30:   OUTC  3,0,0      Output char
 31:     LD  3,-1(1)    Load return address
 32:     LD  1,0(1)     Adjust fp
-33:    JMP  7,7(3)     Return
+33:    JMP  7,0(3)     Return
 * END FUNCTION outputc
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
@@ -61,6 +63,33 @@
 35:  OUTNL  0,0,0      Output integer
 36:     LD  3,-1(1)    Load return address
 37:     LD  1,0(1)     Adjust fp
-38:    JMP  7,7(3)     Return
+38:    JMP  7,0(3)     Return
 * END FUNCTION output
+* END IO library functions
 * 
+* ** ** ** ** ** ** ** ** ** ** ** **
+* START User-declared functions
+* 
+* ** ** ** ** ** ** ** ** ** ** ** **
+* FUNCTION main
+* TOFF set: -2
+39:     ST  3,-1(1)    Store return address
+* COMPOUND
+* TOFF set: -2
+* COMPOUND BODY
+* CALL output
+40:     ST  1,-3(1)    Store FP in ghost frame for output
+* CALL END output
+* END COMPOUND BODY
+* END COMPOUND
+* Add standard closing in case there is no return statement
+41:    LDC  2,0(6)     Set return value to 0
+42:     LD  3,-1(1)    Load return address
+43:     LD  1,0(0)     Adjust fp
+44:    JMP  7,0(3)     Return
+* END FUNCTION main
+* END User-declared functions
+* 
+* ** ** ** ** ** ** ** ** ** ** ** **
+* INIT GLOBALS AND STATICS
+* END GLOBALS AND STATICS
