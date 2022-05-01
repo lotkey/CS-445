@@ -29,6 +29,7 @@ class MemoryInfo {
     bool locationSet() const;
     bool sizeSet() const;
     bool reftypeSet() const;
+    bool isInGlobalMemory() const;
 
   private:
     static int s_globalOffset;

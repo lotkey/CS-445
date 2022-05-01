@@ -4,18 +4,23 @@
 void CodeGen::generateCode(AST::Stmt::Stmt* stmt)
 {
     switch (stmt->stmtType()) {
-        case AST::StmtType::Compound: {
-            generateCode(stmt->cast<AST::Stmt::Compound*>());
-            break;
-        }
-        default: {
-            break;
-        }
+    case AST::StmtType::Compound: {
+        generateCode(stmt->cast<AST::Stmt::Compound*>());
+        break;
+    }
+    case AST::StmtType::For: {
+        generateCode(stmt->cast<AST::Stmt::For*>());
+        break;
+    }
+    default: {
+        break;
+    }
     }
 }
 
 void CodeGen::generateCode(AST::Stmt::Compound* stmt)
 {
+    toffPush(stmt->memInfo().getSize());
     m_instructions.push_back(Instruction::Comment("COMPOUND"));
     m_instructions.push_back(Instruction::Comment(
         "TOFF set: " + std::to_string(stmt->memInfo().getSize())));
@@ -38,5 +43,12 @@ void CodeGen::generateCode(AST::Stmt::Compound* stmt)
         }
         m_instructions.push_back(Instruction::Comment("END COMPOUND BODY"));
     }
+    toffPop();
     m_instructions.push_back(Instruction::Comment("END COMPOUND"));
+}
+
+void CodeGen::generateCode(AST::Stmt::For* stmt)
+{
+    toffPush(stmt->memInfo().getSize());
+    toffPop();
 }

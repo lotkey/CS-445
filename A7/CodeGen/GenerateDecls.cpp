@@ -20,6 +20,8 @@ void CodeGen::generateCode(AST::Decl::Decl* decl)
 
 void CodeGen::generateCode(AST::Decl::Func* func)
 {
+    toffPush(func->memInfo().getSize());
+
     m_functionLocs.insert({func->id(), Instruction::whereAmI()});
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(Instruction::Comment("FUNCTION " + func->id()));
@@ -34,6 +36,7 @@ void CodeGen::generateCode(AST::Decl::Func* func)
     }
 
     generateStandardFunctionClosing();
+    toffPop();
     m_instructions.push_back(
         Instruction::Comment("END FUNCTION " + func->id()));
 }

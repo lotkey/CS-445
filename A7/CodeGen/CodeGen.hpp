@@ -27,6 +27,7 @@ class CodeGen {
     static const std::string s_ioTmCodePath;
     static std::map<std::string, int> s_labelCounts;
 
+    std::vector<int> m_toffs;
     std::map<std::string, int> m_functionLocs;
     std::vector<AST::Node*> m_fundecls;
     std::vector<AST::Node*> m_globaldecls;
@@ -43,6 +44,7 @@ class CodeGen {
 
     void generateCode(AST::Stmt::Stmt*);
     void generateCode(AST::Stmt::Compound*);
+    void generateCode(AST::Stmt::For*);
 
     void generateCode(AST::Exp::Exp*, int AC = AC0);
     void generateCode(AST::Exp::Const*, int AC = AC0);
@@ -51,6 +53,7 @@ class CodeGen {
     void generateCode(AST::Exp::Op::Op*, int AC = AC0);
     void generateCode(AST::Exp::Op::Binary*, int AC = AC0);
     void generateCode(AST::Exp::Op::Asgn*, int AC = AC0);
+    void generateCodeModifyAsgn(AST::Exp::Op::Asgn*, int AC = AC0);
     void generateCodeIndexOp(AST::Exp::Op::Binary*, int AC = AC0);
 
     void generatePrologCode();
@@ -64,4 +67,11 @@ class CodeGen {
     void generateOutnl();
     void generateStandardFunctionClosing();
     void linearalize();
+
+    void toffPush(int toff);
+    int toffPop();
+    int toffBack();
+    void toffInc();
+    void toffDec();
+    void toffSet(int toff);
 };

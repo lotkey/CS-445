@@ -160,3 +160,39 @@ void CodeGen::linearalize()
         }
     });
 }
+
+void CodeGen::toffPush(int toff)
+{
+    m_toffs.push_back(toff);
+    m_instructions.push_back(
+        Instruction::Comment("TOFF set: " + std::to_string(toffBack())));
+}
+
+int CodeGen::toffPop()
+{
+    int toff = m_toffs.back();
+    m_toffs.pop_back();
+    return toff;
+}
+
+int CodeGen::toffBack() { return m_toffs.back(); }
+
+void CodeGen::toffInc()
+{
+    m_toffs.back()++;
+    m_instructions.push_back(
+        Instruction::Comment("TOFF inc: " + std::to_string(toffBack())));
+}
+
+void CodeGen::toffDec()
+{
+    m_toffs.back()--;
+    m_instructions.push_back(
+        Instruction::Comment("TOFF dec: " + std::to_string(toffBack())));
+}
+
+void CodeGen::toffSet(int toff)
+{
+    toffPop();
+    toffPush(toff);
+}
