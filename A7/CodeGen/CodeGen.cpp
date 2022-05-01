@@ -36,32 +36,56 @@ void CodeGen::generate(const std::string& filename)
 
 void CodeGen::generateCode()
 {
-    m_instructions.push_back(Instruction::Comment());
-    m_instructions.push_back(
-        Instruction::Comment("START IO library functions"));
-    std::vector<Instruction> libraryInstructions = ioTmCode();
-    m_instructions.insert(m_instructions.end(),
-                          libraryInstructions.begin(),
-                          libraryInstructions.end());
-    m_instructions.push_back(Instruction::Comment("END IO library functions"));
-
+    generateIoCode();
+    m_instructions.push_back(Instruction::Comment(""));
     linearalize();
 
-    m_instructions.push_back(Instruction::Comment(""));
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(
         Instruction::Comment("START User-declared functions"));
-    for (auto* func : m_fundecls) {
-        auto* decl = func->cast<AST::Decl::Func*>();
-        generateCode(decl);
+
+    for (int i = 0; i < m_fundecls.size(); i++) {
+        auto* func = m_fundecls[i]->cast<AST::Decl::Func*>();
+        generateCode(func);
+        m_instructions.push_back(Instruction::Comment(""));
     }
     generateCode(m_main->cast<AST::Decl::Func*>());
+    m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(
         Instruction::Comment("END User-declared functions"));
-
-    m_instructions.push_back(Instruction::Comment(""));
     m_instructions.push_back(Instruction::Comment());
-    m_instructions.push_back(Instruction::Comment("INIT GLOBALS AND STATICS"));
+    m_instructions.push_back(Instruction::Comment(""));
+    generatePrologCode();
+}
+
+void CodeGen::generateCode(AST::Node* node)
+{
+    switch (node->nodeType()) {
+    case AST::NodeType::Decl: {
+        generateCode(node->cast<AST::Decl::Decl*>());
+        break;
+    }
+    case AST::NodeType::Stmt: {
+        generateCode(node->cast<AST::Stmt::Stmt*>());
+        break;
+    }
+    case AST::NodeType::Exp: {
+        generateCode(node->cast<AST::Exp::Exp*>());
+        break;
+    }
+    }
+}
+
+void CodeGen::generatePrologCode()
+{
+    m_instructions.push_back(Instruction::Comment());
+    m_instructions.push_back(Instruction::Comment("START INIT"));
+    m_instructions.push_back(Instruction::Comment());
+    m_instructions.push_back(
+        Instruction::LDA(FP, 0, GP, "Set first frame at end of globals"));
+    m_instructions.push_back(
+        Instruction::ST(FP, 0, FP, "Store old FP (point to self)"));
+    m_instructions.push_back(Instruction::Comment("START GLOBALS AND STATICS"));
 
     for (auto it = m_globaldecls.rbegin(); it != m_globaldecls.rend(); it++) {
         auto* var = *it;
@@ -69,24 +93,17 @@ void CodeGen::generateCode()
         generateCode(var);
     }
     m_instructions.push_back(Instruction::Comment("END GLOBALS AND STATICS"));
-}
 
-void CodeGen::generateCode(AST::Node* node)
-{
-    switch (node->nodeType()) {
-        case AST::NodeType::Decl: {
-            generateCode(node->cast<AST::Decl::Decl*>());
-            break;
-        }
-        case AST::NodeType::Stmt: {
-            generateCode(node->cast<AST::Stmt::Stmt*>());
-            break;
-        }
-        case AST::NodeType::Exp: {
-            generateCode(node->cast<AST::Exp::Exp*>());
-            break;
-        }
-    }
+    m_instructions.push_back(
+        Instruction::LDA(AC0, 1, PC, "Return address in AC"));
+    int location = Instruction::whereAmI();
+    location -= m_functionLocs.at("main");
+    location--;
+    m_instructions.push_back(Instruction::JMP(PC, location, "Jump to main"));
+    m_instructions.push_back(Instruction::HALT("DONE!"));
+    m_instructions.push_back(Instruction::Comment());
+    m_instructions.push_back(Instruction::Comment("END INIT"));
+    m_instructions.push_back(Instruction::Comment());
 }
 
 void CodeGen::generateStandardFunctionClosing()
@@ -99,92 +116,6 @@ void CodeGen::generateStandardFunctionClosing()
         Instruction::LD(AC0, -1, FP, "Load return address"));
     m_instructions.push_back(Instruction::LD(FP, 0, GP, "Adjust fp"));
     m_instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-}
-
-std::vector<Instruction> CodeGen::ioTmCode()
-{
-    Instruction::skip(1);
-    std::vector<Instruction> instructions;
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION input"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::IN(AC0, "Grab int input"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION input"));
-    instructions.push_back(Instruction::Comment(""));
-
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION inputb"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::INB(AC0, "Grab bool input"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION inputb"));
-    instructions.push_back(Instruction::Comment(""));
-
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION inputc"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::INC(AC0, "Grab char input"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION inputc"));
-    instructions.push_back(Instruction::Comment(""));
-
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION output"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::LD(AC0, -2, FP, "Load parameter"));
-    instructions.push_back(Instruction::OUT(AC0, "Output integer"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION output"));
-    instructions.push_back(Instruction::Comment(""));
-
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION outputb"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::LD(AC0, -2, FP, "Load parameter"));
-    instructions.push_back(Instruction::OUTB(AC0, "Output bool"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION outputb"));
-    instructions.push_back(Instruction::Comment(""));
-
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION outputc"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::LD(AC0, -2, FP, "Load parameter"));
-    instructions.push_back(Instruction::OUTC(AC0, "Output char"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION outputc"));
-    instructions.push_back(Instruction::Comment(""));
-
-    instructions.push_back(Instruction::Comment());
-    instructions.push_back(Instruction::Comment("FUNCTION outputnl"));
-    instructions.push_back(
-        Instruction::ST(AC0, -1, FP, "Store return address"));
-    instructions.push_back(Instruction::OUTNL("Output integer"));
-    instructions.push_back(Instruction::LD(AC0, -1, FP, "Load return address"));
-    instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
-    instructions.push_back(Instruction::JMP(0, AC0, "Return"));
-    instructions.push_back(Instruction::Comment("END FUNCTION output"));
-
-    return instructions;
 }
 
 void CodeGen::linearalize()

@@ -18,7 +18,6 @@
 class CodeGen {
   public:
     static std::string make(const std::string& label);
-    static std::vector<Instruction> ioTmCode();
 
     CodeGen();
     CodeGen(AST::Node* ast);
@@ -28,6 +27,7 @@ class CodeGen {
     static const std::string s_ioTmCodePath;
     static std::map<std::string, int> s_labelCounts;
 
+    std::map<std::string, int> m_functionLocs;
     std::vector<AST::Node*> m_fundecls;
     std::vector<AST::Node*> m_globaldecls;
     AST::Node* m_main;
@@ -44,10 +44,24 @@ class CodeGen {
     void generateCode(AST::Stmt::Stmt*);
     void generateCode(AST::Stmt::Compound*);
 
-    void generateCode(AST::Exp::Exp*);
-    void generateCode(AST::Exp::Const*);
-    void generateCode(AST::Exp::Call*);
+    void generateCode(AST::Exp::Exp*, int AC = AC0);
+    void generateCode(AST::Exp::Const*, int AC = AC0);
+    void generateCode(AST::Exp::Call*, int AC = AC0);
+    void generateCode(AST::Exp::Id*, int AC = AC0);
+    void generateCode(AST::Exp::Op::Op*, int AC = AC0);
+    void generateCode(AST::Exp::Op::Binary*, int AC = AC0);
+    void generateCode(AST::Exp::Op::Asgn*, int AC = AC0);
+    void generateCodeIndexOp(AST::Exp::Op::Binary*, int AC = AC0);
 
+    void generatePrologCode();
+    void generateIoCode();
+    void generateInput();
+    void generateOutput();
+    void generateInputb();
+    void generateOutputb();
+    void generateInputc();
+    void generateOutputc();
+    void generateOutnl();
     void generateStandardFunctionClosing();
     void linearalize();
 };

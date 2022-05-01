@@ -4,30 +4,29 @@
 void CodeGen::generateCode(AST::Decl::Decl* decl)
 {
     switch (decl->declType()) {
-        case AST::DeclType::Func: {
-            generateCode(decl->cast<AST::Decl::Func*>());
-            break;
-        }
-        case AST::DeclType::Parm: {
-            break;
-        }
-        case AST::DeclType::Var: {
-            generateCode(decl->cast<AST::Decl::Var*>());
-            break;
-        }
+    case AST::DeclType::Func: {
+        generateCode(decl->cast<AST::Decl::Func*>());
+        break;
+    }
+    case AST::DeclType::Parm: {
+        break;
+    }
+    case AST::DeclType::Var: {
+        generateCode(decl->cast<AST::Decl::Var*>());
+        break;
+    }
     }
 }
 
 void CodeGen::generateCode(AST::Decl::Func* func)
 {
-    m_instructions.push_back(Instruction::Comment(""));
+    m_functionLocs.insert({func->id(), Instruction::whereAmI()});
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(Instruction::Comment("FUNCTION " + func->id()));
     m_instructions.push_back(Instruction::Comment(
         "TOFF set: " + std::to_string(func->memInfo().getSize())));
     m_instructions.push_back(
         Instruction::ST(AC0, -1, FP, "Store return address"));
-    // parse compound statement
 
     if (func->compoundStmt()) {
         auto* compoundStmt = func->compoundStmt();

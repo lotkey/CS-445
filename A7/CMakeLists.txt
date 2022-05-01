@@ -38,6 +38,7 @@ add_library(cm
     ${PROJECT_SOURCE_DIR}/CodeGen/CodeGen.cpp
     ${PROJECT_SOURCE_DIR}/CodeGen/GenerateDecls.cpp
     ${PROJECT_SOURCE_DIR}/CodeGen/GenerateExps.cpp
+    ${PROJECT_SOURCE_DIR}/CodeGen/GenerateIo.cpp
     ${PROJECT_SOURCE_DIR}/CodeGen/GenerateStmts.cpp
     ${PROJECT_SOURCE_DIR}/CodeGen/Instruction.cpp
     ${PROJECT_SOURCE_DIR}/CodeGen/InstructionsBMM.cpp
