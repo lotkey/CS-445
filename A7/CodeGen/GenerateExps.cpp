@@ -99,7 +99,6 @@ void CodeGen::generateCode(AST::Exp::Id* id, int AC)
         }
     } else {
         auto* var = id->decl()->cast<AST::Decl::Var*>();
-        int ptr;
 
         if (var->isArray()) {
             m_instructions.push_back(
@@ -135,7 +134,15 @@ void CodeGen::generateCode(AST::Exp::Op::Binary* op, int AC)
         break;
     }
     case AST::BinaryOpType::Index: {
-        generateCodeIndexOp(op);
+        generateCodeIndexOp(op, AC);
+        break;
+    }
+    case AST::BinaryOpType::Bool: {
+        generateCode(op->cast<AST::Exp::Op::Bool*>(), AC);
+        break;
+    }
+    default: {
+        generateCodeBinaryMathop(op, AC);
         break;
     }
     }
@@ -149,7 +156,6 @@ void CodeGen::generateCode(AST::Exp::Op::Asgn* op, int AC)
 
     auto* rhs = op->exp();
     auto* lhs = op->mutableExp();
-    int PTR = (lhs->memInfo().isInGlobalMemory()) ? GP : FP;
 
     bool lhsIsArray =
         lhs->is(AST::ExpType::Op) &&
@@ -160,6 +166,7 @@ void CodeGen::generateCode(AST::Exp::Op::Asgn* op, int AC)
         auto* indexOp = lhs->cast<AST::Exp::Op::Binary*>();
         auto* array = indexOp->exp1()->cast<AST::Exp::Id*>();
         auto* index = indexOp->exp2()->cast<AST::Exp::Exp*>();
+        int PTR = (array->memInfo().isInGlobalMemory()) ? GP : FP;
 
         generateCode(index, AC0);
         m_instructions.push_back(
@@ -180,9 +187,101 @@ void CodeGen::generateCode(AST::Exp::Op::Asgn* op, int AC)
             Instruction::ST(AC0, 0, AC2, "Store variable " + array->id()));
     } else {
         auto* id = lhs->cast<AST::Exp::Id*>();
+        int PTR = (id->memInfo().isInGlobalMemory()) ? GP : FP;
         generateCode(rhs, AC0);
         m_instructions.push_back(Instruction::ST(AC0,
                                                  lhs->memInfo().getLocation(),
+                                                 PTR,
+                                                 "Store variable " + id->id()));
+    }
+}
+
+void CodeGen::generateCode(AST::Exp::Op::Unary* op, int AC)
+{
+    switch (op->unaryOpType()) {
+    case AST::UnaryOpType::Asgn: {
+        generateCode(op->cast<AST::Exp::Op::UnaryAsgn*>(), AC);
+        break;
+    }
+    case AST::UnaryOpType::Not: {
+        auto* boolexp = op->operand();
+        generateCode(boolexp, AC0);
+        m_instructions.push_back(Instruction::LDC(AC1, "1", "Load 1"));
+        m_instructions.push_back(
+            Instruction::XOR(AC0, AC0, AC1, "Op XOR to get logical not"));
+        break;
+    }
+    case AST::UnaryOpType::Random: {
+        generateCode(op->operand(), AC0);
+        m_instructions.push_back(Instruction::RND(AC0, AC0, "Op ?"));
+        break;
+    }
+    case AST::UnaryOpType::Sizeof: {
+        auto* array = op->operand()->cast<AST::Exp::Id*>();
+        int PTR = (array->memInfo().isInGlobalMemory()) ? GP : FP;
+        m_instructions.push_back(
+            Instruction::LDA(AC0,
+                             array->memInfo().getLocation(),
+                             PTR,
+                             "Load address of base of array " + array->id()));
+        m_instructions.push_back(
+            Instruction::LD(AC0, 1, AC0, "Load array size (op sizeof)"));
+        break;
+    }
+    case AST::UnaryOpType::Chsign: {
+        generateCode(op->operand(), AC0);
+        m_instructions.push_back(Instruction::NEG(AC0, AC0, "Op unary -"));
+        break;
+    }
+    default: {
+        m_instructions.push_back(
+            Instruction::Comment("Undefined unary operator"));
+        break;
+    }
+    }
+}
+
+void CodeGen::generateCode(AST::Exp::Op::UnaryAsgn* op, int AC)
+{
+    auto* exp = op->mutableExp();
+    bool isArray =
+        exp->is(AST::ExpType::Op) &&
+        exp->cast<AST::Exp::Op::Op*>()->is(AST::OpType::Binary) &&
+        exp->cast<AST::Exp::Op::Binary*>()->is(AST::BinaryOpType::Index);
+
+    if (isArray) {
+        auto* indexOp = exp->cast<AST::Exp::Op::Binary*>();
+        auto* array = indexOp->exp1()->cast<AST::Exp::Id*>();
+        auto* index = indexOp->exp2();
+
+        generateCode(indexOp, AC0);
+
+        if (op->unaryAsgnType() == AST::UnaryAsgnType::Dec) {
+            m_instructions.push_back(Instruction::LDA(
+                AC0, -1, AC0, "Decrement value of " + array->id()));
+        } else {
+            m_instructions.push_back(Instruction::LDA(
+                AC0, 1, AC0, "Increment value of " + array->id()));
+        }
+
+        m_instructions.push_back(Instruction::ST(AC0, 0, 5));
+
+    } else {
+        auto* id = exp->cast<AST::Exp::Id*>();
+        int PTR = (id->memInfo().isInGlobalMemory()) ? GP : FP;
+
+        generateCode(id, AC0);
+
+        if (op->unaryAsgnType() == AST::UnaryAsgnType::Dec) {
+            m_instructions.push_back(Instruction::LDA(
+                AC0, -1, AC0, "Decrement value of " + id->id()));
+        } else {
+            m_instructions.push_back(Instruction::LDA(
+                AC0, 1, AC0, "Increment value of " + id->id()));
+        }
+
+        m_instructions.push_back(Instruction::ST(AC0,
+                                                 id->memInfo().getLocation(),
                                                  PTR,
                                                  "Store variable " + id->id()));
     }
@@ -192,7 +291,6 @@ void CodeGen::generateCodeModifyAsgn(AST::Exp::Op::Asgn* op, int AC)
 {
     auto* rhs = op->exp();
     auto* lhs = op->mutableExp();
-    int PTR = (lhs->memInfo().isInGlobalMemory()) ? GP : FP;
 
     bool lhsIsArray =
         lhs->is(AST::ExpType::Op) &&
@@ -203,6 +301,7 @@ void CodeGen::generateCodeModifyAsgn(AST::Exp::Op::Asgn* op, int AC)
         auto* indexOp = lhs->cast<AST::Exp::Op::Binary*>();
         auto* array = indexOp->exp1()->cast<AST::Exp::Id*>();
         auto* index = indexOp->exp2()->cast<AST::Exp::Exp*>();
+        int PTR = (array->memInfo().isInGlobalMemory()) ? GP : FP;
 
         // Generate the index and push it onto the stack
         generateCode(index, AC0);
@@ -250,6 +349,7 @@ void CodeGen::generateCodeModifyAsgn(AST::Exp::Op::Asgn* op, int AC)
             Instruction::ST(AC0, 0, AC2, "Store variable " + array->id()));
     } else {
         auto* id = lhs->cast<AST::Exp::Id*>();
+        int PTR = (id->memInfo().isInGlobalMemory()) ? GP : FP;
         generateCode(rhs, AC0);
         generateCode(lhs, AC1);
 
@@ -300,4 +400,89 @@ void CodeGen::generateCodeIndexOp(AST::Exp::Op::Binary* op, int AC)
         Instruction::SUB(AC0, AC1, AC0, "Compute location from index"));
     m_instructions.push_back(
         Instruction::LD(AC0, 0, AC0, "Load array element"));
+}
+
+void CodeGen::generateCode(AST::Exp::Op::Bool* op, int AC)
+{
+    int PTR1 = (op->exp1()->memInfo().isInGlobalMemory()) ? GP : FP;
+    int PTR2 = (op->exp2()->memInfo().isInGlobalMemory()) ? GP : FP;
+    generateCode(op->exp1(), AC0);
+    m_instructions.push_back(
+        Instruction::ST(AC0, toffBack(), PTR1, "Push left side"));
+    toffDec();
+    generateCode(op->exp2(), AC0);
+    toffInc();
+    m_instructions.push_back(
+        Instruction::LD(AC1, toffBack(), PTR1, "Pop left into AC1"));
+
+    switch (op->boolOpType()) {
+    case AST::BoolOpType::And: {
+        m_instructions.push_back(Instruction::AND(AC0, AC1, AC0, "Op AND"));
+        break;
+    }
+    case AST::BoolOpType::Or: {
+        m_instructions.push_back(Instruction::OR(AC0, AC1, AC0, "Op OR"));
+        break;
+    }
+    case AST::BoolOpType::EQ: {
+        m_instructions.push_back(Instruction::TEQ(AC0, AC1, AC0, "Op ="));
+        break;
+    }
+    case AST::BoolOpType::GEQ: {
+        m_instructions.push_back(Instruction::TGE(AC0, AC1, AC0, "Op >="));
+        break;
+    }
+    case AST::BoolOpType::GT: {
+        m_instructions.push_back(Instruction::TGT(AC0, AC1, AC0, "Op >"));
+        break;
+    }
+    case AST::BoolOpType::LEQ: {
+        m_instructions.push_back(Instruction::TLE(AC0, AC1, AC0, "Op <="));
+        break;
+    }
+    case AST::BoolOpType::LT: {
+        m_instructions.push_back(Instruction::TLT(AC0, AC1, AC0, "Op <"));
+        break;
+    }
+    case AST::BoolOpType::NEQ: {
+        m_instructions.push_back(Instruction::TNE(AC0, AC1, AC0, "Op !="));
+        break;
+    }
+    }
+}
+
+void CodeGen::generateCodeBinaryMathop(AST::Exp::Op::Binary* op, int AC)
+{
+    generateCode(op->exp1(), AC0);
+    int PTR1 = (op->exp1()->memInfo().isInGlobalMemory()) ? GP : FP;
+    m_instructions.push_back(Instruction::ST(
+        AC0, op->exp1()->memInfo().getLocation(), PTR1, "Push left side"));
+    toffDec();
+    generateCode(op->exp2(), AC0);
+    toffInc();
+    m_instructions.push_back(Instruction::LD(
+        AC1, op->exp1()->memInfo().getLocation(), PTR1, "Pop left into AC1"));
+
+    switch (op->binaryOpType()) {
+    case AST::BinaryOpType::Add: {
+        m_instructions.push_back(Instruction::ADD(AC0, AC1, AC0, "Op +"));
+        break;
+    }
+    case AST::BinaryOpType::Div: {
+        m_instructions.push_back(Instruction::DIV(AC0, AC1, AC0, "Op /"));
+        break;
+    }
+    case AST::BinaryOpType::Mod: {
+        m_instructions.push_back(Instruction::MOD(AC0, AC1, AC0, "Op %"));
+        break;
+    }
+    case AST::BinaryOpType::Mul: {
+        m_instructions.push_back(Instruction::MUL(AC0, AC1, AC0, "Op *"));
+        break;
+    }
+    case AST::BinaryOpType::Subtract: {
+        m_instructions.push_back(Instruction::SUB(AC0, AC1, AC0, "Op -"));
+        break;
+    }
+    }
 }

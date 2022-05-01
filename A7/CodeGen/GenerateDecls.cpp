@@ -20,13 +20,11 @@ void CodeGen::generateCode(AST::Decl::Decl* decl)
 
 void CodeGen::generateCode(AST::Decl::Func* func)
 {
-    toffPush(func->memInfo().getSize());
 
     m_functionLocs.insert({func->id(), Instruction::whereAmI()});
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(Instruction::Comment("FUNCTION " + func->id()));
-    m_instructions.push_back(Instruction::Comment(
-        "TOFF set: " + std::to_string(func->memInfo().getSize())));
+    toffPush(func->memInfo().getSize());
     m_instructions.push_back(
         Instruction::ST(AC0, -1, FP, "Store return address"));
 

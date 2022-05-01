@@ -12,6 +12,10 @@ void CodeGen::generateCode(AST::Stmt::Stmt* stmt)
         generateCode(stmt->cast<AST::Stmt::For*>());
         break;
     }
+    case AST::StmtType::Return: {
+        generateCode(stmt->cast<AST::Stmt::Return*>());
+        break;
+    }
     default: {
         break;
     }
@@ -20,10 +24,8 @@ void CodeGen::generateCode(AST::Stmt::Stmt* stmt)
 
 void CodeGen::generateCode(AST::Stmt::Compound* stmt)
 {
-    toffPush(stmt->memInfo().getSize());
     m_instructions.push_back(Instruction::Comment("COMPOUND"));
-    m_instructions.push_back(Instruction::Comment(
-        "TOFF set: " + std::to_string(stmt->memInfo().getSize())));
+    toffPush(stmt->memInfo().getSize());
     if (stmt->localdecls()) {
         m_instructions.push_back(Instruction::Comment("LOCAL DECLARATIONS"));
         for (auto* decl = stmt->localdecls()->cast<AST::Node*>();
@@ -51,4 +53,21 @@ void CodeGen::generateCode(AST::Stmt::For* stmt)
 {
     toffPush(stmt->memInfo().getSize());
     toffPop();
+}
+
+void CodeGen::generateCode(AST::Stmt::Return* stmt)
+{
+    //  40:    LDC  3,93(6)	Load integer constant
+    //  41:    LDA  2,0(3)	Copy result to return register
+
+    //  42:     LD  3,-1(1)	Load return address
+    //  43:     LD  1,0(1)	Adjust fp
+    //  44:    JMP  7,0(3)	Return
+
+    if (stmt->exp()) {}
+
+    m_instructions.push_back(
+        Instruction::LD(AC0, -1, FP, "Load return address"));
+    m_instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust FP"));
+    m_instructions.push_back(Instruction::JMP(0, AC0, "Return"));
 }

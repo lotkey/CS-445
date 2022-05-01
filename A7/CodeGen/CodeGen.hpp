@@ -45,6 +45,7 @@ class CodeGen {
     void generateCode(AST::Stmt::Stmt*);
     void generateCode(AST::Stmt::Compound*);
     void generateCode(AST::Stmt::For*);
+    void generateCode(AST::Stmt::Return*);
 
     void generateCode(AST::Exp::Exp*, int AC = AC0);
     void generateCode(AST::Exp::Const*, int AC = AC0);
@@ -52,9 +53,13 @@ class CodeGen {
     void generateCode(AST::Exp::Id*, int AC = AC0);
     void generateCode(AST::Exp::Op::Op*, int AC = AC0);
     void generateCode(AST::Exp::Op::Binary*, int AC = AC0);
+    void generateCode(AST::Exp::Op::Unary*, int AC = AC0);
+    void generateCode(AST::Exp::Op::UnaryAsgn*, int AC = AC0);
     void generateCode(AST::Exp::Op::Asgn*, int AC = AC0);
+    void generateCodeBinaryMathop(AST::Exp::Op::Binary*, int AC = AC0);
     void generateCodeModifyAsgn(AST::Exp::Op::Asgn*, int AC = AC0);
     void generateCodeIndexOp(AST::Exp::Op::Binary*, int AC = AC0);
+    void generateCode(AST::Exp::Op::Bool*, int AC = AC0);
 
     void generatePrologCode();
     void generateIoCode();

@@ -67,10 +67,18 @@ void CodeGen::generateCode(AST::Node* node)
     }
     case AST::NodeType::Stmt: {
         generateCode(node->cast<AST::Stmt::Stmt*>());
+        for (auto* ptr = node->sibling(); ptr != nullptr;
+             ptr = ptr->sibling()) {
+            generateCode(ptr);
+        }
         break;
     }
     case AST::NodeType::Exp: {
         generateCode(node->cast<AST::Exp::Exp*>());
+        for (auto* ptr = node->sibling(); ptr != nullptr;
+             ptr = ptr->sibling()) {
+            generateCode(ptr);
+        }
         break;
     }
     }
