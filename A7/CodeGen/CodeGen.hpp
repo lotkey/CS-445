@@ -35,6 +35,7 @@ class CodeGen {
     AST::Node* m_main;
     std::vector<Instruction> m_instructions;
     AST::Node* m_ast;
+    int m_globalEnd = 0;
 
     void generateCode();
     void generateCode(AST::Node*);
@@ -65,6 +66,7 @@ class CodeGen {
     void generateCodeIndexOp(AST::Exp::Op::Binary*, int AC = AC0);
     void generateCode(AST::Exp::Op::Bool*, int AC = AC0);
     void generateCodeArrayBool(AST::Exp::Op::Bool*, int AC = AC0);
+    void generateCodeLoadArrayBaseAddress(AST::Exp::Id*, int AC = AC0);
 
     void generatePrologCode();
     void generateIoCode();
@@ -88,4 +90,7 @@ class CodeGen {
     void loopEndPush(int instructionNumber);
     int loopEndPop();
     int loopEndBack();
+
+    void enterComment(const std::string&);
+    void exitComment(const std::string&);
 };

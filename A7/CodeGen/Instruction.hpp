@@ -6,6 +6,9 @@
 
 class Instruction {
   public:
+    static void indentComments();
+    static void unindentComments();
+
     static Instruction Comment();
     static Instruction Comment(const std::string& comment);
 #pragma region Register to Memory
@@ -333,8 +336,10 @@ class Instruction {
     const std::string& toString() const;
 
   private:
+    static const std::string s_indent;
     static int s_emitLoc;
     static int s_litLoc;
+    static int s_numIndents;
 
     Instruction(const std::string& comment);
     Instruction(int emitLoc,

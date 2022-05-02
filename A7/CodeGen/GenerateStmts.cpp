@@ -36,34 +36,45 @@ void CodeGen::generateCode(AST::Stmt::Stmt* stmt)
 
 void CodeGen::generateCode(AST::Stmt::Compound* stmt)
 {
-    m_instructions.push_back(Instruction::Comment("COMPOUND"));
+    enterComment("COMPOUND");
+
     toffPush(stmt->memInfo().getSize());
     if (stmt->localdecls()) {
         m_instructions.push_back(Instruction::Comment("LOCAL DECLARATIONS"));
+        Instruction::indentComments();
+
         for (auto* decl = stmt->localdecls()->cast<AST::Node*>();
              decl != nullptr;
              decl = decl->sibling()) {
             generateCode(decl);
         }
+
+        Instruction::unindentComments();
         m_instructions.push_back(
             Instruction::Comment("END LOCAL DECLARATIONS"));
     }
     if (stmt->stmtlist()) {
         m_instructions.push_back(Instruction::Comment("COMPOUND BODY"));
+        Instruction::indentComments();
+
         for (auto* stmt_child = stmt->stmtlist()->cast<AST::Node*>();
              stmt_child != nullptr;
              stmt_child = stmt_child->sibling()) {
             generateCode(stmt_child);
         }
+
+        Instruction::unindentComments();
         m_instructions.push_back(Instruction::Comment("END COMPOUND BODY"));
     }
     toffPop();
-    m_instructions.push_back(Instruction::Comment("END COMPOUND"));
+
+    exitComment("COMPOUND");
 }
 
 void CodeGen::generateCode(AST::Stmt::For* stmt)
 {
-    m_instructions.push_back(Instruction::Comment("FOR"));
+    enterComment("FOR");
+
     auto* from = stmt->range()->from();
     auto* to = stmt->range()->to();
 
@@ -117,11 +128,13 @@ void CodeGen::generateCode(AST::Stmt::For* stmt)
     Instruction::skip(jumpLength - 1);
 
     loopEndPop();
-    m_instructions.push_back(Instruction::Comment("END FOR"));
+    exitComment("FOR");
 }
 
 void CodeGen::generateCode(AST::Stmt::Return* stmt)
 {
+    enterComment("RETURN");
+
     if (stmt->exp()) {
         generateCode(stmt->exp(), AC0);
         m_instructions.push_back(
@@ -132,6 +145,8 @@ void CodeGen::generateCode(AST::Stmt::Return* stmt)
         Instruction::LD(AC0, -1, FP, "Load return address"));
     m_instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust FP"));
     m_instructions.push_back(Instruction::JMP(0, AC0, "Return"));
+
+    exitComment("RETURN");
 }
 
 void CodeGen::generateCode(AST::Stmt::While* stmt)
@@ -139,7 +154,8 @@ void CodeGen::generateCode(AST::Stmt::While* stmt)
     auto* condition = stmt->exp();
     auto* body = stmt->stmt();
 
-    m_instructions.push_back(Instruction::Comment("WHILE"));
+    enterComment("WHILE");
+
     int loopstart = Instruction::whereAmI();
     generateCode(condition, AC0);
     m_instructions.push_back(
@@ -153,16 +169,17 @@ void CodeGen::generateCode(AST::Stmt::While* stmt)
     int jumplength = loopstart - bodyend;
     jumplength--;
     m_instructions.push_back(
-        Instruction::JMP(jumplength - 1, PC, "Go to beginning of loop"));
+        Instruction::JMP(jumplength, PC, "Go to beginning of loop"));
 
     int instructionAfterWhile = Instruction::whereAmI();
     jumplength = instructionAfterWhile - loopEndBack();
     Instruction::skip(-jumplength);
     m_instructions.push_back(
-        Instruction::JMP(jumplength, PC, "Jump past loop [backpatch]"));
+        Instruction::JMP(jumplength - 1, PC, "Jump past loop [backpatch]"));
     Instruction::skip(jumplength - 1);
+
     loopEndPop();
-    m_instructions.push_back(Instruction::Comment("END WHILE"));
+    exitComment("WHILE");
 }
 
 void CodeGen::generateCode(AST::Stmt::Break* stmt)
@@ -176,7 +193,8 @@ void CodeGen::generateCode(AST::Stmt::Break* stmt)
 
 void CodeGen::generateCode(AST::Stmt::Select* stmt)
 {
-    m_instructions.push_back(Instruction::Comment("IF"));
+    enterComment("IF");
+
     generateCode(stmt->exp());
     int jumpLoc = Instruction::whereAmI();
     Instruction::skip(1);
@@ -187,17 +205,30 @@ void CodeGen::generateCode(AST::Stmt::Select* stmt)
 
     int thenLocation = Instruction::whereAmI();
     Instruction::skip(jumpLoc - thenLocation);
-    m_instructions.push_back(
-        Instruction::JZR(AC0,
-                         thenLocation - jumpLoc,
-                         PC,
-                         "Jump around the THEN if false [backpatch]"));
+
+    int jmploc = (thenLocation - jumpLoc) - 1;
+    if (stmt->stmt2()) { jmploc++; }
+
+    m_instructions.push_back(Instruction::JZR(
+        AC0, jmploc, PC, "Jump around the THEN if false [backpatch]"));
     Instruction::skip((thenLocation - jumpLoc) - 1);
 
     if (stmt->stmt2()) {
+        int jmpLocation = Instruction::whereAmI();
+        Instruction::skip(1);
+
         m_instructions.push_back(Instruction::Comment("ELSE"));
         generateCode(stmt->stmt2()->cast<AST::Node*>());
         m_instructions.push_back(Instruction::Comment("END ELSE"));
+
+        int newLoc = Instruction::whereAmI();
+        Instruction::newLoc(jmpLocation);
+        m_instructions.push_back(
+            Instruction::JMP((newLoc - jmpLocation) - 1,
+                             PC,
+                             "Jump around the ELSE [backpatch]"));
+        Instruction::newLoc(newLoc);
     }
-    m_instructions.push_back(Instruction::Comment("END IF"));
+
+    exitComment("IF");
 }

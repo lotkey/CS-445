@@ -1,26 +1,38 @@
 #include "Instruction.hpp"
 #include "../strutil.hpp"
 
+const std::string Instruction::s_indent = "* ";
 int Instruction::s_emitLoc = 0;
 int Instruction::s_litLoc = 1;
+int Instruction::s_numIndents = 0;
+
+void Instruction::indentComments() { s_numIndents++; }
+
+void Instruction::unindentComments() { s_numIndents--; }
 
 Instruction Instruction::Comment() { return Instruction(); }
 
-Instruction Instruction::Comment(const std::string &comment) {
-    return Instruction(comment);
+Instruction Instruction::Comment(const std::string& comment)
+{
+    std::string prefix;
+    for (int i = 0; i < s_numIndents; i++) { prefix += s_indent; }
+    return Instruction(prefix + comment);
 }
 
 Instruction::Instruction() : m_str("* ** ** ** ** ** ** ** ** ** ** ** **") {}
 
-Instruction::Instruction(const std::string &comment) : m_str("* " + comment) {}
+Instruction::Instruction(const std::string& comment) : m_str("* " + comment) {}
 
-Instruction::Instruction(int emitLoc, std::string opcode, const std::string &r0,
-                         const std::string &r1, const std::string &r2,
-                         const std::string &comment, bool paren) {
+Instruction::Instruction(int emitLoc,
+                         std::string opcode,
+                         const std::string& r0,
+                         const std::string& r1,
+                         const std::string& r2,
+                         const std::string& comment,
+                         bool paren)
+{
     std::string emit = std::to_string(emitLoc) + ":";
-    while (emit.length() + opcode.length() < 10) {
-        emit += " ";
-    }
+    while (emit.length() + opcode.length() < 10) { emit += " "; }
 
     std::string args;
     if (paren) {
@@ -28,31 +40,35 @@ Instruction::Instruction(int emitLoc, std::string opcode, const std::string &r0,
     } else {
         args = strutil::format("%s,%s,%s", r0.c_str(), r1.c_str(), r2.c_str());
     }
-    while (args.length() < 10) {
-        args += " ";
-    }
+    while (args.length() < 10) { args += " "; }
 
-    m_str = strutil::format("%s%s  %s %s", emit.c_str(), opcode.c_str(),
-                            args.c_str(), comment.c_str());
+    m_str = strutil::format(" %s%s  %s %s",
+                            emit.c_str(),
+                            opcode.c_str(),
+                            args.c_str(),
+                            comment.c_str());
 }
 
-Instruction::Instruction(int emitLoc, std::string opcode, std::string arg,
-                         const std::string &comment) {
+Instruction::Instruction(int emitLoc,
+                         std::string opcode,
+                         std::string arg,
+                         const std::string& comment)
+{
     std::string emit = std::to_string(emitLoc) + ":";
-    while (emit.length() + opcode.length() < 10) {
-        emit += " ";
-    }
+    while (emit.length() + opcode.length() < 10) { emit += " "; }
 
-    while (arg.length() < 10) {
-        arg += " ";
-    }
-    m_str = strutil::format("%s%s  %s %s", emit.c_str(), opcode.c_str(),
-                            arg.c_str(), comment.c_str());
+    while (arg.length() < 10) { arg += " "; }
+    m_str = strutil::format(" %s%s  %s %s",
+                            emit.c_str(),
+                            opcode.c_str(),
+                            arg.c_str(),
+                            comment.c_str());
 }
 
 int Instruction::whereAmI() { return s_emitLoc; }
 
-int Instruction::skip(int howMany) {
+int Instruction::skip(int howMany)
+{
     int i = s_emitLoc;
     s_emitLoc += howMany;
     return i;
@@ -60,6 +76,6 @@ int Instruction::skip(int howMany) {
 
 void Instruction::newLoc(int loc) { s_emitLoc = loc; }
 
-void Instruction::setString(const std::string &str) { m_str = str; }
+void Instruction::setString(const std::string& str) { m_str = str; }
 
-const std::string &Instruction::toString() const { return m_str; }
+const std::string& Instruction::toString() const { return m_str; }

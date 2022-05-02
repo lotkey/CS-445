@@ -727,7 +727,8 @@ int main(int argc, char *argv[])
 
             semantics.analyze(tree_root);
 
-            Message::print(options.print() || options.printTypeInfo() || options.printSymbolInfo());
+            // Message::print(options.print() || options.printTypeInfo() || options.printSymbolInfo());
+            Message::print(true);
 
             if (tree_root && Message::numberOf(Message::Type::Error) == 0) {
                 if (options.print() || options.printTypeInfo() || options.printSymbolInfo()) {

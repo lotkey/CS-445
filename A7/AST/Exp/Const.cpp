@@ -109,7 +109,7 @@ std::string Const::getTmString() const
         return std::to_string(m_value.i);
     }
     case Type::Bool: {
-        return (m_value.b) ? "0" : "1";
+        return (m_value.b) ? "1" : "0";
     }
     case Type::Char: {
         if (isArray()) {

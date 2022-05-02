@@ -38,7 +38,7 @@ void CodeGen::generateInput()
     m_instructions.push_back(Instruction::Comment("FUNCTION input"));
     m_instructions.push_back(
         Instruction::ST(AC0, -1, FP, "Store return address"));
-    m_instructions.push_back(Instruction::IN(AC0, "Grab int input"));
+    m_instructions.push_back(Instruction::IN(RT, "Grab int input"));
     m_instructions.push_back(
         Instruction::LD(AC0, -1, FP, "Load return address"));
     m_instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
@@ -67,7 +67,7 @@ void CodeGen::generateInputb()
     m_instructions.push_back(Instruction::Comment("FUNCTION inputb"));
     m_instructions.push_back(
         Instruction::ST(AC0, -1, FP, "Store return address"));
-    m_instructions.push_back(Instruction::INB(AC0, "Grab bool input"));
+    m_instructions.push_back(Instruction::INB(RT, "Grab bool input"));
     m_instructions.push_back(
         Instruction::LD(AC0, -1, FP, "Load return address"));
     m_instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
@@ -96,7 +96,7 @@ void CodeGen::generateInputc()
     m_instructions.push_back(Instruction::Comment("FUNCTION inputc"));
     m_instructions.push_back(
         Instruction::ST(AC0, -1, FP, "Store return address"));
-    m_instructions.push_back(Instruction::INC(AC0, "Grab char input"));
+    m_instructions.push_back(Instruction::INC(RT, "Grab char input"));
     m_instructions.push_back(
         Instruction::LD(AC0, -1, FP, "Load return address"));
     m_instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));

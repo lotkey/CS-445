@@ -20,10 +20,11 @@ void CodeGen::generateCode(AST::Decl::Decl* decl)
 
 void CodeGen::generateCode(AST::Decl::Func* func)
 {
+    m_instructions.push_back(Instruction::Comment());
+    enterComment("FUNCTION " + func->id());
 
     m_functionLocs.insert({func->id(), Instruction::whereAmI()});
-    m_instructions.push_back(Instruction::Comment());
-    m_instructions.push_back(Instruction::Comment("FUNCTION " + func->id()));
+    Instruction::indentComments();
     toffPush(func->memInfo().getSize());
     m_instructions.push_back(
         Instruction::ST(AC0, -1, FP, "Store return address"));
@@ -35,16 +36,14 @@ void CodeGen::generateCode(AST::Decl::Func* func)
 
     generateStandardFunctionClosing();
     toffPop();
-    m_instructions.push_back(
-        Instruction::Comment("END FUNCTION " + func->id()));
+    exitComment("FUNCTION " + func->id());
 }
 
 void CodeGen::generateCode(AST::Decl::Var* var)
 {
-    if (!var->hasMemoryInfo()) {
-        throw std::runtime_error("Variable has no memory info!");
-    }
+    enterComment("VAR DECL " + var->id());
 
+    int PTR = (var->memInfo().isInGlobalMemory()) ? GP : FP;
     if (var->isArray()) {
         m_instructions.push_back(
             Instruction::LDC(AC0,
@@ -53,18 +52,20 @@ void CodeGen::generateCode(AST::Decl::Var* var)
         m_instructions.push_back(
             Instruction::ST(AC0,
                             var->memInfo().getLocation() + 1,
-                            GP,
+                            PTR,
                             "Store size of " + var->id()));
     }
 
     if (var->isInitialized()) {
-        generateCode(var->initValue()->cast<AST::Exp::Const*>());
+        generateCode(var->initValue());
         if (!var->initValue()->isArray()) {
             m_instructions.push_back(
                 Instruction::ST(AC0,
                                 var->memInfo().getLocation(),
-                                GP,
+                                PTR,
                                 "Store variable " + var->id()));
         }
     }
+
+    exitComment("VAR DECL " + var->id());
 }

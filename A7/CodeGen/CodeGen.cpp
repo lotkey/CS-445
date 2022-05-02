@@ -44,11 +44,11 @@ void CodeGen::generateCode()
     m_instructions.push_back(
         Instruction::Comment("START User-declared functions"));
 
-    for (int i = 0; i < m_fundecls.size(); i++) {
-        auto* func = m_fundecls[i]->cast<AST::Decl::Func*>();
-        generateCode(func);
+    for (auto it = m_fundecls.rbegin(); it != m_fundecls.rend(); it++) {
+        generateCode(*it);
         m_instructions.push_back(Instruction::Comment(""));
     }
+
     generateCode(m_main->cast<AST::Decl::Func*>());
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(
@@ -97,7 +97,10 @@ void CodeGen::generatePrologCode()
     Instruction::skip(location - 1);
 
     m_instructions.push_back(
-        Instruction::LDA(FP, 0, GP, "Set first frame at end of globals"));
+        Instruction::LDA(FP,
+                         AST::MemoryInfo::globalOffset(),
+                         GP,
+                         "Set first frame at end of globals"));
     m_instructions.push_back(
         Instruction::ST(FP, 0, FP, "Store old FP (point to self)"));
     m_instructions.push_back(Instruction::Comment("START GLOBALS AND STATICS"));
@@ -129,7 +132,7 @@ void CodeGen::generateStandardFunctionClosing()
         Instruction::LDC(RT, "0", "Set return value to 0"));
     m_instructions.push_back(
         Instruction::LD(AC0, -1, FP, "Load return address"));
-    m_instructions.push_back(Instruction::LD(FP, 0, GP, "Adjust fp"));
+    m_instructions.push_back(Instruction::LD(FP, 0, FP, "Adjust fp"));
     m_instructions.push_back(Instruction::JMP(0, AC0, "Return"));
 }
 
@@ -225,3 +228,15 @@ int CodeGen::loopEndPop()
 }
 
 int CodeGen::loopEndBack() { return m_loopEnds.back(); }
+
+void CodeGen::enterComment(const std::string& comment)
+{
+    m_instructions.push_back(Instruction::Comment("START " + comment));
+    Instruction::indentComments();
+}
+
+void CodeGen::exitComment(const std::string& comment)
+{
+    Instruction::unindentComments();
+    m_instructions.push_back(Instruction::Comment("END " + comment));
+}
