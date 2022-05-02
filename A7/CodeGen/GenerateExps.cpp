@@ -123,6 +123,10 @@ void CodeGen::generateCode(AST::Exp::Op::Op* op, int AC)
         generateCode(op->cast<AST::Exp::Op::Binary*>(), AC);
         break;
     }
+    case AST::OpType::Unary: {
+        generateCode(op->cast<AST::Exp::Op::Unary*>(), AC);
+        break;
+    }
     }
 }
 

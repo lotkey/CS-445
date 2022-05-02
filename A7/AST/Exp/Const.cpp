@@ -8,7 +8,10 @@
 #include <variant>
 
 namespace AST::Exp {
-Const::Const() : Exp::Exp() { setIsConst(true); }
+Const::Const() : Exp::Exp()
+{
+    setIsConst(true);
+}
 
 Const::Const(int linenum) : Exp::Exp(linenum, ExpType::Const)
 {
@@ -21,46 +24,49 @@ Const::Const(int linenum, TypeInfo typeInfo, std::string value) :
     setTypeInfo(typeInfo);
     setIsConst(true);
     switch (type()) {
-        case Type::Bool: {
-            m_value = (value == "true");
-            break;
-        }
-        case Type::Char: {
-            if (isArray()) {
-                m_value = strutil::remove_quotes(value);
-                m_value = strutil::make_str(std::get<std::string>(m_value));
-                m_meminfo.setReferenceType(ReferenceType::Global);
-                m_meminfo.setSize(std::get<std::string>(m_value).size() + 1);
-                m_meminfo.calculateLocation();
-                m_meminfo.setLocation(m_meminfo.getLocation() - 1);
-                break;
+    case Type::Bool: {
+        m_value.b = (value == "true");
+        break;
+    }
+    case Type::Char: {
+        if (isArray()) {
+            m_value.s = strutil::remove_quotes(value);
+            m_value.s = strutil::make_str(m_value.s);
+            m_meminfo.setReferenceType(ReferenceType::Global);
+            m_meminfo.setSize(m_value.s.size() + 1);
+            m_meminfo.calculateLocation();
+            m_meminfo.setLocation(m_meminfo.getLocation() - 1);
+        } else {
+            int strlen = strutil::str_len(strutil::remove_quotes(value));
+            if (strlen == 0) {
+                Message::addSyntaxMessage(
+                    m_linenum,
+                    Message::Type::Error,
+                    "Empty character ''. Characters ignored.");
+                m_value.c = strutil::make_char(strutil::remove_quotes(value));
+            } else if (strlen > 1) {
+                Message::addSyntaxMessage(
+                    m_linenum,
+                    Message::Type::Warning,
+                    "character is %d characters long and not a single "
+                    "character: '%s'. The first char will be used.",
+                    strutil::str_len(strutil::remove_quotes(value)),
+                    value.c_str());
+                m_value.c = ' ';
             } else {
-                int strlen = strutil::str_len(strutil::remove_quotes(value));
-                if (strlen == 0) {
-                    Message::addSyntaxMessage(
-                        m_linenum,
-                        Message::Type::Error,
-                        "Empty character ''. Characters ignored.");
-                    m_value = strutil::make_char(strutil::remove_quotes(value));
-                } else if (strlen > 1) {
-                    Message::addSyntaxMessage(
-                        m_linenum,
-                        Message::Type::Warning,
-                        "character is %d characters long and not a single "
-                        "character: '%s'. The first char will be used.",
-                        strutil::str_len(strutil::remove_quotes(value)),
-                        value.c_str());
-                    m_value = ' ';
-                } else {
-                    m_value = strutil::make_char(strutil::remove_quotes(value));
-                }
-                break;
+                m_value.c = strutil::make_char(strutil::remove_quotes(value));
             }
-        };
-        case Type::Int: {
-            m_value = std::atoi(value.c_str());
-            break;
         }
+        break;
+    };
+    case Type::Int: {
+        m_value.i = std::atoi(value.c_str());
+        break;
+    }
+    default: {
+        throw std::runtime_error("No supplied type or samth");
+        break;
+    }
     };
 }
 
@@ -71,31 +77,26 @@ std::string Const::toString() const
     std::string str = "Const ";
 
     switch (type()) {
-        case Type::Int: {
-            str += std::to_string(std::get<int>(m_value));
-            break;
+    case Type::Int: {
+        str += std::to_string(m_value.i);
+        break;
+    }
+    case Type::Bool: {
+        str += (m_value.b) ? "true" : "false";
+        break;
+    }
+    case Type::Char: {
+        if (isArray()) {
+            str += "\"" + m_value.s + "\"";
+        } else {
+            str += strutil::format("'%c'", m_value.c);
         }
-        case Type::Bool: {
-            if (std::get<bool>(m_value)) {
-                str += "true";
-            } else {
-                str += "false";
-            }
-            break;
-        }
-        case Type::Char: {
-            if (isArray()) {
-                str += "\"" + std::get<std::string>(m_value) + "\"";
-                break;
-            } else {
-                str += strutil::format("'%c'", std::get<char>(m_value));
-                break;
-            }
-        }
-        default: {
-            str += std::get<std::string>(m_value);
-            break;
-        }
+        break;
+    }
+    default: {
+        str += m_value.s;
+        break;
+    }
     };
 
     return str;
@@ -104,26 +105,22 @@ std::string Const::toString() const
 std::string Const::getTmString() const
 {
     switch (type()) {
-        case Type::Int: {
-            return std::to_string(std::get<int>(m_value));
+    case Type::Int: {
+        return std::to_string(m_value.i);
+    }
+    case Type::Bool: {
+        return (m_value.b) ? "0" : "1";
+    }
+    case Type::Char: {
+        if (isArray()) {
+            return "\"" + m_value.s + "\"";
+        } else {
+            return std::to_string((int)m_value.c);
         }
-        case Type::Bool: {
-            if (std::get<bool>(m_value)) {
-                return "0";
-            } else {
-                return "1";
-            }
-        }
-        case Type::Char: {
-            if (isArray()) {
-                return "\"" + std::get<std::string>(m_value) + "\"";
-            } else {
-                return std::to_string((int)std::get<char>(m_value));
-            }
-        }
-        default: {
-            return std::get<std::string>(m_value);
-        }
+    }
+    default: {
+        return m_value.s;
+    }
     };
 }
 } // namespace AST::Exp

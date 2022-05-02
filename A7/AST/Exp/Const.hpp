@@ -22,7 +22,18 @@ class Const : public Exp {
     std::string getTmString() const;
 
   protected:
-    std::variant<int, bool, char, std::string> m_value;
+    union data {
+        int i;
+        bool b;
+        char c;
+        std::string s;
+
+        data() {}
+        ~data() {}
+    };
+
+    data m_value;
+
     std::string m_string;
 };
 } // namespace AST::Exp

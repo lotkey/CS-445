@@ -18,12 +18,11 @@ SEMCHCK_DIR = .semchck.d
 SEMCHCK_SRCS = SemanticsChecker/*.cpp
 SEMCHCK_HDRS = SemanticsChecker/*.hpp
 CODEGEN_DIR = .codegen.d
-CODEGEN_SRC = CodeGen/*.cpp
+CODEGEN_SRCS = CodeGen/*.cpp
 CODEGEN_HDRS = CodeGen/*.hpp
-IO_TM_CODE = CodeGen/ioTmCode.tm
 
-SRCS = $(BIN).y $(BIN).l $(AST_SRCS) $(OPTIONS_SRCS) $(SYMTBL_SRCS) $(SEMCHCK_SRCS) strutil.cpp
-HDRS = $(AST_HDRS) $(OPTIONS_HDRS) $(SYMTBL_HDRS) $(SEMCHCK_HDRS) strutil.hpp scanType.hpp
+SRCS = $(BIN).y $(BIN).l $(AST_SRCS) $(OPTIONS_SRCS) $(SYMTBL_SRCS) $(SEMCHCK_SRCS) $(CODEGEN_SRCS) strutil.cpp
+HDRS = $(AST_HDRS) $(OPTIONS_HDRS) $(SYMTBL_HDRS) $(SEMCHCK_HDRS) $(CODEGEN_HDRS) strutil.hpp scanType.hpp
 OBJS = lex.yy.o $(BIN).tab.o
 
 
@@ -72,7 +71,7 @@ $(SEMCHCK_DIR):
 
 $(CODEGEN_DIR):
 	@echo ${GREEN}"Compiling CodeGen..."${NC}
-	@$(CC) -c $(CODEGEN_SRC)
+	@$(CC) -c $(CODEGEN_SRCS)
 	@echo ${GREEN}"Finished compiling CodeGen."${NC}
 	@mkdir $(CODEGEN_DIR)
 
@@ -84,4 +83,4 @@ clean :
 	@echo ${GREEN}"Finished cleaning."${NC}
 
 tar : $(HDR) $(SRCS) makefile
-	@tar -cvf $(BIN).tar $(HDRS) $(SRCS) $(IO_TM_CODE) makefile
+	@tar -cvf $(BIN).tar $(HDRS) $(SRCS) makefile

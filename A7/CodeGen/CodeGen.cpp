@@ -86,9 +86,16 @@ void CodeGen::generateCode(AST::Node* node)
 
 void CodeGen::generatePrologCode()
 {
+    int location = Instruction::whereAmI();
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(Instruction::Comment("START INIT"));
     m_instructions.push_back(Instruction::Comment());
+
+    Instruction::skip(-location);
+    m_instructions.push_back(
+        Instruction::JMP(location - 1, PC, "Jump to init [backpatch]"));
+    Instruction::skip(location - 1);
+
     m_instructions.push_back(
         Instruction::LDA(FP, 0, GP, "Set first frame at end of globals"));
     m_instructions.push_back(
@@ -104,10 +111,10 @@ void CodeGen::generatePrologCode()
 
     m_instructions.push_back(
         Instruction::LDA(AC0, 1, PC, "Return address in AC"));
-    int location = Instruction::whereAmI();
+    location = Instruction::whereAmI();
     location -= m_functionLocs.at("main");
-    location--;
-    m_instructions.push_back(Instruction::JMP(PC, location, "Jump to main"));
+    location++;
+    m_instructions.push_back(Instruction::JMP(-location, PC, "Jump to main"));
     m_instructions.push_back(Instruction::HALT("DONE!"));
     m_instructions.push_back(Instruction::Comment());
     m_instructions.push_back(Instruction::Comment("END INIT"));

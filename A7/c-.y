@@ -740,8 +740,11 @@ int main(int argc, char *argv[])
             }
 
             if (Message::numberOf(Message::Type::Error) == 0) {
+                std::string filename = options.file().value();
+                filename = filename.substr(0, filename.find_last_of('.'));
+                filename += ".tm";
                 CodeGen cgen(tree_root);
-                cgen.generate("./test.tm");
+                cgen.generate(filename);
             }
 
             Message::printCounts();
