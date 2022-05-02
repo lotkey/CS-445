@@ -292,12 +292,14 @@ void CodeGen::generateCodeModifyAsgn(AST::Exp::Op::Asgn* op, int AC)
     auto* rhs = op->exp();
     auto* lhs = op->mutableExp();
 
-    bool lhsIsArray =
+    bool lhsIsArrayElement =
         lhs->is(AST::ExpType::Op) &&
         lhs->cast<AST::Exp::Op::Op*>()->is(AST::OpType::Binary) &&
         lhs->cast<AST::Exp::Op::Binary*>()->is(AST::BinaryOpType::Index);
+    bool lhsIsArray =
+        lhs->is(AST::ExpType::Id) && lhs->cast<AST::Exp::Id*>()->isArray();
 
-    if (lhsIsArray) {
+    if (lhsIsArrayElement) {
         auto* indexOp = lhs->cast<AST::Exp::Op::Binary*>();
         auto* array = indexOp->exp1()->cast<AST::Exp::Id*>();
         auto* index = indexOp->exp2()->cast<AST::Exp::Exp*>();
@@ -347,6 +349,28 @@ void CodeGen::generateCodeModifyAsgn(AST::Exp::Op::Asgn* op, int AC)
 
         m_instructions.push_back(
             Instruction::ST(AC0, 0, AC2, "Store variable " + array->id()));
+    } else if (lhsIsArray) {
+        auto* lhs_array = lhs->cast<AST::Exp::Id*>();
+        auto* rhs_array = rhs->cast<AST::Exp::Id*>();
+        int PTR1 = (lhs_array->memInfo().isInGlobalMemory()) ? GP : FP;
+        int PTR2 = (rhs_array->memInfo().isInGlobalMemory()) ? GP : FP;
+        m_instructions.push_back(Instruction::LDA(
+            AC0,
+            rhs_array->memInfo().getLocation(),
+            PTR2,
+            "Load address of base of array " + rhs_array->id()));
+        m_instructions.push_back(
+            Instruction::LDA(AC1,
+                             lhs_array->memInfo().getLocation(),
+                             PTR1,
+                             "Load address of lhs"));
+        m_instructions.push_back(Instruction::LD(AC2, 1, AC0, "Size of rhs"));
+        m_instructions.push_back(Instruction::LD(AC3, 1, AC1, "Size of lhs"));
+        m_instructions.push_back(
+            Instruction::SWP(AC2, AC3, "Pick smallest size"));
+        m_instructions.push_back(
+            Instruction::MOV(AC1, AC0, AC2, "Array op <-"));
+
     } else {
         auto* id = lhs->cast<AST::Exp::Id*>();
         int PTR = (id->memInfo().isInGlobalMemory()) ? GP : FP;
@@ -404,6 +428,8 @@ void CodeGen::generateCodeIndexOp(AST::Exp::Op::Binary* op, int AC)
 
 void CodeGen::generateCode(AST::Exp::Op::Bool* op, int AC)
 {
+    if (op->exp1()->isArray()) { return generateCodeArrayBool(op, AC); }
+
     int PTR1 = (op->exp1()->memInfo().isInGlobalMemory()) ? GP : FP;
     int PTR2 = (op->exp2()->memInfo().isInGlobalMemory()) ? GP : FP;
     generateCode(op->exp1(), AC0);
@@ -482,6 +508,70 @@ void CodeGen::generateCodeBinaryMathop(AST::Exp::Op::Binary* op, int AC)
     }
     case AST::BinaryOpType::Subtract: {
         m_instructions.push_back(Instruction::SUB(AC0, AC1, AC0, "Op -"));
+        break;
+    }
+    }
+}
+
+void CodeGen::generateCodeArrayBool(AST::Exp::Op::Bool* op, int AC)
+{
+    auto* lhs = op->exp1()->cast<AST::Exp::Id*>();
+    auto* rhs = op->exp2()->cast<AST::Exp::Id*>();
+    int PTR1 = (lhs->memInfo().isInGlobalMemory()) ? GP : FP;
+    int PTR2 = (rhs->memInfo().isInGlobalMemory()) ? GP : FP;
+
+    m_instructions.push_back(
+        Instruction::LDA(AC0,
+                         lhs->memInfo().getLocation(),
+                         PTR1,
+                         "Load address of base of array " + lhs->id()));
+    m_instructions.push_back(
+        Instruction::ST(AC0, toffBack(), FP, "Push left side"));
+    toffDec();
+    m_instructions.push_back(
+        Instruction::LDA(AC0,
+                         rhs->memInfo().getLocation(),
+                         PTR2,
+                         "Load address of base of array " + rhs->id()));
+    toffInc();
+    m_instructions.push_back(
+        Instruction::LD(AC1, toffBack(), FP, "Pop left into AC1"));
+    m_instructions.push_back(Instruction::LD(AC2, 1, AC0, "AC2 <- |RHS|"));
+    m_instructions.push_back(Instruction::LD(AC3, 1, AC1, "AC3 <- |LHS|"));
+    m_instructions.push_back(Instruction::LDA(RT, 0, AC2, "R2 <- |RHS|"));
+    m_instructions.push_back(Instruction::SWP(AC2, AC3, "Pick smallest size"));
+    m_instructions.push_back(Instruction::LD(AC3, 1, AC1, "AC3 <- |LHS|"));
+    m_instructions.push_back(
+        Instruction::CO(AC1, AC0, AC2, "Set up array compare LHS vs RHS"));
+    m_instructions.push_back(
+        Instruction::TNE(AC2, AC1, AC0, "If not equal then test (AC1, AC0)"));
+    m_instructions.push_back(Instruction::JNZ(AC2, RT, PC, "Jump not equal"));
+    m_instructions.push_back(Instruction::LDA(AC0, 0, RT, "AC1 <- |RHS|"));
+    m_instructions.push_back(Instruction::LDA(AC1, 0, AC3, "AC0 <- |LHS|"));
+
+    switch (op->boolOpType()) {
+    case AST::BoolOpType::EQ: {
+        m_instructions.push_back(Instruction::TEQ(AC0, AC1, AC0, "Op ="));
+        break;
+    }
+    case AST::BoolOpType::NEQ: {
+        m_instructions.push_back(Instruction::TNE(AC0, AC1, AC0, "Op !="));
+        break;
+    }
+    case AST::BoolOpType::GT: {
+        m_instructions.push_back(Instruction::TGT(AC0, AC1, AC0, "Op >"));
+        break;
+    }
+    case AST::BoolOpType::LT: {
+        m_instructions.push_back(Instruction::TLT(AC0, AC1, AC0, "Op <"));
+        break;
+    }
+    case AST::BoolOpType::GEQ: {
+        m_instructions.push_back(Instruction::TGE(AC0, AC1, AC0, "Op >="));
+        break;
+    }
+    case AST::BoolOpType::LEQ: {
+        m_instructions.push_back(Instruction::TLE(AC0, AC1, AC0, "Op <="));
         break;
     }
     }

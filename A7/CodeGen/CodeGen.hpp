@@ -28,6 +28,7 @@ class CodeGen {
     static std::map<std::string, int> s_labelCounts;
 
     std::vector<int> m_toffs;
+    std::vector<int> m_loopEnds;
     std::map<std::string, int> m_functionLocs;
     std::vector<AST::Node*> m_fundecls;
     std::vector<AST::Node*> m_globaldecls;
@@ -46,6 +47,9 @@ class CodeGen {
     void generateCode(AST::Stmt::Compound*);
     void generateCode(AST::Stmt::For*);
     void generateCode(AST::Stmt::Return*);
+    void generateCode(AST::Stmt::While*);
+    void generateCode(AST::Stmt::Break*);
+    void generateCode(AST::Stmt::Select*);
 
     void generateCode(AST::Exp::Exp*, int AC = AC0);
     void generateCode(AST::Exp::Const*, int AC = AC0);
@@ -60,6 +64,7 @@ class CodeGen {
     void generateCodeModifyAsgn(AST::Exp::Op::Asgn*, int AC = AC0);
     void generateCodeIndexOp(AST::Exp::Op::Binary*, int AC = AC0);
     void generateCode(AST::Exp::Op::Bool*, int AC = AC0);
+    void generateCodeArrayBool(AST::Exp::Op::Bool*, int AC = AC0);
 
     void generatePrologCode();
     void generateIoCode();
@@ -79,4 +84,8 @@ class CodeGen {
     void toffInc();
     void toffDec();
     void toffSet(int toff);
+
+    void loopEndPush(int instructionNumber);
+    int loopEndPop();
+    int loopEndBack();
 };

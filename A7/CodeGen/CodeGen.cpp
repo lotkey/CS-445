@@ -67,18 +67,18 @@ void CodeGen::generateCode(AST::Node* node)
     }
     case AST::NodeType::Stmt: {
         generateCode(node->cast<AST::Stmt::Stmt*>());
-        for (auto* ptr = node->sibling(); ptr != nullptr;
-             ptr = ptr->sibling()) {
-            generateCode(ptr);
-        }
+        // for (auto* ptr = node->sibling(); ptr != nullptr;
+        //      ptr = ptr->sibling()) {
+        //     generateCode(ptr);
+        // }
         break;
     }
     case AST::NodeType::Exp: {
         generateCode(node->cast<AST::Exp::Exp*>());
-        for (auto* ptr = node->sibling(); ptr != nullptr;
-             ptr = ptr->sibling()) {
-            generateCode(ptr);
-        }
+        // for (auto* ptr = node->sibling(); ptr != nullptr;
+        //      ptr = ptr->sibling()) {
+        //     generateCode(ptr);
+        // }
         break;
     }
     }
@@ -204,3 +204,17 @@ void CodeGen::toffSet(int toff)
     toffPop();
     toffPush(toff);
 }
+
+void CodeGen::loopEndPush(int instructionNumber)
+{
+    m_loopEnds.push_back(instructionNumber);
+}
+
+int CodeGen::loopEndPop()
+{
+    auto end = loopEndBack();
+    m_loopEnds.pop_back();
+    return end;
+}
+
+int CodeGen::loopEndBack() { return m_loopEnds.back(); }
